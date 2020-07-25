@@ -2,7 +2,22 @@ import tkinter as tk
 import pyautogui
 from PIL import ImageTk
 import datetime
+class ScreenshotEditor():
+    def __init__(self):
+        self.screenshot = tk.Toplevel(root)
+        self.screenshot.withdraw()
+        
+        self.screenshot_frame = tk.Frame(self.screenshot)
+        self.screenshot_frame.pack(expand=True)
+        
+    def create_screenshot_canvas(self, img):
+        self.screenshot.deiconify()
+        root.withdraw()
 
+        self.canvas1 = tk.Canvas(self.screenshot_frame, width=img.width(), height = img.height(),borderwidth = 0, highlightthickness = 0 )
+        self.canvas1.pack(expand=tk.YES)
+        self.canvas1.create_image(0, 0, image = img, anchor = tk.NW)
+        self.canvas1.img = img
 class Application():
     def __init__(self, master):
         self.master = master
@@ -27,32 +42,19 @@ class Application():
 
         self.snip_button = tk.Button(self.button_bar, width=3, command=self.create_screen_canvas, background="green")
         self.snip_button.pack(expand=tk.YES)
-        
-        self.screenshot = tk.Toplevel(root)
-        self.screenshot.withdraw()
-        self.screenshot_frame = tk.Frame(self.screenshot)
-        self.screenshot_frame.pack(expand=True)
 
         self.master_screen = tk.Toplevel(root)
         self.master_screen.withdraw()
         self.master_screen.attributes("-transparent", "blue")
         self.picture_frame = tk.Frame(self.master_screen, background = "blue")
         self.picture_frame.pack(fill=tk.BOTH, expand=tk.YES)
-
-    def create_screenshot_canvas(self, img):
-        self.screenshot.deiconify()
-        root.withdraw()
-
-        self.canvas1 = tk.Canvas(self.screenshot_frame, width=img.width(), height = img.height(),borderwidth = 0, highlightthickness = 0 )
-        self.canvas1.pack(expand=tk.YES)
-        self.canvas1.create_image(0, 0, image = img, anchor = tk.NW)
-        self.canvas1.img = img
         
     def take_bounded_screenshot(self, x1, y1, x2, y2):
         im = pyautogui.screenshot(region=(x1, y1, x2, y2))
         img = ImageTk.PhotoImage(im)
-        x = datetime.datetime.now()
-        self.create_screenshot_canvas(img)
+        
+        self.screenshot_editor = ScreenshotEditor()
+        self.screenshot_editor.create_screenshot_canvas(img)
         # fileName = x.strftime("%f")
         # im.save(fileName + ".png")
 
@@ -126,3 +128,4 @@ if __name__ == '__main__':
     root = tk.Tk()
     app = Application(root)
     root.mainloop() 
+    
