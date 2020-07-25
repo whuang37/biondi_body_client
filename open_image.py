@@ -75,7 +75,10 @@ class Zoom(ttk.Frame):
         ''' Drag (move) canvas to the new position '''
         self.canvas.scan_dragto(event.x, event.y, gain=1)
         self.show_image()  # redraw the image
+<<<<<<< HEAD
         #fuck
+=======
+>>>>>>> 0af7e75580b7b18d7eb281e5a1b61ba416bbb018
 
     def wheel(self, event):
         ''' Zoom with mouse wheel '''
@@ -134,7 +137,11 @@ class Zoom(ttk.Frame):
 def open_image():
     path = filedialog.askopenfilename()
     i = Zoom(root, path=path)
+<<<<<<< HEAD
 
+=======
+    # i.pack(fill=BOTH, expand=YES)
+>>>>>>> 0af7e75580b7b18d7eb281e5a1b61ba416bbb018
 
 root = tk.Tk()
 find_image_button = tk.Button(root, text="Pick Image File", command = open_image)
