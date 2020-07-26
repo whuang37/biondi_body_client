@@ -3,28 +3,35 @@ import tkinter as tk
 import pyautogui
 from PIL import ImageTk
 from tkinter.colorchooser import askcolor
-import datetime
 
 class Toolbar(): 
-    
-    DEFAULT_COLOR = 'black'
+    counter=  1
+    DEFAULT_COLOR = 'white'
     def __init__(self, master, canvas):
         self.canvas = canvas
+        self.counter = 1
+        self.undone = []
         self.brush_button = tk.Button(master, text = "brush", command = self.use_brush)
         self.color_button = tk.Button(master, text = 'color', command = self.choose_color)
-        self.brush_button.grid(row=0, column = 0)
-        self.color_button.grid(row=0, column = 1)
+        self.undo_button = tk.Button(master, text = 'undo', command = self.undo)
+        self.redo_button = tk.Button(master, text = 'redo', command = self.redo)
+        self.brush_button.grid(row = 0, column = 0)
+        self.color_button.grid(row = 0, column = 1)
+        self.undo_button.grid(row = 0, column = 2)
+        self.redo_button.grid(row = 0, column = 3)
         self.setup()
         
+        
+    
     def setup(self):
         self.old_x = None
         self.old_y = None
         self.line_width = 5
         self.color = self.DEFAULT_COLOR
-        self.eraser_on = False
         self.active_button = self.brush_button
         self.canvas.bind('<B1-Motion>', self.paint)
         self.canvas.bind('<ButtonRelease-1>', self.reset)
+        self.canvas.bind('<Control-z>', self.undo_bind)
         
     def use_brush(self):
         self.activate_button(self.brush_button)
@@ -37,18 +44,39 @@ class Toolbar():
         some_button.config(relief= SUNKEN)
         self.active_button = some_button
         
+
     def paint(self, event):
         self.line_width = 5
-        paint_color = self.color
         if self.old_x and self.old_y:
             self.canvas.create_line(self.old_x, self.old_y, event.x, event.y, 
-                                    width = self.line_width, fill = paint_color, 
-                                    capstyle = ROUND, smooth = TRUE, splinesteps = 36)
+                                    width = self.line_width, fill = self.color, 
+                                    capstyle = ROUND, smooth = TRUE, splinesteps = 36, tag=['line' + str(self.counter)])
         self.old_x = event.x
         self.old_y = event.y
         
+    def undo(self):
+        self.counter -= 1
+        currentundone = []
+        for item in self.canvas.find_withtag('line'+str(self.counter)):
+            currentundone.append(self.canvas.coords(item))
+        self.canvas.delete('line'+str(self.counter))
+        self.undone.append(currentundone)
+        
+    def undo_bind(self, event):
+        self.undo()
+        
+    def redo(self):
+        try:
+            currentundone = self.undone.pop()
+            for coords in currentundone:
+                self.canvas.create_line(coords, width = self.line_width, fill = self.color, 
+                                    capstyle = ROUND, smooth = TRUE, splinesteps = 36, tag=['line' + str(self.counter)])
+            self.counter += 1
+        except IndexError:
+            pass
     def reset(self, event):
         self.old_x, self.old_y = None, None
+        self.counter += 1
 class ScreenshotEditor(tk.Frame):
     def __init__(self):
         self.screenshot = tk.Toplevel(root)
@@ -72,6 +100,7 @@ class ScreenshotEditor(tk.Frame):
         self.canvas1.create_image(0, 0, image = img, anchor = tk.NW)
         self.canvas1.img = img
         self.my_toolbar = Toolbar(self.toolbar, self.canvas1)
+        Tk.focus_set(self.canvas1)
 
 
 class Application(tk.Frame):
