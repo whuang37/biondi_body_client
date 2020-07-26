@@ -1,25 +1,82 @@
+from tkinter import *
 import tkinter as tk
 import pyautogui
 from PIL import ImageTk
+from tkinter.colorchooser import askcolor
 import datetime
-class ScreenshotEditor():
+
+class Toolbar(): 
+    
+    DEFAULT_COLOR = 'black'
+    def __init__(self, master, canvas):
+        self.canvas = canvas
+        self.brush_button = tk.Button(master, text = "brush", command = self.use_brush)
+        self.color_button = tk.Button(master, text = 'color', command = self.choose_color)
+        self.brush_button.grid(row=0, column = 0)
+        self.color_button.grid(row=0, column = 1)
+        self.setup()
+        
+    def setup(self):
+        self.old_x = None
+        self.old_y = None
+        self.line_width = 5
+        self.color = self.DEFAULT_COLOR
+        self.eraser_on = False
+        self.active_button = self.brush_button
+        self.canvas.bind('<B1-Motion>', self.paint)
+        self.canvas.bind('<ButtonRelease-1>', self.reset)
+        
+    def use_brush(self):
+        self.activate_button(self.brush_button)
+        
+    def choose_color(self):
+        self.color = askcolor(color = self.color)[1]
+        
+    def activate_button(self, some_button):
+        self.active_button.config(relief= RAISED)
+        some_button.config(relief= SUNKEN)
+        self.active_button = some_button
+        
+    def paint(self, event):
+        self.line_width = 5
+        paint_color = self.color
+        if self.old_x and self.old_y:
+            self.canvas.create_line(self.old_x, self.old_y, event.x, event.y, 
+                                    width = self.line_width, fill = paint_color, 
+                                    capstyle = ROUND, smooth = TRUE, splinesteps = 36)
+        self.old_x = event.x
+        self.old_y = event.y
+        
+    def reset(self, event):
+        self.old_x, self.old_y = None, None
+class ScreenshotEditor(tk.Frame):
     def __init__(self):
         self.screenshot = tk.Toplevel(root)
         self.screenshot.withdraw()
+
+        self.toolbar = tk.Frame(self.screenshot)
+        self.toolbar.grid(row=0, column = 0)
         
+        #self.my_toolbar = Toolbar(self.toolbar, self.canvas1)
         self.screenshot_frame = tk.Frame(self.screenshot)
-        self.screenshot_frame.pack(expand=True)
-        
+        self.screenshot_frame.grid(row = 1, column = 0)
+
     def create_screenshot_canvas(self, img):
+        
         self.screenshot.deiconify()
         root.withdraw()
 
-        self.canvas1 = tk.Canvas(self.screenshot_frame, width=img.width(), height = img.height(),borderwidth = 0, highlightthickness = 0 )
+        self.canvas1 = tk.Canvas(self.screenshot_frame, width=img.width(), height = img.height(),
+                                    borderwidth = 0, highlightthickness = 0)
         self.canvas1.pack(expand=tk.YES)
         self.canvas1.create_image(0, 0, image = img, anchor = tk.NW)
         self.canvas1.img = img
-class Application():
-    def __init__(self, master):
+        self.my_toolbar = Toolbar(self.toolbar, self.canvas1)
+
+
+class Application(tk.Frame):
+    def __init__(self, master, *args, **kwargs):
+        super().__init__(master, *args, **kwargs)
         self.master = master
         self.rect = None
         self.x = self.y = 0
