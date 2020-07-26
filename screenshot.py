@@ -26,7 +26,7 @@ class Toolbar():
         self.text_button.grid(row = 0 , column = 4)
         self.setup()
         
-        self.canvas.create_text(50, 50, text = "text right here please look", anchor = NW, fill = 'white', tag ="text")
+        self.canvas.create_text(50, 50, text = "text right here please look", font =("Calibri", 14), anchor = NW, fill = 'white', tag ="text")
     
     def setup(self):
         self.old_x = None
@@ -62,19 +62,19 @@ class Toolbar():
     def text(self):
         if self.text_button['text'] == 'top-left':
             self.canvas.delete('text')
-            self.canvas.create_text(self.width - 50, 50, text = "text right here please look", anchor = NE, fill = 'white', tag ="text")
+            self.canvas.create_text(self.width - 50, 50, text = "text right here please look", font =("Calibri", 14), anchor = NE, fill = 'white', tag ="text")
             self.text_button.configure(text='top-right')
         elif self.text_button['text'] == 'top-right':
             self.canvas.delete('text')
-            self.canvas.create_text(50, self.height - 50, text = "text right here please look", anchor = SW, fill = 'white', tag ="text")
+            self.canvas.create_text(50, self.height - 50, text = "text right here please look", font =("Calibri", 14), anchor = SW, fill = 'white', tag ="text")
             self.text_button.configure(text='bottom-left')
         elif self.text_button['text'] == 'bottom-left':
             self.canvas.delete('text')
-            self.canvas.create_text(self.width - 50, self.height - 50, text = "text right here please look", anchor = SE, fill = 'white', tag ="text")
+            self.canvas.create_text(self.width - 50, self.height - 50, text = "text right here please look", font =("Calibri", 14), anchor = SE, fill = 'white', tag ="text")
             self.text_button.configure(text='bottom-right')
         elif self.text_button['text'] == 'bottom-right':
             self.canvas.delete('text')
-            self.canvas.create_text(50, 50, text = "text right here please look", anchor = NW, fill = 'white', tag ="text")
+            self.canvas.create_text(50, 50, text = "text right here please look", font =("Calibri", 14), anchor = NW, fill = 'white', tag ="text")
             self.text_button.configure(text='top-left')
             
     def undo(self):
@@ -88,7 +88,7 @@ class Toolbar():
     def undo_bind(self, event):
         self.undo()
         
-    def redo(self):
+    def redo(self): #redoes in new color not old color
         try:
             currentundone = self.undone.pop()
             for coords in currentundone:
