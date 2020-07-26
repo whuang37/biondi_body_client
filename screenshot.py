@@ -7,21 +7,26 @@ from tkinter.colorchooser import askcolor
 class Toolbar(): 
     counter=  1
     DEFAULT_COLOR = 'white'
-    def __init__(self, master, canvas):
+    def __init__(self, master, canvas, h , w):
+        self.height = h
+        self.width = w
         self.canvas = canvas
         self.counter = 1
         self.undone = []
+        
         self.brush_button = tk.Button(master, text = "brush", command = self.use_brush)
         self.color_button = tk.Button(master, text = 'color', command = self.choose_color)
         self.undo_button = tk.Button(master, text = 'undo', command = self.undo)
         self.redo_button = tk.Button(master, text = 'redo', command = self.redo)
+        self.text_button = tk.Button(master, text = "top-left", command = self.text)
         self.brush_button.grid(row = 0, column = 0)
         self.color_button.grid(row = 0, column = 1)
         self.undo_button.grid(row = 0, column = 2)
         self.redo_button.grid(row = 0, column = 3)
+        self.text_button.grid(row = 0 , column = 4)
         self.setup()
         
-        
+        self.canvas.create_text(50, 50, text = "text right here please look", anchor = NW, fill = 'white', tag ="text")
     
     def setup(self):
         self.old_x = None
@@ -54,6 +59,24 @@ class Toolbar():
         self.old_x = event.x
         self.old_y = event.y
         
+    def text(self):
+        if self.text_button['text'] == 'top-left':
+            self.canvas.delete('text')
+            self.canvas.create_text(self.width - 50, 50, text = "text right here please look", anchor = NE, fill = 'white', tag ="text")
+            self.text_button.configure(text='top-right')
+        elif self.text_button['text'] == 'top-right':
+            self.canvas.delete('text')
+            self.canvas.create_text(50, self.height - 50, text = "text right here please look", anchor = SW, fill = 'white', tag ="text")
+            self.text_button.configure(text='bottom-left')
+        elif self.text_button['text'] == 'bottom-left':
+            self.canvas.delete('text')
+            self.canvas.create_text(self.width - 50, self.height - 50, text = "text right here please look", anchor = SE, fill = 'white', tag ="text")
+            self.text_button.configure(text='bottom-right')
+        elif self.text_button['text'] == 'bottom-right':
+            self.canvas.delete('text')
+            self.canvas.create_text(50, 50, text = "text right here please look", anchor = NW, fill = 'white', tag ="text")
+            self.text_button.configure(text='top-left')
+            
     def undo(self):
         self.counter -= 1
         currentundone = []
@@ -82,8 +105,8 @@ class ScreenshotEditor(tk.Frame):
         self.screenshot = tk.Toplevel(root)
         self.screenshot.withdraw()
 
-        self.toolbar = tk.Frame(self.screenshot)
-        self.toolbar.grid(row=0, column = 0)
+        self.toolbar_frame = tk.Frame(self.screenshot)
+        self.toolbar_frame.grid(row=0, column = 0)
         
         #self.my_toolbar = Toolbar(self.toolbar, self.canvas1)
         self.screenshot_frame = tk.Frame(self.screenshot)
@@ -93,13 +116,14 @@ class ScreenshotEditor(tk.Frame):
         
         self.screenshot.deiconify()
         root.withdraw()
-
-        self.canvas1 = tk.Canvas(self.screenshot_frame, width=img.width(), height = img.height(),
+        width = img.width()
+        height = img.height()
+        self.canvas1 = tk.Canvas(self.screenshot_frame, width = width, height = height,
                                     borderwidth = 0, highlightthickness = 0)
         self.canvas1.pack(expand=tk.YES)
         self.canvas1.create_image(0, 0, image = img, anchor = tk.NW)
         self.canvas1.img = img
-        self.my_toolbar = Toolbar(self.toolbar, self.canvas1)
+        self.my_toolbar = Toolbar(self.toolbar_frame, self.canvas1, height, width)
         Tk.focus_set(self.canvas1)
 
 
