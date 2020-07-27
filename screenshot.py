@@ -1,16 +1,22 @@
 from tkinter import *
 import tkinter as tk
 import pyautogui
-from PIL import ImageTk
+from PIL import ImageTk, Image, ImageDraw, ImageFont
 from tkinter.colorchooser import askcolor
 class Toolbar(): # creates the toolbar and its related functions
     counter=  1
     DEFAULT_COLOR = 'white'
-    def __init__(self, master, canvas, h , w):
+    def __init__(self, master, canvas, im, h , w):
         self.height = h
         self.width = w
-        self.x_margin = .05 * self.width
-        self.y_margin = .05 * self.height # variables used for text placement
+        if self.width > self.height:
+            self.margin = .05 * self.height
+        else:
+            self.margin = .05 * self.width
+        
+        self.im = im
+        self.annotation = Image.new("RGBA", (self.width, self.height))
+        self.draw = ImageDraw.Draw(self.annotation)
         
         self.canvas = canvas
         self.counter = 1
@@ -21,15 +27,17 @@ class Toolbar(): # creates the toolbar and its related functions
         self.undo_button = tk.Button(master, text = 'undo', command = self.undo)
         self.redo_button = tk.Button(master, text = 'redo', command = self.redo)
         self.text_button = tk.Button(master, text = "top-left", command = self.text)
+        self.save_button = tk.Button(master, text = 'save', command = self.save)
         self.brush_button.grid(row = 0, column = 0)
         self.color_button.grid(row = 0, column = 1)
         self.undo_button.grid(row = 0, column = 2)
         self.redo_button.grid(row = 0, column = 3)
         self.text_button.grid(row = 0 , column = 4)
+        self.save_button.grid(row = 0 , column = 5)
         self.setup()
         
-        self.canvas.create_text(self.x_margin, self.y_margin, text = "text right here please look", 
-                                font =("Calibri", 14), anchor = NW, fill = 'white', tag ="text") # creates image location
+        self.canvas.create_text(self.margin, self.margin, text = "text right here please look", 
+                                font =("Calibri", 14), anchor = NW, fill = 'white', tag ="text") # creates text location
         
     
     def setup(self):
@@ -61,31 +69,34 @@ class Toolbar(): # creates the toolbar and its related functions
                                     width = self.line_width, fill = self.color, 
                                     capstyle = ROUND, smooth = TRUE, splinesteps = 36, 
                                     tag=['line' + str(self.counter)])
+            self.draw.line((self.old_x, self.old_y, event.x, event.y), fill = self.color, 
+                            width = self.line_width, joint = "curve")
         self.old_x = event.x
         self.old_y = event.y
         
+    def reset(self, event): # resets coordinates to create a new line
+        self.old_x, self.old_y = None, None
+        self.counter += 1
+        
     def text(self): # moves text around
         if self.text_button['text'] == 'top-left':
-            self.canvas.delete('text')
-            self.canvas.create_text(self.width - self.x_margin, self.y_margin, text = "text right here please look", 
-                                    font =("Calibri", 14), anchor = NE, fill = 'white', tag ="text")
+            self.text_position(self.width - self.margin, self.margin, NE)
             self.text_button.configure(text='top-right')
         elif self.text_button['text'] == 'top-right':
-            self.canvas.delete('text')
-            self.canvas.create_text(self.x_margin, self.height - self.y_margin, text = "text right here please look", 
-                                    font =("Calibri", 14), anchor = SW, fill = 'white', tag ="text")
+            self.text_position(self.margin, self.height - self.margin, SW)
             self.text_button.configure(text='bottom-left')
         elif self.text_button['text'] == 'bottom-left':
-            self.canvas.delete('text')
-            self.canvas.create_text(self.width - self.x_margin, self.height - self.y_margin, text = "text right here please look", 
-                                    font =("Calibri", 14), anchor = SE, fill = 'white', tag ="text")
+            self.text_position(self.width - self.margin, self.height - self.margin, SE)
             self.text_button.configure(text='bottom-right')
         elif self.text_button['text'] == 'bottom-right':
-            self.canvas.delete('text')
-            self.canvas.create_text(self.x_margin, self.y_margin, text = "text right here please look", 
-                                    font =("Calibri", 14), anchor = NW, fill = 'white', tag ="text")
+            self.text_position(self.margin, self.margin, NW)
             self.text_button.configure(text='top-left')
             
+    def text_position(self, x, y, position):
+        self.canvas.delete('text')
+        self.canvas.create_text(x, y, text = "text right here please look", 
+                                font =("Calibri", 14), anchor = position, 
+                                fill = 'white', tag ="text")
     def undo(self): 
         self.counter -= 1
         currentundone = []
@@ -107,12 +118,19 @@ class Toolbar(): # creates the toolbar and its related functions
         except IndexError:
             pass # passes if no more objects are in array
         
-    def reset(self, event): # resets coordinates to create a new line
-        self.old_x, self.old_y = None, None
-        self.counter += 1
+    def save(self):
+        self.font = ImageFont.truetype("calibri.ttf", 14)
+        bounds = self.canvas.bbox("text")
+        self.draw.text((bounds[0], bounds[1]), fill = 'white', 
+                        font = self.font, anchor = NE, text = "text right here please look")
+        filename = 'myfile.png'
+        self.annotation.save(filename)
+        filename2='screenshot.png'
+        self.im.save(filename2)
+        print(self.canvas.coords("text"))
 class ScreenshotEditor(tk.Frame):
     def __init__(self):
-        self.screenshot = tk.Toplevel(root)
+        self.screenshot = tk.Toplevel()
         self.screenshot.withdraw()
 
         self.toolbar_frame = tk.Frame(self.screenshot)
@@ -121,20 +139,20 @@ class ScreenshotEditor(tk.Frame):
         self.screenshot_frame = tk.Frame(self.screenshot)
         self.screenshot_frame.grid(row = 1, column = 0)
 
-    def create_screenshot_canvas(self, img):
+    def create_screenshot_canvas(self, im):
         
         self.screenshot.deiconify()
         root.withdraw()
+        img = ImageTk.PhotoImage(im)
         width = img.width()
         height = img.height()
+        
         self.canvas1 = tk.Canvas(self.screenshot_frame, width = width, height = height,
                                     borderwidth = 0, highlightthickness = 0)
-        self.canvas2 = self.canvas1
         self.canvas1.pack(expand=tk.YES)
-        self.canvas1.create_image(0, 0, image = img, anchor = tk.NW)
+        self.canvas1.create_image(0, 0, image = img, anchor = NW)
         self.canvas1.img = img
-        self.canvas2 = self.canvas1 # creates a new canvas to save the annotations on
-        self.my_toolbar = Toolbar(self.toolbar_frame, self.canvas2, height, width)
+        self.my_toolbar = Toolbar(self.toolbar_frame, self.canvas1, im, height, width)
         Tk.focus_set(self.canvas1)
 
 
@@ -169,10 +187,9 @@ class Application(tk.Frame):
         
     def take_bounded_screenshot(self, x1, y1, x2, y2):
         im = pyautogui.screenshot(region=(x1, y1, x2, y2))
-        img = ImageTk.PhotoImage(im)
         
         self.screenshot_editor = ScreenshotEditor()
-        self.screenshot_editor.create_screenshot_canvas(img)
+        self.screenshot_editor.create_screenshot_canvas(im)
         # fileName = x.strftime("%f")
         # im.save(fileName + ".png")
 
