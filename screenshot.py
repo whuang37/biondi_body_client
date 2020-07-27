@@ -9,14 +9,14 @@ class Toolbar(): # creates the toolbar and its related functions
     def __init__(self, master, canvas, im, h , w):
         self.height = h
         self.width = w
-        if self.width > self.height:
+        if self.width > self.height: # find the appropriate margin for the text
             self.margin = .05 * self.height
         else:
             self.margin = .05 * self.width
         
         self.im = im
         self.annotation = Image.new("RGBA", (self.width, self.height))
-        self.draw = ImageDraw.Draw(self.annotation)
+        self.draw = ImageDraw.Draw(self.annotation) #initialize a pillow drawing that runs in the background for saving annotations
         
         self.canvas = canvas
         self.counter = 1
@@ -119,10 +119,10 @@ class Toolbar(): # creates the toolbar and its related functions
             pass # passes if no more objects are in array
         
     def save(self):
-        self.font = ImageFont.truetype("calibri.ttf", 14)
+        self.font = ImageFont.truetype("calibri.ttf", 14) 
         bounds = self.canvas.bbox("text")
         self.draw.text((bounds[0], bounds[1]), fill = 'white', 
-                        font = self.font, anchor = NE, text = "text right here please look")
+                        font = self.font, anchor = NE, text = "text right here please look") #takes the bottom left coordinate of text and places the text on the pillow drawing
         filename = 'myfile.png'
         self.annotation.save(filename)
         filename2='screenshot.png'
