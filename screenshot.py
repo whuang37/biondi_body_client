@@ -3,16 +3,18 @@ import tkinter as tk
 import pyautogui
 from PIL import ImageTk
 from tkinter.colorchooser import askcolor
-
-class Toolbar(): 
+class Toolbar(): # creates the toolbar and its related functions
     counter=  1
     DEFAULT_COLOR = 'white'
     def __init__(self, master, canvas, h , w):
         self.height = h
         self.width = w
+        self.x_margin = .05 * self.width
+        self.y_margin = .05 * self.height # variables used for text placement
+        
         self.canvas = canvas
         self.counter = 1
-        self.undone = []
+        self.undone = [] 
         
         self.brush_button = tk.Button(master, text = "brush", command = self.use_brush)
         self.color_button = tk.Button(master, text = 'color', command = self.choose_color)
@@ -26,7 +28,9 @@ class Toolbar():
         self.text_button.grid(row = 0 , column = 4)
         self.setup()
         
-        self.canvas.create_text(50, 50, text = "text right here please look", font =("Calibri", 14), anchor = NW, fill = 'white', tag ="text")
+        self.canvas.create_text(self.x_margin, self.y_margin, text = "text right here please look", 
+                                font =("Calibri", 14), anchor = NW, fill = 'white', tag ="text") # creates image location
+        
     
     def setup(self):
         self.old_x = None
@@ -36,7 +40,7 @@ class Toolbar():
         self.active_button = self.brush_button
         self.canvas.bind('<B1-Motion>', self.paint)
         self.canvas.bind('<ButtonRelease-1>', self.reset)
-        self.canvas.bind('<Control-z>', self.undo_bind)
+        self.canvas.bind('<Control-z>', self.undo_bind) # used for undoing potential lines drawn
         
     def use_brush(self):
         self.activate_button(self.brush_button)
@@ -44,60 +48,66 @@ class Toolbar():
     def choose_color(self):
         self.color = askcolor(color = self.color)[1]
         
-    def activate_button(self, some_button):
+    def activate_button(self, some_button): # keeps brush button sunken as its used
         self.active_button.config(relief= RAISED)
         some_button.config(relief= SUNKEN)
         self.active_button = some_button
         
 
-    def paint(self, event):
+    def paint(self, event): # creates the paint lines
         self.line_width = 5
         if self.old_x and self.old_y:
             self.canvas.create_line(self.old_x, self.old_y, event.x, event.y, 
                                     width = self.line_width, fill = self.color, 
-                                    capstyle = ROUND, smooth = TRUE, splinesteps = 36, tag=['line' + str(self.counter)])
+                                    capstyle = ROUND, smooth = TRUE, splinesteps = 36, 
+                                    tag=['line' + str(self.counter)])
         self.old_x = event.x
         self.old_y = event.y
         
-    def text(self):
+    def text(self): # moves text around
         if self.text_button['text'] == 'top-left':
             self.canvas.delete('text')
-            self.canvas.create_text(self.width - 50, 50, text = "text right here please look", font =("Calibri", 14), anchor = NE, fill = 'white', tag ="text")
+            self.canvas.create_text(self.width - self.x_margin, self.y_margin, text = "text right here please look", 
+                                    font =("Calibri", 14), anchor = NE, fill = 'white', tag ="text")
             self.text_button.configure(text='top-right')
         elif self.text_button['text'] == 'top-right':
             self.canvas.delete('text')
-            self.canvas.create_text(50, self.height - 50, text = "text right here please look", font =("Calibri", 14), anchor = SW, fill = 'white', tag ="text")
+            self.canvas.create_text(self.x_margin, self.height - self.y_margin, text = "text right here please look", 
+                                    font =("Calibri", 14), anchor = SW, fill = 'white', tag ="text")
             self.text_button.configure(text='bottom-left')
         elif self.text_button['text'] == 'bottom-left':
             self.canvas.delete('text')
-            self.canvas.create_text(self.width - 50, self.height - 50, text = "text right here please look", font =("Calibri", 14), anchor = SE, fill = 'white', tag ="text")
+            self.canvas.create_text(self.width - self.x_margin, self.height - self.y_margin, text = "text right here please look", 
+                                    font =("Calibri", 14), anchor = SE, fill = 'white', tag ="text")
             self.text_button.configure(text='bottom-right')
         elif self.text_button['text'] == 'bottom-right':
             self.canvas.delete('text')
-            self.canvas.create_text(50, 50, text = "text right here please look", font =("Calibri", 14), anchor = NW, fill = 'white', tag ="text")
+            self.canvas.create_text(self.x_margin, self.y_margin, text = "text right here please look", 
+                                    font =("Calibri", 14), anchor = NW, fill = 'white', tag ="text")
             self.text_button.configure(text='top-left')
             
-    def undo(self):
+    def undo(self): 
         self.counter -= 1
         currentundone = []
-        for item in self.canvas.find_withtag('line'+str(self.counter)):
-            currentundone.append(self.canvas.coords(item))
-        self.canvas.delete('line'+str(self.counter))
-        self.undone.append(currentundone)
+        for item in self.canvas.find_withtag('line' + str(self.counter)):
+            currentundone.append(self.canvas.coords(item)) 
+        self.canvas.delete('line'+str(self.counter)) # deletes related line
+        self.undone.append(currentundone) # appends list of undone for potential redoing
         
-    def undo_bind(self, event):
-        self.undo()
+    def undo_bind(self, event): # enables ctrl-z bind to work
+        self.undo() 
         
     def redo(self): #redoes in new color not old color
         try:
-            currentundone = self.undone.pop()
-            for coords in currentundone:
+            currentundone = self.undone.pop() 
+            for coords in currentundone: #pulls from list of undoes to recreate the first one
                 self.canvas.create_line(coords, width = self.line_width, fill = self.color, 
                                     capstyle = ROUND, smooth = TRUE, splinesteps = 36, tag=['line' + str(self.counter)])
             self.counter += 1
         except IndexError:
-            pass
-    def reset(self, event):
+            pass # passes if no more objects are in array
+        
+    def reset(self, event): # resets coordinates to create a new line
         self.old_x, self.old_y = None, None
         self.counter += 1
 class ScreenshotEditor(tk.Frame):
@@ -108,7 +118,6 @@ class ScreenshotEditor(tk.Frame):
         self.toolbar_frame = tk.Frame(self.screenshot)
         self.toolbar_frame.grid(row=0, column = 0)
         
-        #self.my_toolbar = Toolbar(self.toolbar, self.canvas1)
         self.screenshot_frame = tk.Frame(self.screenshot)
         self.screenshot_frame.grid(row = 1, column = 0)
 
@@ -120,10 +129,12 @@ class ScreenshotEditor(tk.Frame):
         height = img.height()
         self.canvas1 = tk.Canvas(self.screenshot_frame, width = width, height = height,
                                     borderwidth = 0, highlightthickness = 0)
+        self.canvas2 = self.canvas1
         self.canvas1.pack(expand=tk.YES)
         self.canvas1.create_image(0, 0, image = img, anchor = tk.NW)
         self.canvas1.img = img
-        self.my_toolbar = Toolbar(self.toolbar_frame, self.canvas1, height, width)
+        self.canvas2 = self.canvas1 # creates a new canvas to save the annotations on
+        self.my_toolbar = Toolbar(self.toolbar_frame, self.canvas2, height, width)
         Tk.focus_set(self.canvas1)
 
 
@@ -138,9 +149,6 @@ class Application(tk.Frame):
         self.curX = None
         self.curY = None
 
-        # root.configure(background = 'red')
-        # root.attributes("-transparentcolor","red")
-
         root.attributes("-transparent", "blue")
         root.geometry('400x50+200+200')  # set new geometry
         root.title('Lil Snippy')
@@ -150,7 +158,7 @@ class Application(tk.Frame):
         self.button_bar = tk.Frame(self.menu_frame,bg="")
         self.button_bar.pack(fill=tk.BOTH,expand=tk.YES)
 
-        self.snip_button = tk.Button(self.button_bar, width=3, command=self.create_screen_canvas, background="green")
+        self.snip_button = tk.Button(self.button_bar, width=3, command=self.create_screen_canvas, background="green") # how to call this function
         self.snip_button.pack(expand=tk.YES)
 
         self.master_screen = tk.Toplevel(root)
