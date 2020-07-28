@@ -5,6 +5,9 @@ from tkinter import filedialog
 from PIL import Image, ImageTk
 import sys
 
+import screenshot
+
+
 class AutoScrollbar(ttk.Scrollbar):
     ''' A scrollbar that hides itself if it's not needed.
         Works only if you use the grid geometry manager '''
@@ -24,6 +27,7 @@ class AutoScrollbar(ttk.Scrollbar):
 class Zoom(ttk.Frame):
     ''' Advanced zoom of the image '''
     def __init__(self, mainframe, path):
+        self.box = 0
         ''' Initialize the main Frame '''
         ttk.Frame.__init__(self, master=mainframe)
         self.master.title('Zoom with mouse wheel')
@@ -35,6 +39,9 @@ class Zoom(ttk.Frame):
         # Create canvas and put image on it
         self.canvas = tk.Canvas(self.master, highlightthickness=0,
                                 xscrollcommand=hbar.set, yscrollcommand=vbar.set)
+
+        self.canvas2 = self.canvas
+
         self.canvas.grid(row=0, column=0, sticky='nswe')
         self.canvas.update()  # wait till canvas is created
         vbar.configure(command=self.scroll_y)  # bind scrollbars to the canvas
@@ -46,9 +53,10 @@ class Zoom(ttk.Frame):
         self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
         self.canvas.bind('<ButtonPress-1>', self.move_from)
         self.canvas.bind('<B1-Motion>',     self.move_to)
-        self.canvas.bind('<MouseWheel>', self.wheel)  # with Windows and MacOS, but not Linux
-        self.canvas.bind('<Button-5>',   self.wheel)  # only with Linux, wheel scroll down
-        self.canvas.bind('<Button-4>',   self.wheel)  # only with Linux, wheel scroll up
+        self.canvas.bind('<MouseWheel>', self.wheel)  
+        self.canvas.bind("<Button-3>", self.open_popup)
+        #self.canvas.bind('<Return>', self.call_screenshot)
+
         self.image = Image.open(path)  # open image
         self.width, self.height = self.image.size
         self.imscale = 1.0  # scale for the canvaas image
@@ -56,6 +64,49 @@ class Zoom(ttk.Frame):
         # Put image into container rectangle and use it to set proper coordinates to the image
         self.container = self.canvas.create_rectangle(0, 0, self.width, self.height, width=0)
         self.show_image()
+
+    def call_screenshot(self):
+        screenshot.Application
+
+    def draw(self, type, x, y):
+        self.canvas2.create_text(x,y, font = "Calibri",fill = 'WHITE', text = type)
+        self.canvas2.update
+        self.call_screenshot()
+
+    def open_popup(self, event):
+        x = event.x
+        y = event.y 
+        marker = tk.Toplevel() #create window
+        marker.title("popup")
+        marker.grab_set()
+        
+
+        #Buttons
+        dropb = tk.Button(marker, text = "drop", command = lambda: self.draw("d", x, y)) 
+        dropb.pack()
+
+        crescentb = tk.Button(marker, text = "crecent", command = lambda: self.draw("c", x, y))
+        crescentb.pack()
+
+        spearb = tk.Button(marker, text = "spear", command = lambda: self.draw("s", x, y)) 
+        spearb.pack()
+
+        saturnb = tk.Button(marker, text = "saturn", command = lambda: self.draw("sa", x, y)) 
+        saturnb.pack()
+
+        rodb = tk.Button(marker, text = "rod", command = lambda: self.draw("r", x, y)) 
+        rodb.pack()
+
+        ringb = tk.Button(marker, text = "ring", command = lambda: self.draw("ri", x, y)) 
+        ringb.pack()
+
+        kettlebellb = tk.Button(marker, text = "kettlebell", command = lambda: self.draw("kb", x, y)) 
+        kettlebellb.pack()
+
+        multipleb = tk.Button(marker, text = "multi inc", command = lambda: self.draw("mi", x, y)) 
+        multipleb.pack()
+    
+    
 
     def scroll_y(self, *args, **kwargs):
         ''' Scroll canvas vertically and redraw the image '''
@@ -75,7 +126,6 @@ class Zoom(ttk.Frame):
         ''' Drag (move) canvas to the new position '''
         self.canvas.scan_dragto(event.x, event.y, gain=1)
         self.show_image()  # redraw the image
-        #fuck
 
     def wheel(self, event):
         ''' Zoom with mouse wheel '''
@@ -85,7 +135,6 @@ class Zoom(ttk.Frame):
         if bbox[0] < x < bbox[2] and bbox[1] < y < bbox[3]: pass  # Ok! Inside the image
         else: return  # zoom only inside image area
         scale = 1.0
-        # Respond to Linux (event.num) or Windows (event.delta) wheel event
         if event.num == 5 or event.delta == -120:  # scroll down
             i = min(self.width, self.height)
             if int(i * self.imscale) < 30: return  # image is less than 30 pixels
@@ -123,23 +172,26 @@ class Zoom(ttk.Frame):
         y2 = min(bbox2[3], bbox1[3]) - bbox1[1]
         if int(x2 - x1) > 0 and int(y2 - y1) > 0:  # show image if it in the visible area
             x = min(int(x2 / self.imscale), self.width)   # sometimes it is larger on 1 pixel...
-            y = min(int(y2 / self.imscale), self.height)  # ...and sometimes not
+            y = min(int(y2 / self.imscale), self.height)  # sometimes not
             image = self.image.crop((int(x1 / self.imscale), int(y1 / self.imscale), x, y))
             imagetk = ImageTk.PhotoImage(image.resize((int(x2 - x1), int(y2 - y1))))
             imageid = self.canvas.create_image(max(bbox2[0], bbox1[0]), max(bbox2[1], bbox1[1]),
                                                anchor='nw', image=imagetk)
             self.canvas.lower(imageid)  # set image into background
             self.canvas.imagetk = imagetk  # keep an extra reference to prevent garbage-collection
+    
+
+
+    
 
 def open_image():
     path = filedialog.askopenfilename()
     i = Zoom(root, path=path)
-
-
-root = tk.Tk()
-find_image_button = tk.Button(root, text="Pick Image File", command = open_image)
-find_image_button.grid(column = 0, row = 0)
-root.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    find_image_button = tk.Button(root, text="Pick Image File", command = open_image)
+    find_image_button.grid(column = 0, row = 0)
+    root.mainloop()
 
 
 
