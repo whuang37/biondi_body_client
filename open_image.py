@@ -5,6 +5,8 @@ from tkinter import filedialog
 from PIL import Image, ImageTk
 import sys
 
+import screenshot
+
 
 class AutoScrollbar(ttk.Scrollbar):
     ''' A scrollbar that hides itself if it's not needed.
@@ -64,17 +66,18 @@ class Zoom(ttk.Frame):
         self.show_image()
 
     def call_screenshot(self):
-        pass
+        screenshot.Application
 
     def draw(self, type, x, y):
         self.canvas2.create_text(x,y, font = "Calibri",fill = 'WHITE', text = type)
         self.canvas2.update
+        self.call_screenshot()
 
     def open_popup(self, event):
         x = event.x
         y = event.y 
         marker = tk.Toplevel() #create window
-        marker.title("fuck")
+        marker.title("popup")
         marker.grab_set()
         
 
@@ -82,8 +85,26 @@ class Zoom(ttk.Frame):
         dropb = tk.Button(marker, text = "drop", command = lambda: self.draw("d", x, y)) 
         dropb.pack()
 
-        dropc = tk.Button(marker, text = "crecent")
-        dropc.pack()
+        crescentb = tk.Button(marker, text = "crecent", command = lambda: self.draw("c", x, y))
+        crescentb.pack()
+
+        spearb = tk.Button(marker, text = "spear", command = lambda: self.draw("s", x, y)) 
+        spearb.pack()
+
+        saturnb = tk.Button(marker, text = "saturn", command = lambda: self.draw("sa", x, y)) 
+        saturnb.pack()
+
+        rodb = tk.Button(marker, text = "rod", command = lambda: self.draw("r", x, y)) 
+        rodb.pack()
+
+        ringb = tk.Button(marker, text = "ring", command = lambda: self.draw("ri", x, y)) 
+        ringb.pack()
+
+        kettlebellb = tk.Button(marker, text = "kettlebell", command = lambda: self.draw("kb", x, y)) 
+        kettlebellb.pack()
+
+        multipleb = tk.Button(marker, text = "multi inc", command = lambda: self.draw("mi", x, y)) 
+        multipleb.pack()
     
     
 
@@ -151,7 +172,7 @@ class Zoom(ttk.Frame):
         y2 = min(bbox2[3], bbox1[3]) - bbox1[1]
         if int(x2 - x1) > 0 and int(y2 - y1) > 0:  # show image if it in the visible area
             x = min(int(x2 / self.imscale), self.width)   # sometimes it is larger on 1 pixel...
-            y = min(int(y2 / self.imscale), self.height)  # ...and sometimes not
+            y = min(int(y2 / self.imscale), self.height)  # sometimes not
             image = self.image.crop((int(x1 / self.imscale), int(y1 / self.imscale), x, y))
             imagetk = ImageTk.PhotoImage(image.resize((int(x2 - x1), int(y2 - y1))))
             imageid = self.canvas.create_image(max(bbox2[0], bbox1[0]), max(bbox2[1], bbox1[1]),
