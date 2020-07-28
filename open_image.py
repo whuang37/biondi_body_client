@@ -97,7 +97,11 @@ class Zoom(ttk.Frame):
         rodb = tk.Button(marker, text = "rod", command = lambda: self.draw("r", x, y)) 
         rodb.pack()
 
+<<<<<<< HEAD
         ringb = tk.Button(marker, text = "ring", command = lambda: self.draw("ri", x, y)) 
+=======
+        ringb = tk.Button(marker, text = "ring", command = lambda: self.draw("r", x, y)) 
+>>>>>>> b5b16cc86d63dbe5da67459c81a724508cf9cfa7
         ringb.pack()
 
         kettlebellb = tk.Button(marker, text = "kettlebell", command = lambda: self.draw("kb", x, y)) 
