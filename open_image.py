@@ -82,8 +82,26 @@ class Zoom(ttk.Frame):
         dropb = tk.Button(marker, text = "drop", command = lambda: self.draw("d", x, y)) 
         dropb.pack()
 
-        dropc = tk.Button(marker, text = "crecent")
-        dropc.pack()
+        crescentb = tk.Button(marker, text = "crecent", command = lambda: self.draw("c", x, y))
+        crescentb.pack()
+
+        spearb = tk.Button(marker, text = "spear", command = lambda: self.draw("s", x, y)) 
+        spearb.pack()
+
+        saturnb = tk.Button(marker, text = "saturn", command = lambda: self.draw("sa", x, y)) 
+        saturnb.pack()
+
+        rodb = tk.Button(marker, text = "rod", command = lambda: self.draw("r", x, y)) 
+        rodb.pack()
+
+        ringb = tk.Button(marker, text = "ring", command = lambda: self.draw("r", x, y)) 
+        ringb.pack()
+
+        kettlebellb = tk.Button(marker, text = "kettlebell", command = lambda: self.draw("kb", x, y)) 
+        kettlebellb.pack()
+
+        multipleb = tk.Button(marker, text = "multi inc", command = lambda: self.draw("mi", x, y)) 
+        multipleb.pack()
     
     
 
