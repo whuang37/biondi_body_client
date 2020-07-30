@@ -128,6 +128,7 @@ class Toolbar(): # creates the toolbar and its related functions
         filename2='screenshot.png'
         self.im.save(filename2)
         print(self.canvas.coords("text"))
+        
 class ScreenshotEditor(tk.Frame):
     def __init__(self):
         self.screenshot = tk.Toplevel()
@@ -167,19 +168,7 @@ class Application(tk.Frame):
         self.curX = None
         self.curY = None
 
-        root.attributes("-transparent", "blue")
-        root.geometry('400x50+200+200')  # set new geometry
-        root.title('Lil Snippy')
-        self.menu_frame = tk.Frame(master, bg="blue")
-        self.menu_frame.pack(fill=tk.BOTH, expand=tk.YES)
-
-        self.button_bar = tk.Frame(self.menu_frame,bg="")
-        self.button_bar.pack(fill=tk.BOTH,expand=tk.YES)
-
-        self.snip_button = tk.Button(self.button_bar, width=3, command=self.create_screen_canvas, background="green") # how to call this function
-        self.snip_button.pack(expand=tk.YES)
-
-        self.master_screen = tk.Toplevel(root)
+        self.master_screen = tk.Toplevel(self.master)
         self.master_screen.withdraw()
         self.master_screen.attributes("-transparent", "blue")
         self.picture_frame = tk.Frame(self.master_screen, background = "blue")
