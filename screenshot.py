@@ -143,21 +143,20 @@ class ScreenshotEditor(tk.Frame):
     def create_screenshot_canvas(self, im):
         
         self.screenshot.deiconify()
-        root.withdraw()
         img = ImageTk.PhotoImage(im)
         width = img.width()
         height = img.height()
         
-        self.canvas1 = tk.Canvas(self.screenshot_frame, width = width, height = height,
+        self.screenshot_canvas = tk.Canvas(self.screenshot_frame, width = width, height = height,
                                     borderwidth = 0, highlightthickness = 0)
-        self.canvas1.pack(expand=tk.YES)
-        self.canvas1.create_image(0, 0, image = img, anchor = NW)
-        self.canvas1.img = img
-        self.my_toolbar = Toolbar(self.toolbar_frame, self.canvas1, im, height, width)
-        Tk.focus_set(self.canvas1)
+        self.screenshot_canvas.pack(expand=tk.YES)
+        self.screenshot_canvas.create_image(0, 0, image = img, anchor = NW)
+        self.screenshot_canvas.img = img
+        self.my_toolbar = Toolbar(self.toolbar_frame, self.screenshot_canvas, im, height, width)
+        Tk.focus_set(self.screenshot_canvas)
 
 
-class Application(tk.Frame):
+class LilSnippy(tk.Frame):
     def __init__(self, master, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.master = master
@@ -184,19 +183,26 @@ class Application(tk.Frame):
 
     def create_screen_canvas(self):
         self.master_screen.deiconify()
-        root.withdraw()
-
+        self.master.withdraw()
+        
         self.screen_canvas = tk.Canvas(self.picture_frame, cursor="cross", bg="grey11")
         self.screen_canvas.pack(fill=tk.BOTH, expand=tk.YES)
-
+        
+        self.screen_canvas.focus_set()
+        
         self.screen_canvas.bind("<ButtonPress-1>", self.on_button_press)
         self.screen_canvas.bind("<B1-Motion>", self.on_move_press)
         self.screen_canvas.bind("<ButtonRelease-1>", self.on_button_release)
-
+        
+        buttontest = tk.Button(self.screen_canvas, text = "Pick Image File", command = self.on_button_press)
+        buttontest.pack()
+        
+        print("gay1")
         self.master_screen.attributes('-fullscreen', True)
         self.master_screen.attributes('-alpha', .3)
         self.master_screen.lift()
         self.master_screen.attributes("-topmost", True)
+        print("gay")
 
     def on_button_release(self, event):
         self.rec_position()
@@ -224,9 +230,9 @@ class Application(tk.Frame):
         print("Screenshot mode exited")
         self.screen_canvas.destroy()
         self.master_screen.withdraw()
-        root.deiconify()
+        self.master.deiconify()
 
-    def exit_application(self):
+    def exit_application(self): # not used yet
         print("Application exit")
         root.quit()
 
@@ -234,7 +240,7 @@ class Application(tk.Frame):
         # save mouse drag start position
         self.start_x = self.screen_canvas.canvasx(event.x)
         self.start_y = self.screen_canvas.canvasy(event.y)
-
+        print("this works")
         self.rect = self.screen_canvas.create_rectangle(self.x, self.y, 1, 1, outline='red', width=3, fill="blue")
 
     def on_move_press(self, event):
@@ -250,6 +256,8 @@ class Application(tk.Frame):
 
 if __name__ == '__main__':
     root = tk.Tk()
-    app = Application(root)
+    app = LilSnippy(root)
+    app.create_screen_canvas()
     root.mainloop() 
+    
     

@@ -28,6 +28,7 @@ class Application(ttk.Frame):
     ''' Advanced zoom of the image '''
     def __init__(self, mainframe, path):
         self.box = 0
+        self.master = mainframe
         ''' Initialize the main Frame '''
         ttk.Frame.__init__(self, master=mainframe)
         self.master.title('Zoom with mouse wheel')
@@ -66,12 +67,13 @@ class Application(ttk.Frame):
         self.show_image()
 
     def call_screenshot(self):
-        app = screenshot.Application(self.master)
-        app.create_screen_canvas
+        app = screenshot.LilSnippy(self.master)
+        app.create_screen_canvas()
 
-    def draw(self, type, x, y):
+    def draw(self, type, x, y, marker):
         self.canvas2.create_text(x,y, font = "Calibri",fill = 'WHITE', text = type)
         self.canvas2.update
+        marker.destroy()
         self.call_screenshot()
 
     def open_popup(self, event):
@@ -83,28 +85,28 @@ class Application(ttk.Frame):
         
 
         #Buttons
-        dropb = tk.Button(marker, text = "drop", command = lambda: self.draw("d", x, y)) 
+        dropb = tk.Button(marker, text = "drop", command = lambda: self.draw("d", x, y, marker)) 
         dropb.pack()
 
-        crescentb = tk.Button(marker, text = "crecent", command = lambda: self.draw("c", x, y))
+        crescentb = tk.Button(marker, text = "crecent", command = lambda: self.draw("c", x, y, marker))
         crescentb.pack()
 
-        spearb = tk.Button(marker, text = "spear", command = lambda: self.draw("s", x, y)) 
+        spearb = tk.Button(marker, text = "spear", command = lambda: self.draw("s", x, y, marker)) 
         spearb.pack()
 
-        saturnb = tk.Button(marker, text = "saturn", command = lambda: self.draw("sa", x, y)) 
+        saturnb = tk.Button(marker, text = "saturn", command = lambda: self.draw("sa", x, y, marker)) 
         saturnb.pack()
 
-        rodb = tk.Button(marker, text = "rod", command = lambda: self.draw("r", x, y)) 
+        rodb = tk.Button(marker, text = "rod", command = lambda: self.draw("r", x, y, marker)) 
         rodb.pack()
 
-        ringb = tk.Button(marker, text = "ring", command = lambda: self.draw("ri", x, y)) 
+        ringb = tk.Button(marker, text = "ring", command = lambda: self.draw("ri", x, y, marker)) 
         ringb.pack()
 
-        kettlebellb = tk.Button(marker, text = "kettlebell", command = lambda: self.draw("kb", x, y)) 
+        kettlebellb = tk.Button(marker, text = "kettlebell", command = lambda: self.draw("kb", x, y, marker)) 
         kettlebellb.pack()
 
-        multipleb = tk.Button(marker, text = "multi inc", command = lambda: self.draw("mi", x, y)) 
+        multipleb = tk.Button(marker, text = "multi inc", command = lambda: self.draw("mi", x, y, marker)) 
         multipleb.pack()
     
     
