@@ -7,7 +7,7 @@ import sys
 
 import screenshot
 
-
+root = tk.Tk()
 class AutoScrollbar(ttk.Scrollbar):
     ''' A scrollbar that hides itself if it's not needed.
         Works only if you use the grid geometry manager '''
@@ -66,7 +66,8 @@ class Zoom(ttk.Frame):
         self.show_image()
 
     def call_screenshot(self):
-        screenshot.Application
+        app = screenshot.Application(root)
+        app.create_screen_canvas
 
     def draw(self, type, x, y):
         self.canvas2.create_text(x,y, font = "Calibri",fill = 'WHITE', text = type)
@@ -179,19 +180,19 @@ class Zoom(ttk.Frame):
                                                anchor='nw', image=imagetk)
             self.canvas.lower(imageid)  # set image into background
             self.canvas.imagetk = imagetk  # keep an extra reference to prevent garbage-collection
-    
-
-
-    
 
 def open_image():
     path = filedialog.askopenfilename()
     i = Zoom(root, path=path)
-if __name__ == "__main__":
-    root = tk.Tk()
-    find_image_button = tk.Button(root, text="Pick Image File", command = open_image)
-    find_image_button.grid(column = 0, row = 0)
-    root.mainloop()
+
+find_image_button = tk.Button(root, text="Pick Image File", command = open_image)
+find_image_button.grid(column = 0, row = 0)
+root.mainloop()
+# if __name__ == "__main__":
+#     root = tk.Tk()
+#     find_image_button = tk.Button(root, text="Pick Image File", command = open_image)
+#     find_image_button.grid(column = 0, row = 0)
+#     root.mainloop()
 
 
 
