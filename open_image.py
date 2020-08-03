@@ -70,8 +70,37 @@ class Application(ttk.Frame):
         app = screenshot.LilSnippy(self.master)
         app.create_screen_canvas()
 
-    def draw(self, type, x, y, marker):
-        self.canvas2.create_text(x,y, font = "Calibri",fill = 'WHITE', text = type)
+
+    def get_letter(self, string): #used with draw
+        print(string)
+        if string == "drop":
+            return "d"
+        elif string== "crescent":
+            return "c"
+        elif string== "spear":
+            return "s"
+        elif string== "saturn":
+            return "sa"
+        elif string== "rod":
+            return "r"
+        elif string== "ring":
+            return "ri"
+        elif string== "kettlebell":
+            return "kb"
+        elif string== "multi inc":
+            return "mi"
+
+    def draw(self, bodytype, ifGR, ifMAF, ifMP, x, y, marker):
+
+        self.canvas2.create_text(x,y, font = "Calibri",fill = 'WHITE', text = self.get_letter(bodytype))
+
+        if ifGR:
+            print("GR")
+        if ifMAF:
+            print("MAF")
+        if ifMP:
+            print("MP")
+
         self.canvas2.update
         marker.destroy()
         self.call_screenshot()
@@ -82,34 +111,30 @@ class Application(ttk.Frame):
         marker = tk.Toplevel() #create window
         marker.title("popup")
         marker.grab_set()
-        
 
-        #Buttons
-        dropb = tk.Button(marker, text = "drop", command = lambda: self.draw("d", x, y, marker)) 
-        dropb.pack()
+        '''main body name'''
+        var = tk.StringVar()
+        var.set("drop")
+        dropdown1 = tk.OptionMenu(marker, var, "drop", "crescent", "spear", "green spear", "saturn", "rod", "green rod",  "ring", "kettlebell", "multi inc")
+        dropdown1.pack()
 
-        crescentb = tk.Button(marker, text = "crecent", command = lambda: self.draw("c", x, y, marker))
-        crescentb.pack()
+        '''secondary body names'''
+        varGR = tk.BooleanVar()
+        varMAF = tk.BooleanVar()
+        varMP = tk.BooleanVar()
 
-        spearb = tk.Button(marker, text = "spear", command = lambda: self.draw("s", x, y, marker)) 
-        spearb.pack()
+        grC = tk.Checkbutton(marker, text = "GR", variable = varGR, onvalue = True, offvalue = False)
+        mafC = tk.Checkbutton(marker, text = "MAF", variable = varMAF, onvalue = True, offvalue = False)
+        mpC = tk.Checkbutton(marker, text = "MP", variable = varMP, onvalue = True, offvalue = False)
 
-        saturnb = tk.Button(marker, text = "saturn", command = lambda: self.draw("sa", x, y, marker)) 
-        saturnb.pack()
+        grC.pack()
+        mafC.pack()
+        mpC.pack()
 
-        rodb = tk.Button(marker, text = "rod", command = lambda: self.draw("r", x, y, marker)) 
-        rodb.pack()
+        '''confirm button'''
+        button_ok = tk.Button(marker, text = "OK", command = lambda: self.draw(var.get(),varGR.get(), varMAF.get(), varMP.get(), x, y, marker))
+        button_ok.pack()
 
-        ringb = tk.Button(marker, text = "ring", command = lambda: self.draw("ri", x, y, marker)) 
-        ringb.pack()
-
-        kettlebellb = tk.Button(marker, text = "kettlebell", command = lambda: self.draw("kb", x, y, marker)) 
-        kettlebellb.pack()
-
-        multipleb = tk.Button(marker, text = "multi inc", command = lambda: self.draw("mi", x, y, marker)) 
-        multipleb.pack()
-    
-    
 
     def scroll_y(self, *args, **kwargs):
         ''' Scroll canvas vertically and redraw the image '''
