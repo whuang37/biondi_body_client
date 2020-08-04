@@ -1,4 +1,3 @@
-from tkinter import ttk
 import tkinter as tk
 import random
 from tkinter import filedialog
@@ -8,7 +7,7 @@ import sys
 import screenshot
 
 
-class AutoScrollbar(ttk.Scrollbar):
+class AutoScrollbar(tk.Scrollbar):
     ''' A scrollbar that hides itself if it's not needed.
         Works only if you use the grid geometry manager '''
     def set(self, lo, hi):
@@ -16,7 +15,7 @@ class AutoScrollbar(ttk.Scrollbar):
             self.grid_remove()
         else:
             self.grid()
-            ttk.Scrollbar.set(self, lo, hi)
+            tk.Scrollbar.set(self, lo, hi)
 
     def pack(self, **kw):
         raise tk.TclError('Cannot use pack with this widget')
@@ -24,13 +23,13 @@ class AutoScrollbar(ttk.Scrollbar):
     def place(self, **kw):
         raise tk.TclError('Cannot use place with this widget')
 
-class Application(ttk.Frame):
+class Application(tk.Frame):
     ''' Advanced zoom of the image '''
     def __init__(self, mainframe, path):
         self.box = 0
         self.master = mainframe
         ''' Initialize the main Frame '''
-        ttk.Frame.__init__(self, master=mainframe)
+        tk.Frame.__init__(self, master=mainframe)
         self.master.title('Zoom with mouse wheel')
         # Vertical and horizontal scrollbars for canvas
         vbar = AutoScrollbar(self.master, orient='vertical')
@@ -92,16 +91,18 @@ class Application(ttk.Frame):
         elif string== "multi inc":
             return "mi"
 
-    def draw(self, bodytype, ifGR, ifMAF, ifMP, x, y, marker):
+    def draw(self, body_type, if_GR, if_MAF, if_MP, if_unsure, x, y, marker):
 
-        self.canvas2.create_text(x,y, font = "Calibri",fill = 'WHITE', text = self.get_letter(bodytype))
+        self.canvas2.create_text(x,y, font = "Calibri",fill = 'WHITE', text = self.get_letter(body_type))
 
-        if ifGR:
+        if if_GR:
             print("GR")
-        if ifMAF:
+        if if_MAF:
             print("MAF")
-        if ifMP:
+        if if_MP:
             print("MP")
+        if if_unsure:
+            print("im unsure")
 
         self.canvas2.update
         marker.destroy()
@@ -117,25 +118,45 @@ class Application(ttk.Frame):
         '''main body name'''
         var = tk.StringVar()
         var.set("drop")
-        dropdown1 = tk.OptionMenu(marker, var, "drop", "crescent", "spear", "green spear", "saturn", "rod", "green rod",  "ring", "kettlebell", "multi inc")
-        dropdown1.pack()
+        
+        option_list = [
+            "drop", 
+            "crescent", 
+            "spear", 
+            "green spear", 
+            "saturn", 
+            "rod", 
+            "green rod",  
+            "ring", 
+            "kettlebell", 
+            "multi inc"
+        ]
+        
+        dropdown1 = tk.OptionMenu(marker, var, *option_list)
+        dropdown1.grid(row = 0, column = 0)
 
         '''secondary body names'''
-        varGR = tk.BooleanVar()
-        varMAF = tk.BooleanVar()
-        varMP = tk.BooleanVar()
+        var_GR = tk.BooleanVar()
+        var_MAF = tk.BooleanVar()
+        var_MP = tk.BooleanVar()
+        
+        grC = tk.Checkbutton(marker, text = "GR", anchor ="w", variable = var_GR, onvalue = True, offvalue = False)
+        mafC = tk.Checkbutton(marker, text = "MAF", anchor ="w", variable = var_MAF, onvalue = True, offvalue = False)
+        mpC = tk.Checkbutton(marker, text = "MP", anchor ="w", variable = var_MP, onvalue = True, offvalue = False)
 
-        grC = tk.Checkbutton(marker, text = "GR", variable = varGR, onvalue = True, offvalue = False)
-        mafC = tk.Checkbutton(marker, text = "MAF", variable = varMAF, onvalue = True, offvalue = False)
-        mpC = tk.Checkbutton(marker, text = "MP", variable = varMP, onvalue = True, offvalue = False)
-
-        grC.pack()
-        mafC.pack()
-        mpC.pack()
-
+        grC.grid(row = 0, column = 1, sticky = 'w')
+        mafC.grid(row = 1, column = 1, sticky = 'w')
+        mpC.grid(row = 2, column = 1, sticky = 'w')
+        
+        var_unsure = tk.BooleanVar()
+        
+        unsure = tk.Checkbutton(marker, text = "UNSURE", variable = var_unsure, onvalue = True, offvalue = False)
+        unsure.grid(row = 0, column = 2)
+        
         '''confirm button'''
-        button_ok = tk.Button(marker, text = "OK", command = lambda: self.draw(var.get(),varGR.get(), varMAF.get(), varMP.get(), x, y, marker))
-        button_ok.pack()
+        button_ok = tk.Button(marker, text = "OK", command = lambda: self.draw(var.get(),var_GR.get(), var_MAF.get(),
+                                                                                var_MP.get(), var_unsure.get(), x, y, marker))
+        button_ok.grid(row = 2, column = 2)
 
 
     def scroll_y(self, *args, **kwargs):

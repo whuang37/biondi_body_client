@@ -1,4 +1,3 @@
-from tkinter import *
 import tkinter as tk
 import pyautogui
 from PIL import ImageTk, Image, ImageDraw, ImageFont
@@ -7,6 +6,7 @@ class Toolbar(): # creates the toolbar and its related functions
     counter=  1
     DEFAULT_COLOR = 'white'
     def __init__(self, master, canvas, im, h , w):
+        self.master = master
         self.height = h
         self.width = w
         if self.width > self.height: # find the appropriate margin for the text
@@ -37,7 +37,7 @@ class Toolbar(): # creates the toolbar and its related functions
         self.setup()
         
         self.canvas.create_text(self.margin, self.margin, text = "text right here please look", 
-                                font =("Calibri", 14), anchor = NW, fill = 'white', tag ="text") # creates text location
+                                font =("Calibri", 14), anchor = "nw", fill = 'white', tag ="text") # creates text location
         
     
     def setup(self):
@@ -54,11 +54,11 @@ class Toolbar(): # creates the toolbar and its related functions
         self.activate_button(self.brush_button)
         
     def choose_color(self):
-        self.color = askcolor(color = self.color)[1]
+        self.color = askcolor(color = self.color, parent = self.master)[1]
         
     def activate_button(self, some_button): # keeps brush button sunken as its used
-        self.active_button.config(relief= RAISED)
-        some_button.config(relief= SUNKEN)
+        self.active_button.config(relief= "raised")
+        some_button.config(relief= "sunken")
         self.active_button = some_button
         
 
@@ -67,7 +67,7 @@ class Toolbar(): # creates the toolbar and its related functions
         if self.old_x and self.old_y:
             self.canvas.create_line(self.old_x, self.old_y, event.x, event.y, 
                                     width = self.line_width, fill = self.color, 
-                                    capstyle = ROUND, smooth = TRUE, splinesteps = 36, 
+                                    capstyle = "round", smooth = True, splinesteps = 36, 
                                     tag=['line' + str(self.counter)])
             self.draw.line((self.old_x, self.old_y, event.x, event.y), fill = self.color, 
                             width = self.line_width, joint = "curve")
@@ -80,16 +80,16 @@ class Toolbar(): # creates the toolbar and its related functions
         
     def text(self): # moves text around
         if self.text_button['text'] == 'top-left':
-            self.text_position(self.width - self.margin, self.margin, NE)
+            self.text_position(self.width - self.margin, self.margin, "ne")
             self.text_button.configure(text='top-right')
         elif self.text_button['text'] == 'top-right':
-            self.text_position(self.margin, self.height - self.margin, SW)
+            self.text_position(self.margin, self.height - self.margin, "sw")
             self.text_button.configure(text='bottom-left')
         elif self.text_button['text'] == 'bottom-left':
-            self.text_position(self.width - self.margin, self.height - self.margin, SE)
+            self.text_position(self.width - self.margin, self.height - self.margin, "se")
             self.text_button.configure(text='bottom-right')
         elif self.text_button['text'] == 'bottom-right':
-            self.text_position(self.margin, self.margin, NW)
+            self.text_position(self.margin, self.margin, "nw")
             self.text_button.configure(text='top-left')
             
     def text_position(self, x, y, position):
@@ -113,7 +113,7 @@ class Toolbar(): # creates the toolbar and its related functions
             currentundone = self.undone.pop() 
             for coords in currentundone: #pulls from list of undoes to recreate the first one
                 self.canvas.create_line(coords, width = self.line_width, fill = self.color, 
-                                    capstyle = ROUND, smooth = TRUE, splinesteps = 36, tag=['line' + str(self.counter)])
+                                    capstyle = "ROUND", smooth = "TRUE", splinesteps = 36, tag=['line' + str(self.counter)])
             self.counter += 1
         except IndexError:
             pass # passes if no more objects are in array
@@ -122,7 +122,7 @@ class Toolbar(): # creates the toolbar and its related functions
         self.font = ImageFont.truetype("calibri.ttf", 14) 
         bounds = self.canvas.bbox("text")
         self.draw.text((bounds[0], bounds[1]), fill = 'white', 
-                        font = self.font, anchor = NE, text = "text right here please look") #takes the bottom left coordinate of text and places the text on the pillow drawing
+                        font = self.font, anchor = "ne", text = "text right here please look") #takes the bottom left coordinate of text and places the text on the pillow drawing
         filename = 'myfile.png'
         self.annotation.save(filename)
         filename2='screenshot.png'
@@ -150,10 +150,10 @@ class ScreenshotEditor(tk.Frame):
         self.screenshot_canvas = tk.Canvas(self.screenshot_frame, width = width, height = height,
                                     borderwidth = 0, highlightthickness = 0)
         self.screenshot_canvas.pack(expand=tk.YES)
-        self.screenshot_canvas.create_image(0, 0, image = img, anchor = NW)
+        self.screenshot_canvas.create_image(0, 0, image = img, anchor = "nw")
         self.screenshot_canvas.img = img
         self.my_toolbar = Toolbar(self.toolbar_frame, self.screenshot_canvas, im, height, width)
-        Tk.focus_set(self.screenshot_canvas)
+        self.screenshot_canvas.focus_set()
 
 
 class LilSnippy(tk.Frame):
