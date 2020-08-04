@@ -52,10 +52,10 @@ class Application(ttk.Frame):
         self.master.columnconfigure(0, weight=1)
         # Bind events to the Canvas
         self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
-        self.canvas.bind('<ButtonPress-1>', self.move_from)
-        self.canvas.bind('<B1-Motion>',     self.move_to)
+        self.canvas.bind('<ButtonPress-3>', self.move_from)
+        self.canvas.bind('<B3-Motion>',     self.move_to)
         self.canvas.bind('<MouseWheel>', self.wheel)  
-        self.canvas.bind("<Button-3>", self.open_popup)
+        self.canvas.bind("<Button-1>", self.open_popup)
         #self.canvas.bind('<Return>', self.call_screenshot)
 
         self.image = Image.open(path)  # open image
@@ -65,6 +65,8 @@ class Application(ttk.Frame):
         # Put image into container rectangle and use it to set proper coordinates to the image
         self.container = self.canvas.create_rectangle(0, 0, self.width, self.height, width=0)
         self.show_image()
+        
+        self.master.geometry(str(self.width) + "x" + str(self.height))
 
     def call_screenshot(self):
         app = screenshot.LilSnippy(self.master)
@@ -182,9 +184,9 @@ class Application(ttk.Frame):
         # Remove 1 pixel shift at the sides of the bbox1
         bbox1 = (bbox1[0] + 1, bbox1[1] + 1, bbox1[2] - 1, bbox1[3] - 1)
         bbox2 = (self.canvas.canvasx(0),  # get visible area of the canvas
-                 self.canvas.canvasy(0),
-                 self.canvas.canvasx(self.canvas.winfo_width()),
-                 self.canvas.canvasy(self.canvas.winfo_height()))
+                self.canvas.canvasy(0),
+                self.canvas.canvasx(self.canvas.winfo_width()),
+                self.canvas.canvasy(self.canvas.winfo_height()))
         bbox = [min(bbox1[0], bbox2[0]), min(bbox1[1], bbox2[1]),  # get scroll region box
                 max(bbox1[2], bbox2[2]), max(bbox1[3], bbox2[3])]
         if bbox[0] == bbox2[0] and bbox[2] == bbox2[2]:  # whole image in the visible area
@@ -204,9 +206,11 @@ class Application(ttk.Frame):
             image = self.image.crop((int(x1 / self.imscale), int(y1 / self.imscale), x, y))
             imagetk = ImageTk.PhotoImage(image.resize((int(x2 - x1), int(y2 - y1))))
             imageid = self.canvas.create_image(max(bbox2[0], bbox1[0]), max(bbox2[1], bbox1[1]),
-                                               anchor='nw', image=imagetk)
+                                                anchor= 'nw', image=imagetk)
             self.canvas.lower(imageid)  # set image into background
             self.canvas.imagetk = imagetk  # keep an extra reference to prevent garbage-collection
+            
+
 
 def open_image():
     path = filedialog.askopenfilename()
