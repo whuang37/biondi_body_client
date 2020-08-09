@@ -3,7 +3,7 @@ import random
 from tkinter import filedialog
 from PIL import Image, ImageTk
 import sys
-
+from math import floor
 import screenshot
 
 
@@ -41,7 +41,8 @@ class Application(tk.Frame):
                                 xscrollcommand=hbar.set, yscrollcommand=vbar.set)
 
         self.canvas2 = self.canvas
-
+        self.grid_canvas = self.canvas
+        
         self.canvas.grid(row=0, column=0, sticky='nswe')
         self.canvas.update()  # wait till canvas is created
         vbar.configure(command=self.scroll_y)  # bind scrollbars to the canvas
@@ -59,19 +60,55 @@ class Application(tk.Frame):
 
         self.image = Image.open(path)  # open image
         self.width, self.height = self.image.size
-        self.imscale = 1.0  # scale for the canvaas image
+        self.imscale = 1.0  # scale for the canvas image
         self.delta = 1.3  # zoom magnitude
         # Put image into container rectangle and use it to set proper coordinates to the image
         self.container = self.canvas.create_rectangle(0, 0, self.width, self.height, width=0)
         self.show_image()
         
-        self.master.geometry(str(self.width) + "x" + str(self.height))
+        self.rows = 7
+        self.columns = 7
+        self.create_grid()
+
+    def create_grid(self):
+        box_width =  round(self.width / self.columns)
+        box_height = round(self.height / self.rows)
+        num_v_lines = self.rows - 1
+        num_h_lines = self.rows - 1
+        
+        for i in range(0, num_v_lines):
+            self.grid_canvas.create_line(box_width * (i+1), 0, box_width * (i+1), self.height,
+                                        fill = "white", width = 4)
+        for i in range(0, num_h_lines):
+            self.grid_canvas.create_line(0, box_height * (i+1), self.width, box_height * (i+1),
+                                        fill = "white", width = 4)
+            
+        num_squares = self.rows * self.columns
+        padding = 50
+        key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+        n = 0
+        for i in range(0, self.rows):
+            for j in range(0, self.columns):
+                self.grid_canvas.create_text((j + 1) * box_height - padding, (i + 1) * box_width - padding,
+                                            font = ("Calibri", 24), fill = 'WHITE', text = key[n])
+                n += 1
+                if n > num_squares:
+                    break
 
     def call_screenshot(self):
         app = screenshot.LilSnippy(self.master)
         app.create_screen_canvas()
 
-
+    def get_grid(self, x, y):
+        row_num = floor(y / (self.height / self.rows))
+        column_num = floor(x / (self.width / self.columns))
+        print(x)
+        print(y)
+        print(row_num)
+        print(column_num)
+        key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+        return key[(row_num * self.columns) + column_num]
+        
     def get_letter(self, string): #used with draw
         print(string)
         if string == "drop":
@@ -103,7 +140,8 @@ class Application(tk.Frame):
             print("MP")
         if if_unsure:
             print("im unsure")
-
+            
+        print(self.get_grid(x, y))
         self.canvas2.update
         marker.destroy()
         self.call_screenshot()
@@ -197,6 +235,8 @@ class Application(tk.Frame):
             self.imscale *= self.delta
             scale        *= self.delta
         self.canvas.scale('all', x, y, scale, scale)  # rescale all canvas objects
+        #self.grid_canvas.scale('all', x, y ,scale, scale)
+        #self.create_grid(7, 7)
         self.show_image()
 
     def show_image(self, event=None):
