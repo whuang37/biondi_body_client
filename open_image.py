@@ -136,7 +136,6 @@ class Application(tk.Frame):
             print("MP")
         if if_unsure:
             print("im unsure")
-            
         self.canvas2.update
         marker.destroy()
         self.call_screenshot()
