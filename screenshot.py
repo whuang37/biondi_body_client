@@ -57,8 +57,8 @@ class Toolbar(): # creates the toolbar and its related functions
         self.color = askcolor(color = self.color, parent = self.master)[1]
         
     def activate_button(self, some_button): # keeps brush button sunken as its used
-        self.active_button.config(relief= "raised")
-        some_button.config(relief= "sunken")
+        self.active_button.config(relief = "raised")
+        some_button.config(relief = "sunken")
         self.active_button = some_button
         
 
