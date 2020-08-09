@@ -54,7 +54,7 @@ class Application(tk.Frame):
         self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
         self.canvas.bind('<ButtonPress-3>', self.move_from)
         self.canvas.bind('<B3-Motion>',     self.move_to)
-        self.canvas.bind('<MouseWheel>', self.wheel)  
+        # self.canvas.bind('<MouseWheel>', self.wheel)  
         self.canvas.bind("<Button-1>", self.open_popup)
         #self.canvas.bind('<Return>', self.call_screenshot)
 
@@ -90,7 +90,7 @@ class Application(tk.Frame):
         for i in range(0, self.rows):
             for j in range(0, self.columns):
                 self.grid_canvas.create_text((j + 1) * box_height - padding, (i + 1) * box_width - padding,
-                                            font = ("Calibri", 24), fill = 'WHITE', text = key[n])
+                                            font = ("Calibri", 24), fill = 'WHITE', text = key[n], tag = key[n])
                 n += 1
                 if n > num_squares:
                     break
@@ -100,12 +100,9 @@ class Application(tk.Frame):
         app.create_screen_canvas()
 
     def get_grid(self, x, y):
+        
         row_num = floor(y / (self.height / self.rows))
         column_num = floor(x / (self.width / self.columns))
-        print(x)
-        print(y)
-        print(row_num)
-        print(column_num)
         key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         return key[(row_num * self.columns) + column_num]
         
@@ -130,8 +127,7 @@ class Application(tk.Frame):
 
     def draw(self, body_type, if_GR, if_MAF, if_MP, if_unsure, x, y, marker):
 
-        self.canvas2.create_text(x,y, font = "Calibri",fill = 'WHITE', text = self.get_letter(body_type))
-
+        self.canvas2.create_text(x,y, font = "Calibri",fill = 'WHITE', text = self.get_letter(body_type), tag="marker")
         if if_GR:
             print("GR")
         if if_MAF:
@@ -141,7 +137,6 @@ class Application(tk.Frame):
         if if_unsure:
             print("im unsure")
             
-        print(self.get_grid(x, y))
         self.canvas2.update
         marker.destroy()
         self.call_screenshot()
@@ -149,6 +144,9 @@ class Application(tk.Frame):
     def open_popup(self, event):
         x = event.x
         y = event.y 
+        
+        canvas_x = self.canvas2.canvasx(x)
+        canvas_y = self.grid_canvas.canvasy(y)
         marker = tk.Toplevel() #create window
         marker.title("popup")
         marker.grab_set()
@@ -195,6 +193,8 @@ class Application(tk.Frame):
         button_ok = tk.Button(marker, text = "OK", command = lambda: self.draw(var.get(),var_GR.get(), var_MAF.get(),
                                                                                 var_MP.get(), var_unsure.get(), x, y, marker))
         button_ok.grid(row = 2, column = 2)
+        
+        grid_id = self.get_grid(canvas_x, canvas_y)
 
 
     def scroll_y(self, *args, **kwargs):

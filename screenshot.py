@@ -197,12 +197,11 @@ class LilSnippy(tk.Frame):
         buttontest = tk.Button(self.screen_canvas, text = "Pick Image File", command = self.on_button_press)
         buttontest.pack()
         
-        print("gay1")
         self.master_screen.attributes('-fullscreen', True)
         self.master_screen.attributes('-alpha', .3)
         self.master_screen.lift()
         self.master_screen.attributes("-topmost", True)
-        print("gay")
+
 
     def on_button_release(self, event):
         self.rec_position()
