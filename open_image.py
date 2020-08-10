@@ -7,6 +7,8 @@ from math import floor
 import screenshot
 
 
+initials = tk.StringVar #global var for user initials
+
 class AutoScrollbar(tk.Scrollbar):
     ''' A scrollbar that hides itself if it's not needed.
         Works only if you use the grid geometry manager '''
@@ -37,8 +39,9 @@ class Application(tk.Frame):
         vbar.grid(row=0, column=1, sticky='ns')
         hbar.grid(row=1, column=0, sticky='we')
         # Create canvas and put image on it
-        self.canvas = tk.Canvas(self.master, highlightthickness=0,
-                                xscrollcommand=hbar.set, yscrollcommand=vbar.set)
+        self.canvas = tk.Canvas(self.master, highlightthickness=0, xscrollcommand = hbar.set, yscrollcommand = vbar.set)
+        self.canvas.configure(yscrollincrement = '2')
+        self.canvas.configure(xscrollincrement = '2')
 
         self.canvas2 = self.canvas
         self.grid_canvas = self.canvas
@@ -54,7 +57,8 @@ class Application(tk.Frame):
         self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
         self.canvas.bind('<ButtonPress-3>', self.move_from)
         self.canvas.bind('<B3-Motion>',     self.move_to)
-        # self.canvas.bind('<MouseWheel>', self.wheel)  
+        self.canvas.bind('<MouseWheel>', self.verti_wheel)
+        self.canvas.bind('<Shift-MouseWheel>', self.hori_wheel)  
         self.canvas.bind("<Button-1>", self.open_popup)
         #self.canvas.bind('<Return>', self.call_screenshot)
 
@@ -65,10 +69,25 @@ class Application(tk.Frame):
         # Put image into container rectangle and use it to set proper coordinates to the image
         self.container = self.canvas.create_rectangle(0, 0, self.width, self.height, width=0)
         self.show_image()
+
+        self.master.geometry(str(self.width) + "x" + str(self.height))
         
         self.rows = 7
         self.columns = 7
         self.create_grid()
+
+
+        '''data initialize'''
+        self.xcoord = tk.IntVar() #x-y coords for body location
+        self.ycoord = tk.IntVar()
+
+        self.body_type = tk.StringVar() #primary name
+
+        self.var_GR = tk.BooleanVar() #secondary names
+        self.var_MAF = tk.BooleanVar()
+        self.var_MP = tk.BooleanVar()
+
+        self.var_unsure = tk.BooleanVar() #if unsure
 
     def create_grid(self):
         box_width =  round(self.width / self.columns)
@@ -105,6 +124,10 @@ class Application(tk.Frame):
         column_num = floor(x / (self.width / self.columns))
         key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         return key[(row_num * self.columns) + column_num]
+
+    @staticmethod
+    def get_data():
+        return intials, self.xcoord, self.ycoord, self.body_type.get(),self.var_GR.get(), self.var_MAF.get(),self.var_MP.get(), self.var_unsure.get()
         
     def get_letter(self, string): #used with draw
         print(string)
@@ -124,7 +147,7 @@ class Application(tk.Frame):
             return "kb"
         elif string== "multi inc":
             return "mi"
-
+    
     def draw(self, body_type, if_GR, if_MAF, if_MP, if_unsure, x, y, marker):
 
         self.canvas2.create_text(x,y, font = "Calibri",fill = 'WHITE', text = self.get_letter(body_type), tag="marker")
@@ -142,17 +165,18 @@ class Application(tk.Frame):
 
     def open_popup(self, event):
         x = event.x
-        y = event.y 
+        y = event.y
+        self.xcoord = x
+        self.ycoord = y
         
         canvas_x = self.canvas2.canvasx(x)
         canvas_y = self.grid_canvas.canvasy(y)
         marker = tk.Toplevel() #create window
         marker.title("popup")
         marker.grab_set()
-
         '''main body name'''
-        var = tk.StringVar()
-        var.set("drop")
+        
+        self.body_type.set("drop")
         
         option_list = [
             "drop", 
@@ -167,30 +191,27 @@ class Application(tk.Frame):
             "multi inc"
         ]
         
-        dropdown1 = tk.OptionMenu(marker, var, *option_list)
+        dropdown1 = tk.OptionMenu(marker, self.body_type, *option_list)
         dropdown1.grid(row = 0, column = 0)
 
-        '''secondary body names'''
-        var_GR = tk.BooleanVar()
-        var_MAF = tk.BooleanVar()
-        var_MP = tk.BooleanVar()
         
-        grC = tk.Checkbutton(marker, text = "GR", anchor ="w", variable = var_GR, onvalue = True, offvalue = False)
-        mafC = tk.Checkbutton(marker, text = "MAF", anchor ="w", variable = var_MAF, onvalue = True, offvalue = False)
-        mpC = tk.Checkbutton(marker, text = "MP", anchor ="w", variable = var_MP, onvalue = True, offvalue = False)
+        
+        grC = tk.Checkbutton(marker, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
+        mafC = tk.Checkbutton(marker, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
+        mpC = tk.Checkbutton(marker, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
 
         grC.grid(row = 0, column = 1, sticky = 'w')
         mafC.grid(row = 1, column = 1, sticky = 'w')
         mpC.grid(row = 2, column = 1, sticky = 'w')
         
-        var_unsure = tk.BooleanVar()
         
-        unsure = tk.Checkbutton(marker, text = "UNSURE", variable = var_unsure, onvalue = True, offvalue = False)
+        
+        unsure = tk.Checkbutton(marker, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
         unsure.grid(row = 0, column = 2)
         
         '''confirm button'''
-        button_ok = tk.Button(marker, text = "OK", command = lambda: self.draw(var.get(),var_GR.get(), var_MAF.get(),
-                                                                                var_MP.get(), var_unsure.get(), x, y, marker))
+        button_ok = tk.Button(marker, text = "OK", command = lambda: self.draw(self.body_type.get(),self.var_GR.get(), self.var_MAF.get(),
+                                                                                self.var_MP.get(), self.var_unsure.get(), x, y, marker))
         button_ok.grid(row = 2, column = 2)
         
         grid_id = self.get_grid(canvas_x, canvas_y)
@@ -215,27 +236,18 @@ class Application(tk.Frame):
         self.canvas.scan_dragto(event.x, event.y, gain=1)
         self.show_image()  # redraw the image
 
-    def wheel(self, event):
-        ''' Zoom with mouse wheel '''
-        x = self.canvas.canvasx(event.x)
-        y = self.canvas.canvasy(event.y)
-        bbox = self.canvas.bbox(self.container)  # get image area
-        if bbox[0] < x < bbox[2] and bbox[1] < y < bbox[3]: pass  # Ok! Inside the image
-        else: return  # zoom only inside image area
-        scale = 1.0
+    def verti_wheel(self, event):
         if event.num == 5 or event.delta == -120:  # scroll down
-            i = min(self.width, self.height)
-            if int(i * self.imscale) < 30: return  # image is less than 30 pixels
-            self.imscale /= self.delta
-            scale        /= self.delta
-        if event.num == 4 or event.delta == 120:  # scroll up
-            i = min(self.canvas.winfo_width(), self.canvas.winfo_height())
-            if i < self.imscale: return  # 1 pixel is bigger than the visible area
-            self.imscale *= self.delta
-            scale        *= self.delta
-        self.canvas.scale('all', x, y, scale, scale)  # rescale all canvas objects
-        #self.grid_canvas.scale('all', x, y ,scale, scale)
-        #self.create_grid(7, 7)
+           self.canvas.yview('scroll', 20, 'units')
+        if event.num == 4 or event.delta == 120:
+           self.canvas.yview('scroll', -20, 'units')
+        self.show_image()
+
+    def hori_wheel(self, event):
+        if event.num == 5 or event.delta == -120:  # scroll down
+           self.canvas.xview('scroll', 20, 'units')
+        if event.num == 4 or event.delta == 120:
+           self.canvas.xview('scroll', -20, 'units')
         self.show_image()
 
     def show_image(self, event=None):
@@ -272,14 +284,23 @@ class Application(tk.Frame):
             
 
 
-def open_image():
+def open_image(v):
+
     path = filedialog.askopenfilename()
     i = Application(root, path=path)
+    initials = v
 
 if __name__ == "__main__":
     root = tk.Tk()
-    find_image_button = tk.Button(root, text="Pick Image File", command = open_image)
+
+    find_image_button = tk.Button(root, text="Pick Image File", command = lambda: open_image(v.get()))
     find_image_button.grid(column = 0, row = 0)
+
+    v = tk.StringVar() #initials
+    v.set("Enter Initials, eg. \"BJ\"")
+    name_entry = tk.Entry(root, textvariable = v)
+    name_entry.grid(column = 0, row = 1)
+
     root.mainloop()
 
 
