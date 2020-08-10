@@ -5,7 +5,7 @@ from tkinter.colorchooser import askcolor
 class Toolbar(): # creates the toolbar and its related functions
     counter=  1
     DEFAULT_COLOR = 'white'
-    def __init__(self, master, canvas, im, h , w):
+    def __init__(self, master, canvas, im, h , w, body_info):
         self.master = master
         self.height = h
         self.width = w
@@ -38,6 +38,8 @@ class Toolbar(): # creates the toolbar and its related functions
         
         self.canvas.create_text(self.margin, self.margin, text = "text right here please look", 
                                 font =("Calibri", 14), anchor = "nw", fill = 'white', tag ="text") # creates text location
+        
+        self.body_info = body_info
         
     
     def setup(self):
@@ -128,9 +130,10 @@ class Toolbar(): # creates the toolbar and its related functions
         filename2='screenshot.png'
         self.im.save(filename2)
         print(self.canvas.coords("text"))
+        print(self.body_info)
         
 class ScreenshotEditor(tk.Frame):
-    def __init__(self):
+    def __init__(self, body_info):
         self.screenshot = tk.Toplevel()
         self.screenshot.withdraw()
 
@@ -139,6 +142,8 @@ class ScreenshotEditor(tk.Frame):
         
         self.screenshot_frame = tk.Frame(self.screenshot)
         self.screenshot_frame.grid(row = 1, column = 0)
+        
+        self.body_info = body_info
 
     def create_screenshot_canvas(self, im):
         
@@ -152,12 +157,12 @@ class ScreenshotEditor(tk.Frame):
         self.screenshot_canvas.pack(expand=tk.YES)
         self.screenshot_canvas.create_image(0, 0, image = img, anchor = "nw")
         self.screenshot_canvas.img = img
-        self.my_toolbar = Toolbar(self.toolbar_frame, self.screenshot_canvas, im, height, width)
+        self.my_toolbar = Toolbar(self.toolbar_frame, self.screenshot_canvas, im, height, width, self.body_info)
         self.screenshot_canvas.focus_set()
 
 
 class LilSnippy(tk.Frame):
-    def __init__(self, master, *args, **kwargs):
+    def __init__(self, master, body_info, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.master = master
         self.rect = None
@@ -173,10 +178,12 @@ class LilSnippy(tk.Frame):
         self.picture_frame = tk.Frame(self.master_screen, background = "blue")
         self.picture_frame.pack(fill=tk.BOTH, expand=tk.YES)
         
+        self.body_info = body_info
+        
     def take_bounded_screenshot(self, x1, y1, x2, y2):
         im = pyautogui.screenshot(region=(x1, y1, x2, y2))
         
-        self.screenshot_editor = ScreenshotEditor()
+        self.screenshot_editor = ScreenshotEditor(self.body_info)
         self.screenshot_editor.create_screenshot_canvas(im)
         # fileName = x.strftime("%f")
         # im.save(fileName + ".png")
@@ -186,7 +193,7 @@ class LilSnippy(tk.Frame):
         self.master.withdraw()
         
         self.screen_canvas = tk.Canvas(self.picture_frame, cursor="cross", bg="grey11")
-        self.screen_canvas.pack(fill=tk.BOTH, expand=tk.YES)
+        self.screen_canvas.pack(fill=tk.BOTH, expand= tk.YES)
         
         self.screen_canvas.focus_set()
         

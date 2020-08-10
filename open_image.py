@@ -43,7 +43,7 @@ class Application(tk.Frame):
         self.canvas.configure(yscrollincrement = '2')
         self.canvas.configure(xscrollincrement = '2')
 
-        self.canvas2 = self.canvas
+        self.marker_canvas = self.canvas
         self.grid_canvas = self.canvas
         
         self.canvas.grid(row=0, column=0, sticky='nswe')
@@ -76,19 +76,6 @@ class Application(tk.Frame):
         self.columns = 7
         self.create_grid()
 
-
-        '''data initialize'''
-        self.xcoord = tk.IntVar() #x-y coords for body location
-        self.ycoord = tk.IntVar()
-
-        self.body_type = tk.StringVar() #primary name
-
-        self.var_GR = tk.BooleanVar() #secondary names
-        self.var_MAF = tk.BooleanVar()
-        self.var_MP = tk.BooleanVar()
-
-        self.var_unsure = tk.BooleanVar() #if unsure
-
     def create_grid(self):
         box_width =  round(self.width / self.columns)
         box_height = round(self.height / self.rows)
@@ -114,110 +101,12 @@ class Application(tk.Frame):
                 if n > num_squares:
                     break
 
-    def call_screenshot(self):
-        app = screenshot.LilSnippy(self.master)
-        app.create_screen_canvas()
-
-    def get_grid(self, x, y):
-        
-        row_num = floor(y / (self.height / self.rows))
-        column_num = floor(x / (self.width / self.columns))
-        key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-        return key[(row_num * self.columns) + column_num]
-
-    @staticmethod
-    def get_data():
-        return intials, self.xcoord, self.ycoord, self.body_type.get(),self.var_GR.get(), self.var_MAF.get(),self.var_MP.get(), self.var_unsure.get()
-        
-    def get_letter(self, string): #used with draw
-        print(string)
-        if string == "drop":
-            return "d"
-        elif string== "crescent":
-            return "c"
-        elif string== "spear":
-            return "s"
-        elif string== "saturn":
-            return "sa"
-        elif string== "rod":
-            return "r"
-        elif string== "ring":
-            return "ri"
-        elif string== "kettlebell":
-            return "kb"
-        elif string== "multi inc":
-            return "mi"
-    
-    def draw(self, body_type, if_GR, if_MAF, if_MP, if_unsure, x, y, marker):
-
-        self.canvas2.create_text(x,y, font = "Calibri",fill = 'WHITE', text = self.get_letter(body_type), tag="marker")
-        if if_GR:
-            print("GR")
-        if if_MAF:
-            print("MAF")
-        if if_MP:
-            print("MP")
-        if if_unsure:
-            print("im unsure")
-            
-        self.canvas2.update
-        marker.destroy()
-        self.call_screenshot()
-
     def open_popup(self, event):
         x = event.x
         y = event.y
-        self.xcoord = x
-        self.ycoord = y
+        Marker(self.master, x, y, self.marker_canvas, self.height, self.width, self.columns, self.rows)
+        # print(app.get_data())
         
-        canvas_x = self.canvas2.canvasx(x)
-        canvas_y = self.grid_canvas.canvasy(y)
-        marker = tk.Toplevel() #create window
-        marker.title("popup")
-        marker.grab_set()
-        '''main body name'''
-        
-        self.body_type.set("drop")
-        
-        option_list = [
-            "drop", 
-            "crescent", 
-            "spear", 
-            "green spear", 
-            "saturn", 
-            "rod", 
-            "green rod",  
-            "ring", 
-            "kettlebell", 
-            "multi inc"
-        ]
-        
-        dropdown1 = tk.OptionMenu(marker, self.body_type, *option_list)
-        dropdown1.grid(row = 0, column = 0)
-
-        
-        
-        grC = tk.Checkbutton(marker, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
-        mafC = tk.Checkbutton(marker, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
-        mpC = tk.Checkbutton(marker, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
-
-        grC.grid(row = 0, column = 1, sticky = 'w')
-        mafC.grid(row = 1, column = 1, sticky = 'w')
-        mpC.grid(row = 2, column = 1, sticky = 'w')
-        
-        
-        
-        unsure = tk.Checkbutton(marker, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
-        unsure.grid(row = 0, column = 2)
-        
-        '''confirm button'''
-        button_ok = tk.Button(marker, text = "OK", command = lambda: self.draw(self.body_type.get(),self.var_GR.get(), self.var_MAF.get(),
-                                                                                self.var_MP.get(), self.var_unsure.get(), x, y, marker))
-        button_ok.grid(row = 2, column = 2)
-        
-        grid_id = self.get_grid(canvas_x, canvas_y)
-
-
     def scroll_y(self, *args, **kwargs):
         ''' Scroll canvas vertically and redraw the image '''
         self.canvas.yview(*args, **kwargs)  # scroll vertically
@@ -239,16 +128,16 @@ class Application(tk.Frame):
 
     def verti_wheel(self, event):
         if event.num == 5 or event.delta == -120:  # scroll down
-           self.canvas.yview('scroll', 20, 'units')
+            self.canvas.yview('scroll', 20, 'units')
         if event.num == 4 or event.delta == 120:
-           self.canvas.yview('scroll', -20, 'units')
+            self.canvas.yview('scroll', -20, 'units')
         self.show_image()
 
     def hori_wheel(self, event):
         if event.num == 5 or event.delta == -120:  # scroll down
-           self.canvas.xview('scroll', 20, 'units')
+            self.canvas.xview('scroll', 20, 'units')
         if event.num == 4 or event.delta == 120:
-           self.canvas.xview('scroll', -20, 'units')
+            self.canvas.xview('scroll', -20, 'units')
         self.show_image()
 
     def show_image(self, event=None):
@@ -283,6 +172,106 @@ class Application(tk.Frame):
             self.canvas.lower(imageid)  # set image into background
             self.canvas.imagetk = imagetk  # keep an extra reference to prevent garbage-collection
             
+class Marker(tk.Frame):
+    def __init__(self, master, x, y, marker_canvas, height, width, columns, rows):
+        self.master = master
+        self.x = x
+        self.y = y
+        self.marker_canvas = marker_canvas
+        self.height = height
+        self.width = width
+        self.columns = columns
+        self.rows = rows
+        canvas_x = self.marker_canvas.canvasx(x)
+        canvas_y = self.marker_canvas.canvasy(y)
+        
+        self.annotator = initials
+        self.body_type = tk.StringVar()
+        self.body_type.set("drop")
+        self.var_GR = tk.BooleanVar()
+        self.var_MAF = tk.BooleanVar()
+        self.var_MP = tk.BooleanVar()
+        self.var_unsure = tk.BooleanVar()
+        self.grid_id = self.get_grid(canvas_x, canvas_y)
+        self.notes = tk.StringVar()
+        
+        marker = tk.Toplevel() #create window
+        marker.title("popup")
+        marker.grab_set()
+        
+        option_list = [
+            "drop", 
+            "crescent", 
+            "spear", 
+            "green spear", 
+            "saturn", 
+            "rod", 
+            "green rod",  
+            "ring", 
+            "kettlebell", 
+            "multi inc"
+        ]
+        
+        dropdown = tk.OptionMenu(marker, self.body_type, *option_list)
+        grC = tk.Checkbutton(marker, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
+        mafC = tk.Checkbutton(marker, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
+        mpC = tk.Checkbutton(marker, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
+        unsure = tk.Checkbutton(marker, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
+        note_entry = tk.Entry(marker, textvariable = self.notes)
+        button_ok = tk.Button(marker, text = "OK", command = lambda: self.draw(self.body_type.get(), x, y, marker))
+        
+        dropdown.grid(row = 0, column = 0)
+        grC.grid(row = 0, column = 1, sticky = 'w')
+        mafC.grid(row = 1, column = 1, sticky = 'w')
+        mpC.grid(row = 2, column = 1, sticky = 'w')
+        unsure.grid(row = 0, column = 2)
+        note_entry.grid(row = 3, column = 1)
+        button_ok.grid(row = 2, column = 2)
+
+    def get_data(self):
+        data = {"annotator_name": self.annotator,
+                "body_type": self.body_type.get(),
+                "grid_id": self.grid_id,
+                "x": self.x,
+                "y": self.y,
+                "GR": self.var_GR.get(),
+                "MAF": self.var_MAF.get(),
+                "MP": self.var_MP.get(),
+                "unsure": self.var_unsure.get(),
+                "notes": self.notes.get(),
+                }
+        return data
+        
+    def get_grid(self, x, y):
+        
+        row_num = floor(y / (self.height / self.rows))
+        column_num = floor(x / (self.width / self.columns))
+        key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+        return key[(row_num * self.columns) + column_num]
+
+    def get_letter(self, string): #used with draw
+        body_index = {"drop": "d",
+                    "crescent": "c",
+                    "spear": "s",
+                    "saturn": "sa",
+                    "rod": "r",
+                    "ring": "ri",
+                    "kettlebell": "kb",
+                    "multi inc": "mi"}
+        return body_index[string]
+    
+    def call_screenshot(self, data):
+        app = screenshot.LilSnippy(self.master, data)
+        app.create_screen_canvas()
+        
+    def draw(self, body_type, x, y, marker):
+        self.marker_canvas.create_text(x,y, font = "Calibri",fill = 'WHITE', text = self.get_letter(body_type), tag="marker")
+        self.marker_canvas.update
+        marker.destroy()
+        self.call_screenshot(self.get_data())
+
+
+
 
 
 def open_image(v):
@@ -304,54 +293,3 @@ if __name__ == "__main__":
 
     root.mainloop()
 
-
-
-
-# class Image_Opener(Frame):
-#     def __init__(self, master, *pargs, file_name):
-#         Frame.__init__(self, master, *pargs)
-
-
-#         self.file_name = file_name
-#         self.image = Image.open(self.file_name)
-#         self.img_copy= self.image.copy()
-
-
-#         self.background_image = ImageTk.PhotoImage(self.image)
-
-#         self.background = Label(self, image=self.background_image)
-#         self.background.pack(fill=BOTH, expand=YES)
-#         self.background.bind('<Configure>', self.resize_image)
-
-#     def resize_image(self,event):
-
-#         new_width = event.width
-#         new_height = event.height
-
-#         self.image = self.img_copy.resize((new_width, new_height))
-
-#         self.background_image = ImageTk.PhotoImage(self.image)
-#         self.background.configure(image =  self.background_image)
-
-
-
-
-
-# root = Tk()
-# root.title("UCI Imaris Screenshot Tool")
-
-
-# def openImage():
-#     novi = Toplevel()
-#     canvas = Canvas(novi, width = 500, height = 500)
-#     canvas.pack(expand = YES, fill = BOTH)
-#     filename = filedialog.askopenfilename()
-#     currentImg = ImageTk.PhotoImage(Image.open(filename))
-#     canvas.create_image(50, 10, image = currentImg, anchor = NW)
-#     canvas.currentImg = currentImg
-
-
-# findImageButton = Button(root, text="Pick Image File", command = openImage)
-# findImageButton.pack()
-
-# root.mainloop()
