@@ -11,10 +11,12 @@ class FileManagement():
     def initiate_folder(self, img_path):
         # potentially move this into main
         copy(img_path, self.folder_path + "gridfile.jpg")
-        self.c.execute('''CREATE TABLE IF NOT EXISTS bodies (BODY_NAME TEXT NOT NULL, 
+        self.c.execute('''CREATE TABLE IF NOT EXISTS bodies (TIME INTEGER NOT NULL
+                                                            BODY_NAME TEXT NOT NULL, 
                                                             BODY_NUMBER INTEGER NOT NULL,
                                                             X_POSITION INTEGER NOT NULL,
                                                             Y_POSITION INTEGER NOT NULL,
+                                                            GRID_ID TEXT NOT NULL,
                                                             GR INTEGER,
                                                             MAF INTEGER,
                                                             MP INTEGER,
@@ -24,4 +26,7 @@ class FileManagement():
                                                             ANNOTATION_IMAGE_NAME)''')
         
     def save_image(self, body_information, body, annotation):
-        
+    
+    def query
+    def delete
+    def export
