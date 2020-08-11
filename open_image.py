@@ -25,7 +25,7 @@ class AutoScrollbar(tk.Scrollbar):
         raise tk.TclError('Cannot use place with this widget')
 
 class Application(tk.Frame):
-    ''' Advanced zoom of the image '''
+    ''' Advanced zoom of the image  we did this yep cock'''
     def __init__(self, mainframe, path):
         self.box = 0
         self.master = mainframe
@@ -104,7 +104,6 @@ class Application(tk.Frame):
         x = event.x
         y = event.y
         Marker(self.master, x, y, self.marker_canvas, self.height, self.width, self.columns, self.rows)
-        # print(app.get_data())
         
     def scroll_y(self, *args, **kwargs):
         ''' Scroll canvas vertically and redraw the image '''
@@ -184,7 +183,7 @@ class Marker(tk.Frame):
         canvas_x = self.marker_canvas.canvasx(x)
         canvas_y = self.marker_canvas.canvasy(y)
         
-        self.annotator = initials
+        self.annotator = "wh"
         self.body_type = tk.StringVar()
         self.body_type.set("drop")
         self.var_GR = tk.BooleanVar()
@@ -228,17 +227,24 @@ class Marker(tk.Frame):
         button_ok.grid(row = 2, column = 2)
 
     def get_data(self):
-        data = {"time": int(time()),
+        time_added = int(time())
+        body_file_name = str(self.body_type.get()) + "_" + str(time_added)
+        annotation_file_name = body_file_name + "_ANNOTATION"
+        
+        data = {"time": time_added,
                 "annotator_name": self.annotator,
                 "body_type": self.body_type.get(),
-                "grid_id": self.grid_id,
+                "body_number": 0,
                 "x": self.x,
                 "y": self.y,
-                "GR": self.var_GR.get(),
-                "MAF": self.var_MAF.get(),
-                "MP": self.var_MP.get(),
-                "unsure": self.var_unsure.get(),
+                "grid_id": self.grid_id,
+                "GR": int(self.var_GR.get() == True),
+                "MAF": int(self.var_MAF.get() == True),
+                "MP": int(self.var_MP.get() == True),
+                "unsure": int(self.var_unsure.get() == True),
                 "notes": self.notes.get(),
+                "body_file_name": body_file_name + ".png",
+                "annotation_file_name": annotation_file_name + ".png"
                 }
         return data
         
@@ -253,6 +259,7 @@ class Marker(tk.Frame):
         body_index = {"drop": "d",
                     "crescent": "c",
                     "spear": "s",
+                    "green spear": "grs",
                     "saturn": "sa",
                     "rod": "r",
                     "ring": "ri",

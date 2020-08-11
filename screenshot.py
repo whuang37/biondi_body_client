@@ -2,8 +2,10 @@ import tkinter as tk
 import pyautogui
 from PIL import ImageTk, Image, ImageDraw, ImageFont
 from tkinter.colorchooser import askcolor
+import file_management
+import os
 class Toolbar(): # creates the toolbar and its related functions
-    counter=  1
+    counter =  1
     DEFAULT_COLOR = 'white'
     def __init__(self, master, canvas, im, h , w, body_info):
         self.master = master
@@ -93,7 +95,7 @@ class Toolbar(): # creates the toolbar and its related functions
         elif self.text_button['text'] == 'bottom-right':
             self.text_position(self.margin, self.margin, "nw")
             self.text_button.configure(text='top-left')
-            
+        
     def text_position(self, x, y, position):
         self.canvas.delete('text')
         self.canvas.create_text(x, y, text = "text right here please look", 
@@ -125,12 +127,14 @@ class Toolbar(): # creates the toolbar and its related functions
         bounds = self.canvas.bbox("text")
         self.draw.text((bounds[0], bounds[1]), fill = 'white', 
                         font = self.font, anchor = "ne", text = "text right here please look") #takes the bottom left coordinate of text and places the text on the pillow drawing
-        filename = 'myfile.png'
-        self.annotation.save(filename)
-        filename2='screenshot.png'
-        self.im.save(filename2)
-        print(self.canvas.coords("text"))
-        print(self.body_info)
+        
+        fm = file_management.FileManagement("")
+        fm.save_image(self.body_info, self.im, self.annotation)
+        # filename = 'myfile.png'
+        # self.annotation.save(filename)
+        # filename2='screenshot.png'
+        # self.im.save(filename2)
+ 
         
 class ScreenshotEditor(tk.Frame):
     def __init__(self, body_info):
