@@ -38,10 +38,11 @@ class Toolbar(): # creates the toolbar and its related functions
         self.save_button.grid(row = 0 , column = 5)
         self.setup()
         
-        self.canvas.create_text(self.margin, self.margin, text = "text right here please look", 
+        self.body_info = body_info
+        self.text_annotation = body_info["grid_id"] + " " + str(body_info["x"]) + ", " + str(body_info["y"])
+        self.canvas.create_text(self.margin, self.margin, text = self.text_annotation, 
                                 font =("Calibri", 14), anchor = "nw", fill = 'white', tag ="text") # creates text location
         
-        self.body_info = body_info
         
     
     def setup(self):
@@ -98,7 +99,7 @@ class Toolbar(): # creates the toolbar and its related functions
         
     def text_position(self, x, y, position):
         self.canvas.delete('text')
-        self.canvas.create_text(x, y, text = "text right here please look", 
+        self.canvas.create_text(x, y, text = self.text_annotation, 
                                 font =("Calibri", 14), anchor = position, 
                                 fill = 'white', tag ="text")
     def undo(self): 

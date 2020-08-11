@@ -63,12 +63,12 @@ class FileManagement():
         self.c.execute(create_table_query)
         self.close()
         
-    def save_image(self, body_information, body_img, annotation_img):
-        body_information["body_number"] = self.count("BODY_NAME", body_information["body_type"]) + 1
-        body_img.save(self.folder_path + body_information["body_file_name"])
-        annotation_img.save(self.folder_path + body_information["annotation_file_name"])
+    def save_image(self, body_info, body_img, annotation_img):
+        body_info["body_number"] = self.count("BODY_NAME", body_info["body_type"]) + 1
+        body_img.save(self.folder_path + body_info["body_file_name"])
+        annotation_img.save(self.folder_path + body_info["annotation_file_name"])
         
-        data_values = tuple([body_information[key] for key in body_information])
+        data_values = tuple([body_info[key] for key in body_info])
         insert_query = '''INSERT INTO bodies (TIME, 
                                             ANNOTATOR_NAME, 
                                             BODY_NAME, 
@@ -87,6 +87,8 @@ class FileManagement():
         
         self.c.execute(insert_query, data_values)
         self.close()
+    
     # def query
     # def delete
-    # def export
+    # # def export
+
