@@ -182,8 +182,39 @@ class FileManagement():
         self.c.execute(refresh_query)
         self.close()
             
+            
+    def merge_img(self, img, annotation, new_name):
+        body_img = Image.open(self.folder_path + img)
+        annotation_img = Image.open(self.folder_path + annotation)
+        body_img.paste(annotation_img, (0,0), annotation_img)
+        body_img.save("test.png")
 
-
+    def export_case(self, new_folder_path):
+        all_files_query = '''SELECT ANNOTATOR_NAME, 
+                            BODY_NAME, 
+                            BODY_NUMBER, 
+                            GR, 
+                            MAF, 
+                            MP, 
+                            BODY_FILE_NAME, 
+                            ANNOTATION_FILE_NAME
+                            FROM bodies'''
+                            
+        self.c.execute(all_files_query)
+        
+        while True:
+            body_info = self.c.fetchone()
+            if body_info is None:
+                break
+            img_name = "{0}_{1}_"
+            if body_info[4] == 1:
+                img_name += "_GR"
+            if body_info[5] == 1:
+                img_name += "_MAF"
+            if body_info[6] == 1:
+                img_name += "_MP"
+            
+            self.merge_img(self, body_info[8], body_info[9])
 
 if __name__ == "__main__":
     fm = FileManagement("")
@@ -193,3 +224,4 @@ if __name__ == "__main__":
     #fm.delete_img("multi inc", 4)
     #fm.renumber_img("saturn", 1)
     #fm.refresh_database()
+    #fm.export_case("drop_1597186688", "drop_1597186688_ANNOTATION")
