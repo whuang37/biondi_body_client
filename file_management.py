@@ -120,7 +120,7 @@ class FileManagement():
         
         params = tuple(body_param)
         print(params)
-        group_query = '''SELECT * 
+        group_query = '''SELECT TIME, BODY_NAME, BODY_NUMBER, X_POSITION, Y_POSITION
                         FROM bodies 
                         WHERE BODY_NAME IN ({0}) 
                         AND GR IN ({1}) 
@@ -128,7 +128,6 @@ class FileManagement():
                         AND MP IN ({3})
                         AND UNSURE IN ({4})'''.format(body_param_ph, GR_param_ph, MAF_param_ph, MP_param_ph, unsure_param_ph)
         
-        print(group_query)
         self.c.execute(group_query, body_param)
         group = self.c.fetchall()
         
@@ -143,4 +142,4 @@ if __name__ == "__main__":
     fm = FileManagement("")
     #print(fm.count_body_type("drop"))
     #print(fm.find_image("drop", 6))
-    print(fm.group_image(["drop", "saturn", "kettlebell"], True, True, True, True,))
+    print(fm.query_image(["drop", "saturn", "kettlebell"], True, False, True, True,))
