@@ -133,8 +133,38 @@ class FileManagement():
         
         self.close()
         return group
-    # def query
-    # def delete
+    
+    def renumber_img(self, body_name, body_number):
+        renumber_query = '''UPDATE bodies 
+                            SET BODY_NUMBER = ?
+                            WHERE BODY_NAME = ? AND BODY_NUMBER = ?'''
+        
+        get_original_numbers_query = '''SELECT BODY_NUMBER 
+                                        from bodies where 
+                                        BODY_NAME = ?
+                                        ORDER BY BODY_NUMBER'''
+                                        
+        self.c.execute(get_original_numbers_query, (body_name,)) 
+        original_num = self.c.fetchall()
+        
+        num_bodies = self.count_body_type(body_name)
+        print(num_bodies)
+        print(original_num)
+        for i in range(body_number, num_bodies + 1):
+            self.c.execute(renumber_query, (i, body_name, original_num[i-1][0]))
+
+    def delete_img(self, body_name, body_number):
+        delete_query = '''DELETE 
+                        FROM bodies 
+                        WHERE BODY_NAME = ? AND BODY_NUMBER = ?''' 
+                        
+        self.c.execute(delete_query, (body_name, body_number))
+        self.renumber_img(body_name, body_number)
+        self.close()
+
+    def refresh_database(self):
+        body_types = []
+        self.renumber_img
     # # def export
 
 
@@ -142,4 +172,6 @@ if __name__ == "__main__":
     fm = FileManagement("")
     #print(fm.count_body_type("drop"))
     #print(fm.find_image("drop", 6))
-    print(fm.query_image(["drop", "saturn", "kettlebell"], True, False, True, True,))
+    #print(fm.query_image(["drop", "saturn", "kettlebell"], True, False, True, True,))
+    #fm.delete_img("drop", 4)
+    fm.renumber_img("drop", 4)
