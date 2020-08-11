@@ -137,21 +137,24 @@ class FileManagement():
     def renumber_img(self, body_name, body_number):
         renumber_query = '''UPDATE bodies 
                             SET BODY_NUMBER = ?
-                            WHERE BODY_NAME = ? AND BODY_NUMBER = ?'''
+                            WHERE BODY_NAME = ? AND TIME = ?'''
         
-        get_original_numbers_query = '''SELECT BODY_NUMBER 
-                                        from bodies where 
-                                        BODY_NAME = ?
-                                        ORDER BY BODY_NUMBER'''
+        get_time_query = '''SELECT TIME 
+                            from bodies where 
+                            BODY_NAME = ?
+                            ORDER BY TIME'''
                                         
-        self.c.execute(get_original_numbers_query, (body_name,)) 
-        original_num = self.c.fetchall()
         
-        num_bodies = self.count_body_type(body_name)
-        print(num_bodies)
-        print(original_num)
+        self.c.execute(get_time_query, (body_name,)) 
+        time = self.c.fetchall()
+        
+        num_bodies = len(time)
+        if num_bodies == 0:
+            return 1
+        
         for i in range(body_number, num_bodies + 1):
-            self.c.execute(renumber_query, (i, body_name, original_num[i-1][0]))
+            print(i)
+            self.c.execute(renumber_query, (i, body_name, time[i-1][0]))
 
     def delete_img(self, body_name, body_number):
         delete_query = '''DELETE 
@@ -162,9 +165,23 @@ class FileManagement():
         self.renumber_img(body_name, body_number)
         self.close()
 
-    def refresh_database(self):
-        body_types = []
-        self.renumber_img
+    def refresh_database(self): #come back to later
+        body_names = ["drop", 
+                    "crescent", 
+                    "spear", 
+                    "green spear", 
+                    "saturn", 
+                    "rod", 
+                    "ring", 
+                    "kettlebell", 
+                    "multi inc"]
+        for items in body_names:
+            self.renumber_img(items, 1)
+            
+        refresh_query = '''UPDATE bodies ORDER BY BODY_NAME, BODY_NUMBER'''
+        self.c.execute(refresh_query)
+        self.close()
+            
     # # def export
 
 
@@ -173,5 +190,6 @@ if __name__ == "__main__":
     #print(fm.count_body_type("drop"))
     #print(fm.find_image("drop", 6))
     #print(fm.query_image(["drop", "saturn", "kettlebell"], True, False, True, True,))
-    #fm.delete_img("drop", 4)
-    fm.renumber_img("drop", 4)
+    #fm.delete_img("multi inc", 4)
+    #fm.renumber_img("saturn", 1)
+    #fm.refresh_database()
