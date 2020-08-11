@@ -131,12 +131,7 @@ class Toolbar(): # creates the toolbar and its related functions
         
         fm = file_management.FileManagement("")
         fm.save_image(self.body_info, self.im, self.annotation)
-        # filename = 'myfile.png'
-        # self.annotation.save(filename)
-        # filename2='screenshot.png'
-        # self.im.save(filename2)
- 
-        
+
 class ScreenshotEditor(tk.Frame):
     def __init__(self, body_info):
         self.screenshot = tk.Toplevel()
@@ -190,8 +185,6 @@ class LilSnippy(tk.Frame):
         
         self.screenshot_editor = ScreenshotEditor(self.body_info)
         self.screenshot_editor.create_screenshot_canvas(im)
-        # fileName = x.strftime("%f")
-        # im.save(fileName + ".png")
 
     def create_screen_canvas(self):
         self.master_screen.deiconify()
