@@ -17,10 +17,10 @@ class FileManagement():
         c: the cursor the the previously mentioned sqlite3 database
         
     Typical usage example:
-    
-    fm = FileManagement(new_folder_path)
-    bar = fm.function_bar()
+        fm = FileManagement(new_folder_path)
+        bar = fm.function_bar()
     """
+    
     def __init__(self, folder_path):
         self.folder_path = folder_path
         try:
@@ -73,7 +73,6 @@ class FileManagement():
         return c_result[0]
     
     def initiate_folder(self, img_path):
-        
         """Preps a folder for biondi body analysis.
         
         Takes a folder directory and creates a new database and gridfile
@@ -116,7 +115,7 @@ class FileManagement():
                 to binary when entered into the database.
             body_img (PIL img): image of just the biondi body
             annotation_img (pil img): image of just the annotation.
-            """
+        """
             
         body_info["body_number"] = self.count_body_type(body_info["body_type"]) + 1
         body_img.save(self.folder_path + body_info["body_file_name"])
@@ -159,7 +158,7 @@ class FileManagement():
                 green ring (int), multiautoflorescence (int), multiprong (int), 
                 unsure (int), notes (str), body file name (str), and
                 annotation file name (str). Values may be enclosed in another tuple.
-            """
+        """
             
         select_query = '''SELECT *
                         FROM bodies 
@@ -189,6 +188,7 @@ class FileManagement():
             param_ph (list): Appended parameter list with GR, MAF, and MP values
                 listed.
         """
+
         if name:
             param_ph = "?"
             params.append(1)
@@ -338,6 +338,7 @@ class FileManagement():
             new_folder_path (str): File directory where the exported case will
                 be saved
         """
+
         all_files_query = '''SELECT ANNOTATOR_NAME, 
                             BODY_NAME, 
                             BODY_NUMBER, 
