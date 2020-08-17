@@ -128,7 +128,7 @@ class Toolbar(): # creates the toolbar and its related functions
         self.font = ImageFont.truetype("calibri.ttf", 14) 
         bounds = self.canvas.bbox("text")
         self.draw.text((bounds[0], bounds[1]), fill = 'white', 
-                        font = self.font, anchor = "ne", text = "text right here please look") #takes the bottom left coordinate of text and places the text on the pillow drawing
+                        font = self.font, anchor = "ne", text = self.text_annotation) #takes the bottom left coordinate of text and places the text on the pillow drawing
         
         fm = FileManagement(self.folder_path)
         fm.save_image(self.body_info, self.im, self.annotation)

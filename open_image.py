@@ -288,13 +288,17 @@ class ImageViewer(tk.Frame):
     def __init__(self, folder_path, *args, **kw):
         self.folder_path = folder_path       
         self.image_viewer = tk.Toplevel()
+        self.image_viewer.columnconfigure(2, weight=1)
+        self.image_viewer.rowconfigure(1, weight=1)
+
         # create a canvas object and a vertical scrollbar for scrolling it
         scrollbar = AutoScrollbar(self.image_viewer, orient = "vertical")
-        scrollbar.grid(row = 1, column =1 , sticky = 'nswe')
+        scrollbar.grid(row = 1, column = 1 , sticky = 'ns')
+        
         
         self.button_list_canvas = tk.Canvas(self.image_viewer, bd=0, highlightthickness=0,
                         yscrollcommand=scrollbar.set)
-        self.button_list_canvas.grid(row=1, column=0)
+        self.button_list_canvas.grid(row=1, column=0, sticky = 'ns')
         
         scrollbar.config(command=self.button_list_canvas.yview)
         self.button_list_canvas.xview_moveto(0)
@@ -303,7 +307,7 @@ class ImageViewer(tk.Frame):
         self.make_button_frame()
 
         self.biondi_image_canvas = tk.Canvas(self.image_viewer, bd = 0, bg="green")
-        self.biondi_image_canvas.grid(row=1, column=2)
+        self.biondi_image_canvas.grid(row=1, column=2, sticky = 'nswe')
         
         filter_options_canvas = tk.Canvas(self.image_viewer, bd = 0)
         filter_options_canvas.grid(row=0, columnspan=3, sticky = "w")
@@ -349,6 +353,7 @@ class ImageViewer(tk.Frame):
     def make_button_frame(self):
         # create a frame inside the canvas which will be scrolled with it
         self.interior = interior = tk.Frame(self.button_list_canvas)
+        self.interior.grid(row = 0, column = 0, sticky = "ns")
         interior_id = self.button_list_canvas.create_window(0, 0, window=interior,
                                             anchor=tk.NW)
         # track changes to the canvas and frame width and sync them,
