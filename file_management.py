@@ -168,7 +168,22 @@ class FileManagement():
         row = self.c.fetchone()
         
         self.close()
-        return row
+        
+        data = {}
+        i = 0
+        for choice in ("time", "annotator name", "body name", "body number", 
+                        "x", "y", "grid id", "GR", "MAF", "MP", "unsure", 
+                        "notes", "body file name", "annotation file name"):
+            data[choice] = row[i]
+            i += 1
+            
+        for choice in ("GR", "MAF", "MP", "unsure"): #can make into function later
+            if data[choice] == 1:
+                data[choice] = True
+            else:
+                data[choice] = False
+        
+        return data
     
     def secondary_name_grouping(self, name, params):
         """Get appropriate amount of placeholders.
@@ -368,8 +383,8 @@ class FileManagement():
 
 if __name__ == "__main__":
     fm = FileManagement("")
-    print(fm.count_body_type("saturn"))
-    #print(fm.find_image("drop", 6))
+    #print(fm.count_body_type("saturn"))
+    print(fm.get_image("crescent", 1))
     #print(fm.query_image(["saturn", "kettlebell"], False, False, False, False,))
     #fm.delete_img("multi inc", 4)
     #fm.renumber_img("saturn", 1)

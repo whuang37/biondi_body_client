@@ -292,23 +292,23 @@ class ImageViewer(tk.Frame):
         scrollbar = AutoScrollbar(self.image_viewer, orient = "vertical")
         scrollbar.grid(row = 1, column =1 , sticky = 'nswe')
         
-        self.button_list = tk.Canvas(self.image_viewer, bd=0, highlightthickness=0,
+        self.button_list_canvas = tk.Canvas(self.image_viewer, bd=0, highlightthickness=0,
                         yscrollcommand=scrollbar.set)
-        self.button_list.grid(row=1, column=0)
+        self.button_list_canvas.grid(row=1, column=0)
         
-        scrollbar.config(command=self.button_list.yview)
-        self.button_list.xview_moveto(0)
-        self.button_list.yview_moveto(0)
+        scrollbar.config(command=self.button_list_canvas.yview)
+        self.button_list_canvas.xview_moveto(0)
+        self.button_list_canvas.yview_moveto(0)
         
         self.make_button_frame()
 
-        biondi_image = tk.Canvas(self.image_viewer, bd = 0, bg="green")
-        biondi_image.grid(row=1, column=2)
+        self.biondi_image_canvas = tk.Canvas(self.image_viewer, bd = 0, bg="green")
+        self.biondi_image_canvas.grid(row=1, column=2)
         
-        filter_options = tk.Canvas(self.image_viewer, bd = 0)
-        filter_options.grid(row=0, columnspan=3, sticky = "w")
+        filter_options_canvas = tk.Canvas(self.image_viewer, bd = 0)
+        filter_options_canvas.grid(row=0, columnspan=3, sticky = "w")
         
-        filter_bodies = tk.Menubutton(filter_options, text="Biondi Bodies", 
+        filter_bodies = tk.Menubutton(filter_options_canvas, text="Biondi Bodies", 
                                     indicatoron=True, borderwidth=1, relief="raised")
         menu = tk.Menu(filter_bodies, tearoff=False)
         filter_bodies.configure(menu=menu)
@@ -327,12 +327,12 @@ class ImageViewer(tk.Frame):
         self.var_MP = tk.BooleanVar()
         self.var_unsure = tk.BooleanVar()
         
-        grC = tk.Checkbutton(filter_options, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
-        mafC = tk.Checkbutton(filter_options, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
-        mpC = tk.Checkbutton(filter_options, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
-        unsure = tk.Checkbutton(filter_options, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
-        apply  = tk.Button(filter_options, text = "Apply", command = lambda : self.filter())
-        reset = tk.Button(filter_options, text = "Reset", command = lambda : self.reset())
+        grC = tk.Checkbutton(filter_options_canvas, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
+        mafC = tk.Checkbutton(filter_options_canvas, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
+        mpC = tk.Checkbutton(filter_options_canvas, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
+        unsure = tk.Checkbutton(filter_options_canvas, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
+        apply  = tk.Button(filter_options_canvas, text = "Apply", command = lambda : self.filter())
+        reset = tk.Button(filter_options_canvas, text = "Reset", command = lambda : self.reset())
         
         grC.pack(padx=10, pady = 10, side = tk.LEFT)
         mafC.pack(padx=10, pady = 10, side = tk.LEFT)
@@ -348,39 +348,55 @@ class ImageViewer(tk.Frame):
         
     def make_button_frame(self):
         # create a frame inside the canvas which will be scrolled with it
-        self.interior = interior = tk.Frame(self.button_list)
-        interior_id = self.button_list.create_window(0, 0, window=interior,
+        self.interior = interior = tk.Frame(self.button_list_canvas)
+        interior_id = self.button_list_canvas.create_window(0, 0, window=interior,
                                             anchor=tk.NW)
         # track changes to the canvas and frame width and sync them,
         # also updating the scrollbar
         def _configure_interior(event):
             # update the scrollbars to match the size of the inner frame
             size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
-            self.button_list.config(scrollregion="0 0 %s %s" % size)
-            if interior.winfo_reqwidth() != self.button_list.winfo_width():
+            self.button_list_canvas.config(scrollregion="0 0 %s %s" % size)
+            if interior.winfo_reqwidth() != self.button_list_canvas.winfo_width():
                 # update the canvas's width to fit the inner frame
-                self.button_list.config(width=interior.winfo_reqwidth())
+                self.button_list_canvas.config(width=interior.winfo_reqwidth())
 
         def _configure_canvas(event):
-            if interior.winfo_reqwidth() != self.button_list.winfo_width():
+            if interior.winfo_reqwidth() != self.button_list_canvas.winfo_width():
                 # update the inner frame's width to fill the canvas
-                self.button_list.itemconfigure(interior_id, width=self.button_list.winfo_width())
+                self.button_list_canvas.itemconfigure(interior_id, width=self.button_list_canvas.winfo_width())
                 
-        self.button_list.bind('<Configure>', _configure_canvas)
+        self.button_list_canvas.bind('<Configure>', _configure_canvas)
         interior.bind('<Configure>', _configure_interior)
         
-
+    def open_annotation_image(self, name, number):
+        fm = FileManagement(self.folder_path)
+        body_info = fm.get_image(name, number)
+        print(body_info)
+        
+        body_img = Image.open(self.folder_path + body_info['body file name'])  # open image
+        b_img = ImageTk.PhotoImage(body_img)
+        self.biondi_image_canvas.create_image(0, 0, image = b_img, anchor = "nw")
+        self.biondi_image_canvas.b_img = b_img
+        
+        annotation_img = Image.open(self.folder_path + body_info['annotation file name'])  # open image
+        a_img = ImageTk.PhotoImage(annotation_img)
+        self.biondi_image_canvas.create_image(0, 0, image = a_img, anchor = "nw")
+        self.biondi_image_canvas.a_img = a_img
+        
     def create_buttons(self, body_param, GR_param, MAF_param, MP_param, unsure_param):
-        #self.button_list.delete("body_button")
+        #self.button_list_canvas.delete("body_button")
         print("succes")
         fm = FileManagement(self.folder_path)
         data = fm.query_images(body_param, GR_param, MAF_param, MP_param, unsure_param)
         
         for i in data:
-            body_name = "{} {}".format(i[1], i[2])
+            name = i[1]
+            number = i[2]
+            body_name = "{} {}".format(name, number)
             btn = tk.Button(self.interior, height=1, width=20, relief=tk.FLAT, 
                             bg="gray99", fg="purple3", font="Dosis", text=body_name,
-                            command= lambda : print(body_name))
+                            command= lambda i = name, x = number: self.open_annotation_image(i, x))
             btn.pack(padx=10, pady=5, side=tk.TOP)
             print("created_button")
 
