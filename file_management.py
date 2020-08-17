@@ -152,7 +152,7 @@ class FileManagement():
             body_number (int): Number of specific body.
             
         Returns:
-            row (tuple): a tuple of all the values included in the database in 
+            row (dict): a dict of all the values included in the database in 
                 the order of (time (int), annotator name (str), body name (str), 
                 body number (int), x position (int),y position (int), grid id (str),
                 green ring (int), multiautoflorescence (int), multiprong (int), 
