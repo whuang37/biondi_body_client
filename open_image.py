@@ -74,7 +74,9 @@ class Application(tk.Frame):
         self.rows = 7
         self.columns = 7
         self.create_grid()
-
+        
+        ImageViewer()
+        
     def create_grid(self):
         box_width =  round(self.width / self.columns)
         box_height = round(self.height / self.rows)
@@ -277,7 +279,58 @@ class Marker(tk.Frame):
         marker.destroy()
         self.call_screenshot(self.get_data())
 
+class ImageViewer(tk.Frame):
+    def __init__(self, *args, **kw):          
+        self.image_viewer = tk.Toplevel()
+        # create a canvas object and a vertical scrollbar for scrolling it
+        vscrollbar = AutoScrollbar(self.image_viewer, orient = "vertical")
+        vscrollbar.grid(row = 1, column =1 , sticky = tk.N +tk.S+tk.E+tk.W)
+        
+        button_list = tk.Canvas(self.image_viewer, bd=0, highlightthickness=0,
+                        yscrollcommand=vscrollbar.set)
+        button_list.grid(row=1, column=0)
+        
+        image_viewer = tk.Canvas(self.image_viewer, bd = 0, bg="green")
+        image_viewer.grid(row=1, column=2)
+        
+        filter_options = tk.Canvas(self.image_viewer, bd = 0, bg="green")
+        filter_options.grid(row=0, columnspan=3)
+        
+        vscrollbar.config(command=button_list.yview)
+        button_list.xview_moveto(0)
+        button_list.yview_moveto(0)
 
+        # create a frame inside the canvas which will be scrolled with it
+        self.interior = interior = tk.Frame(button_list)
+        interior_id = button_list.create_window(0, 0, window=interior,
+                                            anchor=tk.NW)
+        self.create_buttons()
+        # track changes to the canvas and frame width and sync them,
+        # also updating the scrollbar
+        def _configure_interior(event):
+            # update the scrollbars to match the size of the inner frame
+            size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
+            button_list.config(scrollregion="0 0 %s %s" % size)
+            if interior.winfo_reqwidth() != button_list.winfo_width():
+                # update the canvas's width to fit the inner frame
+                button_list.config(width=interior.winfo_reqwidth())
+
+        interior.bind('<Configure>', _configure_interior)
+
+        def _configure_canvas(event):
+            if interior.winfo_reqwidth() != button_list.winfo_width():
+                # update the inner frame's width to fill the canvas
+                button_list.itemconfigure(interior_id, width=button_list.winfo_width())
+        button_list.bind('<Configure>', _configure_canvas)
+        
+    def create_buttons(self):
+        lis = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+        for i, x in enumerate(lis):
+            btn = tk.Button(self.interior, height=1, width=20, relief=tk.FLAT, 
+                bg="gray99", fg="purple3",
+                font="Dosis", text='Button ' + lis[i],
+                command=lambda i=i,x=x: print(lis[i]))
+            btn.pack(padx=10, pady=5, side=tk.TOP)
 
 
 
