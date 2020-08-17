@@ -11,6 +11,7 @@ class Toolbar(): # creates the toolbar and its related functions
         self.master = master
         self.height = h
         self.width = w
+        self.text_annotation = body_info["grid_id"] + " " + str(body_info["x"]) + ", " + str(body_info["y"])
         if self.width > self.height: # find the appropriate margin for the text
             self.margin = .05 * self.height
         else:
@@ -40,7 +41,6 @@ class Toolbar(): # creates the toolbar and its related functions
         
         self.body_info = body_info
         self.folder_path = folder_path
-        self.text_annotation = body_info["grid_id"] + " " + str(body_info["x"]) + ", " + str(body_info["y"])
         self.canvas.create_text(self.margin, self.margin, text = self.text_annotation, 
                                 font =("Calibri", 14), anchor = "nw", fill = 'white', tag ="text") # creates text location
         

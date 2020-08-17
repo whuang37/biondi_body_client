@@ -240,7 +240,7 @@ class Marker(tk.Frame):
         
         data = {"time": time_added,
                 "annotator_name": self.annotator,
-                "body_type": self.body_type.get(),
+                "body_name": self.body_type.get(),
                 "body_number": 0,
                 "x": self.x,
                 "y": self.y,

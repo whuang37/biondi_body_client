@@ -117,7 +117,7 @@ class FileManagement():
             annotation_img (pil img): image of just the annotation.
         """
             
-        body_info["body_number"] = self.count_body_type(body_info["body_type"]) + 1
+        body_info["body_number"] = self.count_body_type(body_info["body_name"]) + 1
         body_img.save(self.folder_path + body_info["body_file_name"])
         annotation_img.save(self.folder_path + body_info["annotation_file_name"])
         
@@ -171,9 +171,9 @@ class FileManagement():
         
         data = {}
         i = 0
-        for choice in ("time", "annotator name", "body name", "body number", 
-                        "x", "y", "grid id", "GR", "MAF", "MP", "unsure", 
-                        "notes", "body file name", "annotation file name"):
+        for choice in ("time", "annotator_name", "body_name", "body_number", 
+                        "x", "y", "grid_id", "GR", "MAF", "MP", "unsure", 
+                        "notes", "body_file_name", "annotation_file_name"):
             data[choice] = row[i]
             i += 1
             
