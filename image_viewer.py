@@ -15,7 +15,6 @@ class ImageViewer(tk.Frame):
         scrollbar = tk.Scrollbar(self.image_viewer, orient = "vertical")
         scrollbar.grid(row = 1, column = 1 , sticky = 'ns')
         
-        
         self.button_list_canvas = tk.Canvas(self.image_viewer, bd=0, highlightthickness=0,
                         yscrollcommand=scrollbar.set)
         self.button_list_canvas.grid(row=1, column=0, sticky = 'ns')
@@ -29,13 +28,25 @@ class ImageViewer(tk.Frame):
         self.biondi_image_canvas = tk.Canvas(self.image_viewer, bd = 0)
         self.biondi_image_canvas.grid(row=1, column=2, sticky = 'nswe')
         
-        filter_options_canvas = tk.Canvas(self.image_viewer, bd = 0)
-        filter_options_canvas.grid(row=0, columnspan=3, sticky = "w")
+        self.filter_options_canvas = tk.Canvas(self.image_viewer, bd = 0)
+        self.filter_options_canvas.grid(row=0, columnspan=3, sticky = "w")
         
         self.information_frame = tk.Frame(self.image_viewer)
         self.information_frame.grid(row = 3, column = 0, columnspan = 3, sticky = "nsew")
         
-        filter_bodies = tk.Menubutton(filter_options_canvas, text="Biondi Bodies", 
+        self.var_GR = tk.BooleanVar()
+        self.var_MAF = tk.BooleanVar()
+        self.var_MP = tk.BooleanVar()
+        self.var_unsure = tk.BooleanVar()
+        
+        self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
+                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
+        
+        self.make_filter_buttons()
+        self.create_buttons(self.all_bodies, False, False, False, False)
+        
+    def make_filter_buttons(self):
+        filter_bodies = tk.Menubutton(self.filter_options_canvas, text="Biondi Bodies", 
                                     indicatoron=True, borderwidth=1, relief="raised")
         menu = tk.Menu(filter_bodies, tearoff=False)
         filter_bodies.configure(menu=menu)
@@ -49,17 +60,13 @@ class ImageViewer(tk.Frame):
             menu.add_checkbutton(label=choice, variable=self.choices[choice], 
                                 onvalue=1, offvalue=0)
         
-        self.var_GR = tk.BooleanVar()
-        self.var_MAF = tk.BooleanVar()
-        self.var_MP = tk.BooleanVar()
-        self.var_unsure = tk.BooleanVar()
         
-        grC = tk.Checkbutton(filter_options_canvas, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
-        mafC = tk.Checkbutton(filter_options_canvas, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
-        mpC = tk.Checkbutton(filter_options_canvas, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
-        unsure = tk.Checkbutton(filter_options_canvas, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
-        apply  = tk.Button(filter_options_canvas, text = "Apply", command = lambda : self.filter())
-        reset = tk.Button(filter_options_canvas, text = "Reset", command = lambda : self.reset())
+        grC = tk.Checkbutton(self.filter_options_canvas, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
+        mafC = tk.Checkbutton(self.filter_options_canvas, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
+        mpC = tk.Checkbutton(self.filter_options_canvas, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
+        unsure = tk.Checkbutton(self.filter_options_canvas, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
+        apply  = tk.Button(self.filter_options_canvas, text = "Apply", command = lambda : self.filter())
+        reset = tk.Button(self.filter_options_canvas, text = "Reset", command = lambda : self.reset())
         
         grC.pack(padx=10, pady = 10, side = tk.LEFT)
         mafC.pack(padx=10, pady = 10, side = tk.LEFT)
@@ -67,11 +74,6 @@ class ImageViewer(tk.Frame):
         unsure.pack(padx=10, pady = 10, side = tk.LEFT)
         apply.pack(padx=10, pady = 10, side = tk.LEFT)
         reset.pack(padx=10, pady = 10, side = tk.LEFT)
-        
-        self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
-        
-        self.create_buttons(self.all_bodies, False, False, False, False)
         
     def make_button_frame(self):
         # create a frame inside the canvas which will be scrolled with it
@@ -113,7 +115,7 @@ class ImageViewer(tk.Frame):
             btn.pack(padx=10, pady=5, side=tk.TOP)
             print("created_button")
             
-    def refresh_information_canvas(self):
+    def clear_information_canvas(self):
         self.information_frame.destroy()
         self.information_frame = tk.Frame(self.image_viewer)
         self.information_frame.grid(row = 3, column = 0, columnspan = 3, sticky = "nsew")
@@ -126,8 +128,8 @@ class ImageViewer(tk.Frame):
         else:
             h = img_h + 180
             
-        if img_w + 230 < 700:
-            w = 700
+        if img_w + 230 < 750:
+            w = 750
         else:
             w = img_w + 245
 
@@ -136,11 +138,14 @@ class ImageViewer(tk.Frame):
     def open_file(self, name, number):
         fm = FileManagement(self.folder_path)
         body_info = fm.get_image(name, number)
-        self.refresh_information_canvas()
-            
-        self.make_information_labels(body_info)
-        self.add_information(body_info)
+        self.clear_information_canvas()
+        self.show_information(body_info)
         self.open_annotation_image(body_info['body_file_name'], body_info['annotation_file_name'])
+        
+    def show_information(self, body_info):
+        self.make_information_labels(body_info)
+        self.make_edit_buttons(body_info)
+        self.add_information(body_info)
         
     def make_information_labels(self, body_info):
         x = 0
@@ -168,8 +173,9 @@ class ImageViewer(tk.Frame):
             notes.grid(row = 2, column = 0, sticky = "w")
             
             
+    def make_edit_buttons(self, body_info):
         edit_info = tk.Button(self.information_frame, text = "Edit Info", 
-                              command = lambda x = body_info: self.edit_info(x))
+                              command = lambda x = body_info: self.create_edit_entries(x))
         edit_img = tk.Button(self.information_frame, text = "Edit Image", 
                              command = lambda x = body_info, i = self.folder_path: self.edit_img(body_info))
         delete = tk.Button(self.information_frame, text = "Delete", 
@@ -179,8 +185,71 @@ class ImageViewer(tk.Frame):
         edit_img.grid(row = 4, column = 7, sticky = "e", padx = 3, pady = 3)
         delete.grid(row = 4, column = 8, sticky = "e", padx = 3, pady = 3)
         
-    def edit_info(self, body_info):
-        pass
+    def edit_info(self, time, edited_body_name, edited_GR, edited_MAF, edited_MP, edited_unsure, edited_notes, body_info):
+        edited = (edited_body_name, edited_GR, edited_MAF, edited_MP, edited_unsure, edited_notes, time)
+        print(edited)
+        fm = FileManagement(self.folder_path)
+        fm.edit_info(edited)
+        
+        fm = FileManagement(self.folder_path)
+        new_info = fm.get_image_time(body_info["time"])
+        
+        if body_info["body_name"] != edited_body_name:
+            fm = FileManagement(self.folder_path)
+            fm.renumber_img(body_info["body_name"], 1)
+            fm.renumber_img(edited_body_name, 1)
+            fm.close()
+            self.filter()
+            
+        self.clear_information_canvas()
+        self.show_information(new_info)
+        
+    def create_edit_entries(self, body_info):
+        self.clear_information_canvas()
+        self.make_information_labels(body_info)
+        
+        edit_body_name = tk.StringVar()
+        edit_body_name.set(body_info["body_name"])
+        edit_var_GR = tk.BooleanVar()
+        edit_var_MAF = tk.BooleanVar()
+        edit_var_MP = tk.BooleanVar()
+        edit_var_unsure = tk.BooleanVar()
+        edit_notes = tk.StringVar()
+        edit_notes.set(body_info["notes"])
+        
+        option_list = [
+            "drop", 
+            "crescent", 
+            "spear", 
+            "green spear", 
+            "saturn", 
+            "rod", 
+            "green rod",  
+            "ring", 
+            "kettlebell", 
+            "multi inc"
+        ]
+        
+        dropdown = tk.OptionMenu(self.information_frame, edit_body_name, *option_list)
+        edit_gr = tk.Checkbutton(self.information_frame, anchor ="w", variable = edit_var_GR, onvalue = True, offvalue = False)
+        edit_maf = tk.Checkbutton(self.information_frame, anchor ="w", variable = edit_var_MAF, onvalue = True, offvalue = False)
+        edit_mp = tk.Checkbutton(self.information_frame, anchor ="w", variable = edit_var_MP, onvalue = True, offvalue = False)
+        edit_unsure = tk.Checkbutton(self.information_frame, variable = edit_var_unsure, onvalue = True, offvalue = False)
+        edit_note_entry = tk.Entry(self.information_frame, textvariable = edit_notes)
+        
+        edit_button_ok = tk.Button(self.information_frame, text = "OK", 
+                                   command = lambda: self.edit_info(body_info["time"], edit_body_name.get(), 
+                                                                    edit_var_GR.get(), edit_var_MAF.get(), 
+                                                                    edit_var_MP.get(), edit_var_unsure.get(), edit_notes.get(), body_info))
+        
+        dropdown.grid(row = 1, column = 0)
+        edit_gr.grid(row = 1, column = 5)
+        edit_maf.grid(row = 1, column = 6)
+        edit_mp.grid(row = 1, column = 7)
+        edit_unsure.grid(row = 1, column = 8)
+        edit_note_entry.grid(row = 3, columnspan = 9, sticky = "w")
+        edit_button_ok.grid(row = 4, column = 8, sticky = "w")
+        
     def edit_img(self, body_info):
         body_image = Image.open(self.folder_path + body_info["body_file_name"])
         ScreenshotEditor(body_info, self.folder_path, False).create_screenshot_canvas(body_image)
@@ -189,6 +258,7 @@ class ImageViewer(tk.Frame):
         fm  = FileManagement(self.folder_path)
         fm.delete_img(name, number)
         self.refresh_button_list()
+        self.filter()
         self.information_frame.destroy()
         
     
@@ -220,19 +290,27 @@ class ImageViewer(tk.Frame):
             
     
     def open_annotation_image(self, body_file_name, annotation_file_name):
-        body_img = Image.open(self.folder_path + body_file_name)  # open image
+        try:
+            body_img = Image.open(self.folder_path + body_file_name)  # open image
+        except:
+            print("missing biondi image")
+            return
         b_img = ImageTk.PhotoImage(body_img)
         self.biondi_image_canvas.create_image(0, 0, image = b_img, anchor = "nw")
         self.biondi_image_canvas.b_img = b_img
         
-        annotation_img = Image.open(self.folder_path + annotation_file_name)  # open image
+        try:
+            annotation_img = Image.open(self.folder_path + annotation_file_name)  # open image
+        except:
+            print("missing annotation image")
+            return
         a_img = ImageTk.PhotoImage(annotation_img)
         self.biondi_image_canvas.create_image(0, 0, image = a_img, anchor = "nw")
         self.biondi_image_canvas.a_img = a_img
         
         self.set_window_size(body_img)
 
-    def refresh_button_list(self):
+    def remake_button_list(self):
         self.interior.destroy()
         self.make_button_frame()
     
@@ -252,11 +330,11 @@ class ImageViewer(tk.Frame):
         MP_param = self.var_MP.get()
         unsure_param = self.var_unsure.get()
         
-        self.refresh_button_list()
+        self.remake_button_list()
         self.create_buttons(body_param, GR_param, MAF_param, MP_param, unsure_param)
 
     def reset(self):
-        self.refresh_button_list()
+        self.remake_button_list()
         self.create_buttons(self.all_bodies, False, False, False, False)
         for choice in ("drop", "crescent", "spear", "green spear", "saturn", 
                         "rod", "green rod", "ring", "kettlebell", "multi inc"):

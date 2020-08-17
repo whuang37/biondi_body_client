@@ -141,6 +141,17 @@ class FileManagement():
         self.c.execute(insert_query, data_values)
         self.close()
     
+    def get_image_time(self, time):
+        select_time_query = '''SELECT *
+                FROM bodies 
+                WHERE TIME = ?'''
+
+        self.c.execute(select_time_query, (time,))
+        row = self.c.fetchone()
+        self.close()
+        
+        return self.convert_tuple(row)
+        
     def get_image(self, body_name, body_number):
         """Fetch image information from database.
         
@@ -166,15 +177,17 @@ class FileManagement():
         
         self.c.execute(select_query, (body_name, body_number))
         row = self.c.fetchone()
-        
         self.close()
         
+        return self.convert_tuple(row)
+    
+    def convert_tuple(self, group):
         data = {}
         i = 0
         for choice in ("time", "annotator_name", "body_name", "body_number", 
                         "x", "y", "grid_id", "GR", "MAF", "MP", "unsure", 
                         "notes", "body_file_name", "annotation_file_name"):
-            data[choice] = row[i]
+            data[choice] = group[i]
             i += 1
             
         for choice in ("GR", "MAF", "MP", "unsure"): #can make into function later
@@ -182,7 +195,6 @@ class FileManagement():
                 data[choice] = True
             else:
                 data[choice] = False
-        
         return data
     
     def secondary_name_grouping(self, name, params):
@@ -259,6 +271,22 @@ class FileManagement():
         self.close()
         return group
     
+    def edit_info(self, edited_info):
+        edit_query = '''UPDATE bodies
+                        SET BODY_NAME = ?,
+                        GR = ?,
+                        MAF = ?,
+                        MP = ?, 
+                        UNSURE = ?, 
+                        NOTES = ? 
+                        WHERE TIME = ?'''
+                        
+        
+        self.c.execute(edit_query, edited_info)
+        self.close()
+
+
+                        
     def renumber_img(self, body_name, body_number):
         """Fixes body number if any discrepancies occur.
         
@@ -270,7 +298,7 @@ class FileManagement():
         Args:
             body_name (str): name of the wanted body
             body_number (int): number of the selected body where all following
-                bodies would be renumbered. 
+                bodies would be renumbered Starts from 1. 
             
         Returns:
             bool: False if there are no bodies in the selected body type
@@ -384,7 +412,8 @@ class FileManagement():
 if __name__ == "__main__":
     fm = FileManagement("")
     #print(fm.count_body_type("saturn"))
-    print(fm.get_image("crescent", 1))
+    fm.edit_info(("rod", 1, 1, 1, 1, "dsasd", 1597648898))
+    #print(fm.get_image("crescent", 1))
     #print(fm.query_image(["saturn", "kettlebell"], False, False, False, False,))
     #fm.delete_img("multi inc", 4)
     #fm.renumber_img("saturn", 1)
