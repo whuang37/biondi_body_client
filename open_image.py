@@ -1,10 +1,11 @@
 import tkinter as tk
 from tkinter import filedialog
+from tkinter.constants import NSEW
 from PIL import Image, ImageTk
 from math import floor
 import screenshot
 from time import time
-
+import file_management
 
 initials = tk.StringVar #global var for user initials
 
@@ -283,20 +284,14 @@ class ImageViewer(tk.Frame):
     def __init__(self, *args, **kw):          
         self.image_viewer = tk.Toplevel()
         # create a canvas object and a vertical scrollbar for scrolling it
-        vscrollbar = AutoScrollbar(self.image_viewer, orient = "vertical")
-        vscrollbar.grid(row = 1, column =1 , sticky = tk.N +tk.S+tk.E+tk.W)
+        scrollbar = AutoScrollbar(self.image_viewer, orient = "vertical")
+        scrollbar.grid(row = 1, column =1 , sticky = 'nswe')
         
         button_list = tk.Canvas(self.image_viewer, bd=0, highlightthickness=0,
-                        yscrollcommand=vscrollbar.set)
+                        yscrollcommand=scrollbar.set)
         button_list.grid(row=1, column=0)
         
-        image_viewer = tk.Canvas(self.image_viewer, bd = 0, bg="green")
-        image_viewer.grid(row=1, column=2)
-        
-        filter_options = tk.Canvas(self.image_viewer, bd = 0, bg="green")
-        filter_options.grid(row=0, columnspan=3)
-        
-        vscrollbar.config(command=button_list.yview)
+        scrollbar.config(command=button_list.yview)
         button_list.xview_moveto(0)
         button_list.yview_moveto(0)
 
@@ -315,14 +310,63 @@ class ImageViewer(tk.Frame):
                 # update the canvas's width to fit the inner frame
                 button_list.config(width=interior.winfo_reqwidth())
 
-        interior.bind('<Configure>', _configure_interior)
-
         def _configure_canvas(event):
             if interior.winfo_reqwidth() != button_list.winfo_width():
                 # update the inner frame's width to fill the canvas
                 button_list.itemconfigure(interior_id, width=button_list.winfo_width())
         button_list.bind('<Configure>', _configure_canvas)
         
+        interior.bind('<Configure>', _configure_interior)
+
+        image_viewer = tk.Canvas(self.image_viewer, bd = 0, bg="green")
+        image_viewer.grid(row=1, column=2)
+        
+        filter_options = tk.Canvas(self.image_viewer, bd = 0)
+        filter_options.grid(row=0, columnspan=3, sticky = "w")
+        
+        filter_bodies = tk.Menubutton(filter_options, text="Biondi Bodies", 
+                                    indicatoron=True, borderwidth=1, relief="raised")
+        menu = tk.Menu(filter_bodies, tearoff=False)
+        filter_bodies.configure(menu=menu)
+        filter_bodies.pack(padx=10, pady=10, side = tk.LEFT)
+
+        self.choices = {}
+        for choice in ("drop", "crescent", "spear", "green spear", "saturn", 
+                        "rod", "green rod", "ring", "kettlebell", "multi inc"):
+            self.choices[choice] = tk.IntVar(value=0)
+            menu.add_checkbutton(label=choice, variable=self.choices[choice], 
+                                 onvalue=1, offvalue=0, 
+                                 command=self.printValues)
+        
+        self.var_GR = tk.BooleanVar()
+        self.var_MAF = tk.BooleanVar()
+        self.var_MP = tk.BooleanVar()
+        self.var_unsure = tk.BooleanVar()
+        
+        grC = tk.Checkbutton(filter_options, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
+        mafC = tk.Checkbutton(filter_options, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
+        mpC = tk.Checkbutton(filter_options, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
+        unsure = tk.Checkbutton(filter_options, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
+        apply  = tk.Button(filter_options, text = "Apply", relief = tk.FLAT, command = self.sort())
+        clear = tk.Button(filter_options, text = "Clear", relief = tk.FLAT, command = self.create_all_buttons())
+        
+        grC.pack(padx=10, pady = 10, side = tk.LEFT)
+        mafC.pack(padx=10, pady = 10, side = tk.LEFT)
+        mpC.pack(padx=10, pady = 10, side = tk.LEFT)
+        unsure.pack(padx=10, pady = 10, side = tk.LEFT)
+        apply.pack(padx=10, pady = 10, side = tk.LEFT)
+        clear.pack(padx=10, pady = 10, side = tk.LEFT)
+        
+    def printValues(self):
+        for name, var in self.choices.items():
+            print( "%s: %s" % (name, var.get()))
+    
+    def sort(self):
+        pass
+        
+    def create_all_buttons(self):
+        pass
+    
     def create_buttons(self):
         lis = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
         for i, x in enumerate(lis):

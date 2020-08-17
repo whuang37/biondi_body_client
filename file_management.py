@@ -367,9 +367,9 @@ class FileManagement():
 
 if __name__ == "__main__":
     fm = FileManagement("")
-    #print(fm.count_body_type("drop"))
+    print(fm.count_body_type("drop"))
     #print(fm.find_image("drop", 6))
-    #print(fm.query_image(["drop", "saturn", "kettlebell"], True, False, True, True,))
+    #print(fm.query_image(["drop", "saturn", "kettlebell"], False, False, False, False,))
     #fm.delete_img("multi inc", 4)
     #fm.renumber_img("saturn", 1)
     #fm.refresh_database()
