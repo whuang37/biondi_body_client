@@ -7,7 +7,8 @@ import os
 class Toolbar(): # creates the toolbar and its related functions
     counter =  1
     DEFAULT_COLOR = 'white'
-    def __init__(self, master, canvas, im, h , w, body_info, folder_path):
+    def __init__(self, master, canvas, im, h , w, body_info, folder_path, new):
+        self.new = new
         self.master = master
         self.height = h
         self.width = w
@@ -130,11 +131,14 @@ class Toolbar(): # creates the toolbar and its related functions
         self.draw.text((bounds[0], bounds[1]), fill = 'white', 
                         font = self.font, anchor = "ne", text = self.text_annotation) #takes the bottom left coordinate of text and places the text on the pillow drawing
         
-        fm = FileManagement(self.folder_path)
-        fm.save_image(self.body_info, self.im, self.annotation)
+        if self.new == True:
+            fm = FileManagement(self.folder_path)
+            fm.save_image(self.body_info, self.im, self.annotation)
+        else: 
+            self.annotation.save(self.folder_path + self.body_info["annotation_file_name"])
 
 class ScreenshotEditor(tk.Frame):
-    def __init__(self, body_info, folder_path):
+    def __init__(self, body_info, folder_path, new):
         self.screenshot = tk.Toplevel()
         self.screenshot.withdraw()
 
@@ -146,6 +150,7 @@ class ScreenshotEditor(tk.Frame):
         
         self.body_info = body_info
         self.folder_path = folder_path
+        self.new = new
 
     def create_screenshot_canvas(self, im):
         
@@ -159,7 +164,7 @@ class ScreenshotEditor(tk.Frame):
         self.screenshot_canvas.pack(expand=tk.YES)
         self.screenshot_canvas.create_image(0, 0, image = img, anchor = "nw")
         self.screenshot_canvas.img = img
-        self.my_toolbar = Toolbar(self.toolbar_frame, self.screenshot_canvas, im, height, width, self.body_info, self.folder_path)
+        self.my_toolbar = Toolbar(self.toolbar_frame, self.screenshot_canvas, im, height, width, self.body_info, self.folder_path, self.new)
         self.screenshot_canvas.focus_set()
 
 
@@ -186,7 +191,7 @@ class LilSnippy(tk.Frame):
     def take_bounded_screenshot(self, x1, y1, x2, y2):
         im = pyautogui.screenshot(region=(x1, y1, x2, y2))
         
-        self.screenshot_editor = ScreenshotEditor(self.body_info, self.folder_path)
+        self.screenshot_editor = ScreenshotEditor(self.body_info, self.folder_path, True)
         self.screenshot_editor.create_screenshot_canvas(im)
 
     def create_screen_canvas(self):

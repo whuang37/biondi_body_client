@@ -97,6 +97,22 @@ class ImageViewer(tk.Frame):
         self.button_list_canvas.bind('<Configure>', _configure_canvas)
         interior.bind('<Configure>', _configure_interior)
     
+    def create_buttons(self, body_param, GR_param, MAF_param, MP_param, unsure_param):
+        #self.button_list_canvas.delete("body_button")
+        print("succes")
+        fm = FileManagement(self.folder_path)
+        data = fm.query_images(body_param, GR_param, MAF_param, MP_param, unsure_param)
+        
+        for i in data:
+            name = i[1]
+            number = i[2]
+            body_name = "{} {}".format(name, number)
+            btn = tk.Button(self.interior, height=1, width=20, relief=tk.FLAT, 
+                            bg="gray99", fg="purple3", font="Dosis", text=body_name,
+                            command= lambda i = name, x = number: self.open_file(i, x))
+            btn.pack(padx=10, pady=5, side=tk.TOP)
+            print("created_button")
+            
     def refresh_information_canvas(self):
         self.information_frame.destroy()
         self.information_frame = tk.Frame(self.image_viewer)
@@ -156,8 +172,8 @@ class ImageViewer(tk.Frame):
                               command = lambda x = body_info: self.edit_info(x))
         edit_img = tk.Button(self.information_frame, text = "Edit Image", 
                              command = lambda x = body_info, i = self.folder_path: self.edit_img(body_info))
-        delete = tk.Button(self.information_frame, text = "Edit Info", 
-                              command = lambda x = body_info["body_name"], i = body_info["body_number"]: self.delete_img(x, i))
+        delete = tk.Button(self.information_frame, text = "Delete", 
+                              command = lambda x = body_info["body_name"], i = body_info["body_number"]: self.delete_image(x, i))
             
         edit_info.grid(row = 4, column = 6, sticky = "e", padx = 3, pady = 3)
         edit_img.grid(row = 4, column = 7, sticky = "e", padx = 3, pady = 3)
@@ -167,10 +183,14 @@ class ImageViewer(tk.Frame):
         pass
     def edit_img(self, body_info):
         body_image = Image.open(self.folder_path + body_info["body_file_name"])
-        ScreenshotEditor(body_info, self.folder_path).create_screenshot_canvas(body_image)
+        ScreenshotEditor(body_info, self.folder_path, False).create_screenshot_canvas(body_image)
 
-    def delete_img(self):
-        pass
+    def delete_image(self, name, number):
+        fm  = FileManagement(self.folder_path)
+        fm.delete_img(name, number)
+        self.refresh_button_list()
+        self.information_frame.destroy()
+        
     
     def add_information(self, body_info):
         info = (datetime.fromtimestamp(body_info["time"]),
@@ -211,22 +231,6 @@ class ImageViewer(tk.Frame):
         self.biondi_image_canvas.a_img = a_img
         
         self.set_window_size(body_img)
-        
-    def create_buttons(self, body_param, GR_param, MAF_param, MP_param, unsure_param):
-        #self.button_list_canvas.delete("body_button")
-        print("succes")
-        fm = FileManagement(self.folder_path)
-        data = fm.query_images(body_param, GR_param, MAF_param, MP_param, unsure_param)
-        
-        for i in data:
-            name = i[1]
-            number = i[2]
-            body_name = "{} {}".format(name, number)
-            btn = tk.Button(self.interior, height=1, width=20, relief=tk.FLAT, 
-                            bg="gray99", fg="purple3", font="Dosis", text=body_name,
-                            command= lambda i = name, x = number: self.open_file(i, x))
-            btn.pack(padx=10, pady=5, side=tk.TOP)
-            print("created_button")
 
     def refresh_button_list(self):
         self.interior.destroy()
@@ -237,6 +241,8 @@ class ImageViewer(tk.Frame):
         for name, var in self.choices.items():
             if var.get() == 1:
                 body_selection.append(name)
+        if body_selection == []:
+            body_selection = self.all_bodies
         return body_selection
     
     def filter(self):
@@ -252,3 +258,8 @@ class ImageViewer(tk.Frame):
     def reset(self):
         self.refresh_button_list()
         self.create_buttons(self.all_bodies, False, False, False, False)
+        for choice in ("drop", "crescent", "spear", "green spear", "saturn", 
+                        "rod", "green rod", "ring", "kettlebell", "multi inc"):
+            self.choices[choice] = tk.IntVar(value=0)
+            #menu.add_checkbutton(label=choice, variable=self.choices[choice], 
+        
