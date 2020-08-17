@@ -292,35 +292,15 @@ class ImageViewer(tk.Frame):
         scrollbar = AutoScrollbar(self.image_viewer, orient = "vertical")
         scrollbar.grid(row = 1, column =1 , sticky = 'nswe')
         
-        button_list = tk.Canvas(self.image_viewer, bd=0, highlightthickness=0,
+        self.button_list = tk.Canvas(self.image_viewer, bd=0, highlightthickness=0,
                         yscrollcommand=scrollbar.set)
-        button_list.grid(row=1, column=0)
+        self.button_list.grid(row=1, column=0)
         
-        scrollbar.config(command=button_list.yview)
-        button_list.xview_moveto(0)
-        button_list.yview_moveto(0)
-
-        # create a frame inside the canvas which will be scrolled with it
-        self.interior = interior = tk.Frame(button_list)
-        interior_id = button_list.create_window(0, 0, window=interior,
-                                            anchor=tk.NW)
-        # track changes to the canvas and frame width and sync them,
-        # also updating the scrollbar
-        def _configure_interior(event):
-            # update the scrollbars to match the size of the inner frame
-            size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
-            button_list.config(scrollregion="0 0 %s %s" % size)
-            if interior.winfo_reqwidth() != button_list.winfo_width():
-                # update the canvas's width to fit the inner frame
-                button_list.config(width=interior.winfo_reqwidth())
-
-        def _configure_canvas(event):
-            if interior.winfo_reqwidth() != button_list.winfo_width():
-                # update the inner frame's width to fill the canvas
-                button_list.itemconfigure(interior_id, width=button_list.winfo_width())
-                
-        button_list.bind('<Configure>', _configure_canvas)
-        interior.bind('<Configure>', _configure_interior)
+        scrollbar.config(command=self.button_list.yview)
+        self.button_list.xview_moveto(0)
+        self.button_list.yview_moveto(0)
+        
+        self.make_button_frame()
 
         biondi_image = tk.Canvas(self.image_viewer, bd = 0, bg="green")
         biondi_image.grid(row=1, column=2)
@@ -340,8 +320,7 @@ class ImageViewer(tk.Frame):
                         "rod", "green rod", "ring", "kettlebell", "multi inc"):
             self.choices[choice] = tk.IntVar(value=0)
             menu.add_checkbutton(label=choice, variable=self.choices[choice], 
-                                 onvalue=1, offvalue=0, 
-                                 command=self.printValues)
+                                onvalue=1, offvalue=0)
         
         self.var_GR = tk.BooleanVar()
         self.var_MAF = tk.BooleanVar()
@@ -352,59 +331,83 @@ class ImageViewer(tk.Frame):
         mafC = tk.Checkbutton(filter_options, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
         mpC = tk.Checkbutton(filter_options, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
         unsure = tk.Checkbutton(filter_options, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
-        apply  = tk.Button(filter_options, text = "Apply", command = lambda : self.sort())
-        clear = tk.Button(filter_options, text = "Clear", command = lambda : self.create_all_buttons())
+        apply  = tk.Button(filter_options, text = "Apply", command = lambda : self.filter())
+        reset = tk.Button(filter_options, text = "Reset", command = lambda : self.reset())
         
         grC.pack(padx=10, pady = 10, side = tk.LEFT)
         mafC.pack(padx=10, pady = 10, side = tk.LEFT)
         mpC.pack(padx=10, pady = 10, side = tk.LEFT)
         unsure.pack(padx=10, pady = 10, side = tk.LEFT)
         apply.pack(padx=10, pady = 10, side = tk.LEFT)
-        clear.pack(padx=10, pady = 10, side = tk.LEFT)
+        reset.pack(padx=10, pady = 10, side = tk.LEFT)
         
         self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
                         "rod", "green rod", "ring", "kettlebell", "multi inc"]
+        
         self.create_buttons(self.all_bodies, False, False, False, False)
         
+    def make_button_frame(self):
+        # create a frame inside the canvas which will be scrolled with it
+        self.interior = interior = tk.Frame(self.button_list)
+        interior_id = self.button_list.create_window(0, 0, window=interior,
+                                            anchor=tk.NW)
+        # track changes to the canvas and frame width and sync them,
+        # also updating the scrollbar
+        def _configure_interior(event):
+            # update the scrollbars to match the size of the inner frame
+            size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
+            self.button_list.config(scrollregion="0 0 %s %s" % size)
+            if interior.winfo_reqwidth() != self.button_list.winfo_width():
+                # update the canvas's width to fit the inner frame
+                self.button_list.config(width=interior.winfo_reqwidth())
 
-        
-    def printValues(self):
-        for name, var in self.choices.items():
-            print( "%s: %s" % (name, var.get()))
-    
-    def sort(self):
-        pass
-        
-    def create_all_buttons(self):
-        fm = FileManagement(self.folder_path)
-        print(self.choices)
-        for name in self.choices:
-            max_bodies = fm.count_body_type(name) + 1
-            print(max_bodies)
-            for x in range(1, max_bodies):
-                body_name = "{} {}".format(name, str(x))
-                btn = tk.Button(self.interior, height=1, width=20, relief=tk.FLAT, 
-                bg="gray99", fg="purple3",
-                font="Dosis", text=body_name,
-                command= lambda : print(body_name))
-                btn.pack(padx=10, pady=5, side=tk.TOP)
+        def _configure_canvas(event):
+            if interior.winfo_reqwidth() != self.button_list.winfo_width():
+                # update the inner frame's width to fill the canvas
+                self.button_list.itemconfigure(interior_id, width=self.button_list.winfo_width())
                 
-                print("created_button")
-    
+        self.button_list.bind('<Configure>', _configure_canvas)
+        interior.bind('<Configure>', _configure_interior)
+        
+
     def create_buttons(self, body_param, GR_param, MAF_param, MP_param, unsure_param):
+        #self.button_list.delete("body_button")
+        print("succes")
         fm = FileManagement(self.folder_path)
         data = fm.query_images(body_param, GR_param, MAF_param, MP_param, unsure_param)
         
         for i in data:
             body_name = "{} {}".format(i[1], i[2])
             btn = tk.Button(self.interior, height=1, width=20, relief=tk.FLAT, 
-            bg="gray99", fg="purple3",
-            font="Dosis", text=body_name,
-            command= lambda : print(body_name))
+                            bg="gray99", fg="purple3", font="Dosis", text=body_name,
+                            command= lambda : print(body_name))
             btn.pack(padx=10, pady=5, side=tk.TOP)
-            
             print("created_button")
 
+    def refresh_button_list(self):
+        self.interior.destroy()
+        self.make_button_frame()
+    
+    def get_body_selection(self):
+        body_selection = []
+        for name, var in self.choices.items():
+            if var.get() == 1:
+                body_selection.append(name)
+        return body_selection
+    
+    def filter(self):
+        body_param = self.get_body_selection()
+        GR_param = self.var_GR.get()
+        MAF_param = self.var_MAF.get()
+        MP_param = self.var_MP.get()
+        unsure_param = self.var_unsure.get()
+        
+        self.refresh_button_list()
+        self.create_buttons(body_param, GR_param, MAF_param, MP_param, unsure_param)
+
+    def reset(self):
+        self.refresh_button_list()
+        self.create_buttons(self.all_bodies, False, False, False, False)
 
 
 def open_image(v):

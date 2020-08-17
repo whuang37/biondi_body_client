@@ -235,7 +235,8 @@ class FileManagement():
                         AND GR IN ({1}) 
                         AND MAF IN ({2}) 
                         AND MP IN ({3})
-                        AND UNSURE IN ({4})'''.format(body_param_ph, GR_param_ph, MAF_param_ph, MP_param_ph, unsure_param_ph)
+                        AND UNSURE IN ({4})
+                        ORDER BY TIME DESC'''.format(body_param_ph, GR_param_ph, MAF_param_ph, MP_param_ph, unsure_param_ph)
         
         self.c.execute(group_query, body_param)
         group = self.c.fetchall()
