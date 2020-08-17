@@ -3,9 +3,9 @@ from tkinter import filedialog
 from tkinter.constants import NSEW
 from PIL import Image, ImageTk
 from math import floor
-import screenshot
+from screenshot import LilSnippy
 from time import time
-import file_management
+from file_management import FileManagement
 
 initials = tk.StringVar #global var for user initials
 
@@ -56,13 +56,14 @@ class Application(tk.Frame):
         # Bind events to the Canvas
         self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
         self.canvas.bind('<ButtonPress-3>', self.move_from)
-        self.canvas.bind('<B3-Motion>',     self.move_to)
+        self.canvas.bind('<B3-Motion>', self.move_to)
         self.canvas.bind('<MouseWheel>', self.verti_wheel)
         self.canvas.bind('<Shift-MouseWheel>', self.hori_wheel)  
         self.canvas.bind("<Button-1>", self.open_popup)
         #self.canvas.bind('<Return>', self.call_screenshot)
 
-        self.image = Image.open(path)  # open image
+        self.folder_path = path + "/"
+        self.image = Image.open(self.folder_path + "gridfile.jpg")  # open image
         self.width, self.height = self.image.size
         self.imscale = 1.0  # scale for the canvas image
         self.delta = 1.3  # zoom magnitude
@@ -76,7 +77,8 @@ class Application(tk.Frame):
         self.columns = 7
         self.create_grid()
         
-        ImageViewer()
+        ImageViewer(self.folder_path) #TEST CLASS
+        
         
     def create_grid(self):
         box_width =  round(self.width / self.columns)
@@ -106,7 +108,7 @@ class Application(tk.Frame):
     def open_popup(self, event):
         x = event.x
         y = event.y
-        Marker(self.master, x, y, self.marker_canvas, self.height, self.width, self.columns, self.rows)
+        Marker(self.master, x, y, self.marker_canvas, self.height, self.width, self.columns, self.rows, self.folder_path)
         
     def scroll_y(self, *args, **kwargs):
         ''' Scroll canvas vertically and redraw the image '''
@@ -174,7 +176,7 @@ class Application(tk.Frame):
             self.canvas.imagetk = imagetk  # keep an extra reference to prevent garbage-collection
             
 class Marker(tk.Frame):
-    def __init__(self, master, x, y, marker_canvas, height, width, columns, rows):
+    def __init__(self, master, x, y, marker_canvas, height, width, columns, rows, folder_path):
         self.master = master
         self.x = x
         self.y = y
@@ -228,6 +230,8 @@ class Marker(tk.Frame):
         unsure.grid(row = 0, column = 2)
         note_entry.grid(row = 3, column = 1)
         button_ok.grid(row = 2, column = 2)
+        
+        self.folder_path = folder_path
 
     def get_data(self):
         time_added = int(time())
@@ -271,7 +275,7 @@ class Marker(tk.Frame):
         return body_index[string]
     
     def call_screenshot(self, data):
-        app = screenshot.LilSnippy(self.master, data)
+        app = LilSnippy(self.master, data, self.folder_path)
         app.create_screen_canvas()
         
     def draw(self, body_type, x, y, marker):
@@ -281,7 +285,8 @@ class Marker(tk.Frame):
         self.call_screenshot(self.get_data())
 
 class ImageViewer(tk.Frame):
-    def __init__(self, *args, **kw):          
+    def __init__(self, folder_path, *args, **kw):
+        self.folder_path = folder_path       
         self.image_viewer = tk.Toplevel()
         # create a canvas object and a vertical scrollbar for scrolling it
         scrollbar = AutoScrollbar(self.image_viewer, orient = "vertical")
@@ -299,7 +304,6 @@ class ImageViewer(tk.Frame):
         self.interior = interior = tk.Frame(button_list)
         interior_id = button_list.create_window(0, 0, window=interior,
                                             anchor=tk.NW)
-        self.create_buttons()
         # track changes to the canvas and frame width and sync them,
         # also updating the scrollbar
         def _configure_interior(event):
@@ -314,12 +318,12 @@ class ImageViewer(tk.Frame):
             if interior.winfo_reqwidth() != button_list.winfo_width():
                 # update the inner frame's width to fill the canvas
                 button_list.itemconfigure(interior_id, width=button_list.winfo_width())
+                
         button_list.bind('<Configure>', _configure_canvas)
-        
         interior.bind('<Configure>', _configure_interior)
 
-        image_viewer = tk.Canvas(self.image_viewer, bd = 0, bg="green")
-        image_viewer.grid(row=1, column=2)
+        biondi_image = tk.Canvas(self.image_viewer, bd = 0, bg="green")
+        biondi_image.grid(row=1, column=2)
         
         filter_options = tk.Canvas(self.image_viewer, bd = 0)
         filter_options.grid(row=0, columnspan=3, sticky = "w")
@@ -331,6 +335,7 @@ class ImageViewer(tk.Frame):
         filter_bodies.pack(padx=10, pady=10, side = tk.LEFT)
 
         self.choices = {}
+        
         for choice in ("drop", "crescent", "spear", "green spear", "saturn", 
                         "rod", "green rod", "ring", "kettlebell", "multi inc"):
             self.choices[choice] = tk.IntVar(value=0)
@@ -347,8 +352,8 @@ class ImageViewer(tk.Frame):
         mafC = tk.Checkbutton(filter_options, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
         mpC = tk.Checkbutton(filter_options, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
         unsure = tk.Checkbutton(filter_options, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
-        apply  = tk.Button(filter_options, text = "Apply", relief = tk.FLAT, command = self.sort())
-        clear = tk.Button(filter_options, text = "Clear", relief = tk.FLAT, command = self.create_all_buttons())
+        apply  = tk.Button(filter_options, text = "Apply", command = lambda : self.sort())
+        clear = tk.Button(filter_options, text = "Clear", command = lambda : self.create_all_buttons())
         
         grC.pack(padx=10, pady = 10, side = tk.LEFT)
         mafC.pack(padx=10, pady = 10, side = tk.LEFT)
@@ -356,6 +361,12 @@ class ImageViewer(tk.Frame):
         unsure.pack(padx=10, pady = 10, side = tk.LEFT)
         apply.pack(padx=10, pady = 10, side = tk.LEFT)
         clear.pack(padx=10, pady = 10, side = tk.LEFT)
+        
+        self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
+                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
+        self.create_buttons(self.all_bodies, False, False, False, False)
+        
+
         
     def printValues(self):
         for name, var in self.choices.items():
@@ -365,22 +376,40 @@ class ImageViewer(tk.Frame):
         pass
         
     def create_all_buttons(self):
-        pass
-    
-    def create_buttons(self):
-        lis = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
-        for i, x in enumerate(lis):
-            btn = tk.Button(self.interior, height=1, width=20, relief=tk.FLAT, 
+        fm = FileManagement(self.folder_path)
+        print(self.choices)
+        for name in self.choices:
+            max_bodies = fm.count_body_type(name) + 1
+            print(max_bodies)
+            for x in range(1, max_bodies):
+                body_name = "{} {}".format(name, str(x))
+                btn = tk.Button(self.interior, height=1, width=20, relief=tk.FLAT, 
                 bg="gray99", fg="purple3",
-                font="Dosis", text='Button ' + lis[i],
-                command=lambda i=i,x=x: print(lis[i]))
+                font="Dosis", text=body_name,
+                command= lambda : print(body_name))
+                btn.pack(padx=10, pady=5, side=tk.TOP)
+                
+                print("created_button")
+    
+    def create_buttons(self, body_param, GR_param, MAF_param, MP_param, unsure_param):
+        fm = FileManagement(self.folder_path)
+        data = fm.query_images(body_param, GR_param, MAF_param, MP_param, unsure_param)
+        
+        for i in data:
+            body_name = "{} {}".format(i[1], i[2])
+            btn = tk.Button(self.interior, height=1, width=20, relief=tk.FLAT, 
+            bg="gray99", fg="purple3",
+            font="Dosis", text=body_name,
+            command= lambda : print(body_name))
             btn.pack(padx=10, pady=5, side=tk.TOP)
+            
+            print("created_button")
 
 
 
 def open_image(v):
 
-    path = filedialog.askopenfilename()
+    path = filedialog.askdirectory()
     i = Application(root, path=path)
     initials = v
 

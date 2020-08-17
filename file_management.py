@@ -198,7 +198,7 @@ class FileManagement():
             params.append(1)
         return param_ph
 
-    def query_image(self, body_param, GR_param, MAF_param, MP_param, unsure_param):
+    def query_images(self, body_param, GR_param, MAF_param, MP_param, unsure_param):
         """Takes a set of parameters to pull all images that fall under params.
         
         Using a series of strings and bools that can be dictated through an image searcher,
@@ -227,8 +227,8 @@ class FileManagement():
         MP_param_ph = self.secondary_name_grouping(MP_param, body_param)
         unsure_param_ph = self.secondary_name_grouping(unsure_param, body_param)
         
-        params = tuple(body_param)
-        print(params)
+        # params = tuple(body_param)
+        # print(params)
         group_query = '''SELECT TIME, BODY_NAME, BODY_NUMBER, X_POSITION, Y_POSITION
                         FROM bodies 
                         WHERE BODY_NAME IN ({0}) 
@@ -367,9 +367,9 @@ class FileManagement():
 
 if __name__ == "__main__":
     fm = FileManagement("")
-    print(fm.count_body_type("drop"))
+    print(fm.count_body_type("saturn"))
     #print(fm.find_image("drop", 6))
-    #print(fm.query_image(["drop", "saturn", "kettlebell"], False, False, False, False,))
+    #print(fm.query_image(["saturn", "kettlebell"], False, False, False, False,))
     #fm.delete_img("multi inc", 4)
     #fm.renumber_img("saturn", 1)
     #fm.refresh_database()
