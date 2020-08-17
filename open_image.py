@@ -2,11 +2,14 @@ import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 from math import floor
-import screenshot
 from time import time
+import screenshot
+import grid_tracker
 
 
-initials = tk.StringVar #global var for user initials
+class Grid_Window(tk.Frame):
+    def __init__(self, master):
+        pass
 
 class AutoScrollbar(tk.Scrollbar):
     ''' A scrollbar that hides itself if it's not needed.
@@ -29,14 +32,23 @@ class Application(tk.Frame):
     def __init__(self, mainframe, path):
         self.box = 0
         self.master = mainframe
+
         ''' Initialize the main Frame '''
         tk.Frame.__init__(self, master=mainframe)
         self.master.title('Zoom with mouse wheel')
         # Vertical and horizontal scrollbars for canvas
         vbar = AutoScrollbar(self.master, orient='vertical')
         hbar = AutoScrollbar(self.master, orient='horizontal')
-        vbar.grid(row=0, column=1, sticky='ns')
-        hbar.grid(row=1, column=0, sticky='we')
+        vbar.grid(row=1, column=1, sticky='ns')
+        hbar.grid(row=2, column=0, sticky='we')
+
+        self.toolbar = tk.Frame(self.master, bg = "gray")
+        self.button = tk.Button(self.toolbar, text = "idk", command = None)
+        self.button.pack(side = "left", padx =2 , pady = 2)
+
+        self.toolbar.grid(row = 0, column = 0, sticky = 'nswe' )
+
+
         # Create canvas and put image on it
         self.canvas = tk.Canvas(self.master, highlightthickness=0, xscrollcommand = hbar.set, yscrollcommand = vbar.set)
         self.canvas.configure(yscrollincrement = '2')
@@ -45,12 +57,12 @@ class Application(tk.Frame):
         self.marker_canvas = self.canvas
         self.grid_canvas = self.canvas
         
-        self.canvas.grid(row=0, column=0, sticky='nswe')
+        self.canvas.grid(row=1, column=0, sticky='nswe')
         self.canvas.update()  # wait till canvas is created
         vbar.configure(command=self.scroll_y)  # bind scrollbars to the canvas
         hbar.configure(command=self.scroll_x)
         # Make the canvas expandable
-        self.master.rowconfigure(0, weight=1)
+        self.master.rowconfigure(1, weight=1)
         self.master.columnconfigure(0, weight=1)
         # Bind events to the Canvas
         self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
@@ -277,26 +289,17 @@ class Marker(tk.Frame):
         marker.destroy()
         self.call_screenshot(self.get_data())
 
-
-
-
-
-def open_image(v):
+def open_image():
 
     path = filedialog.askopenfilename()
     i = Application(root, path=path)
-    initials = v
+    
 
 if __name__ == "__main__":
     root = tk.Tk()
 
-    find_image_button = tk.Button(root, text="Pick Image File", command = lambda: open_image(v.get()))
+    find_image_button = tk.Button(root, text="Pick Image File", command = lambda: open_image())
     find_image_button.grid(column = 0, row = 0)
-
-    v = tk.StringVar() #initials
-    v.set("Enter Initials, eg. \"BJ\"")
-    name_entry = tk.Entry(root, textvariable = v)
-    name_entry.grid(column = 0, row = 1)
 
     root.mainloop()
 
