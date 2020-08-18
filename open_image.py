@@ -87,33 +87,16 @@ class Grid_Window(tk.Frame):
         self.master.geometry("600x600")
         
     def forward(self):
-        while True:
-            self.i += 1 
-            self.v.set(str(self.final_order[self.i]))
-            self.current_grid.configure(text = self.v.get())
-            self.current_grid.update()
-            
-            if self.i == 46:
-                self.forward_button.configure(state = tk.DISABLED)
-                self.forward_button.update()
-                break
-            break
+        self.i += 1 
+        self.v.set(str(self.final_order[self.i]))
+        self.current_grid.configure(text = self.v.get())
+        self.current_grid.update()
 
-    def backward(self):
-        while True:
-            if self.i == 0:
-                self.backward_button.configure(state = tk.DISABLED)
-                self.backward_button.update()
-                break     
-            self.i -= 1 
-            self.v.set((self.final_order[self.i]))
-            self.current_grid.configure(text = self.v.get())
-            self.current_grid.update()
-            if self.i == 0:
-                self.backward_button.configure(state = tk.DISABLED)
-                self.backward_button.update()
-                break
-            break
+    def backward(self): 
+        self.i -= 1 
+        self.v.set((self.final_order[self.i]))
+        self.current_grid.configure(text = self.v.get())
+        self.current_grid.update()
 
 class AutoScrollbar(tk.Scrollbar):
     ''' A scrollbar that hides itself if it's not needed.
