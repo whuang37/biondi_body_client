@@ -3,13 +3,57 @@ from tkinter import filedialog
 from PIL import Image, ImageTk
 from math import floor
 from time import time
+import pyautogui
+import sys
+
 import screenshot
 import grid_tracker
 
 
+
 class Grid_Window(tk.Frame):
-    def __init__(self, master):
-        pass
+    def __init__(self, master, main_canvas, final_order):
+        self.master = master
+        self.main_canvas = main_canvas
+        self.final_order = final_order
+        
+        self.i = 0
+
+        self.gw = tk.Toplevel()
+        self.v = tk.StringVar()
+        self.v.set("Current Grid Square: " + str(self.final_order[self.i]))
+        self.current_grid = tk.Label(self.gw, text = self.v.get())
+        self.current_grid.grid(row = 0, column = 1)
+
+
+        self.forward_button = tk.Button(self.gw, text = ">", command = self.forward)
+        self.forward_button.grid(row=1, column = 2)
+        
+
+        self.backward_button = tk.Button(self.gw, text = "<", command = self.backward)
+        self.backward_button.grid(row=1, column = 0)
+        
+
+    def forward(self):
+        self.i += 1 
+        self.v.set("Current Grid Square: " + str(self.final_order[self.i]))
+        self.current_grid.configure(text = self.v.get())
+        self.current_grid.update()
+
+        if self.i == 48:
+            self.forward_button.configure(state = 'disabled')
+            self.forward_button.update()
+
+    def backward(self):
+        self.i -= 1 
+        self.v.set("Current Grid Square: " + str(self.final_order[self.i]))
+        self.current_grid.configure(text = self.v.get())
+        self.current_grid.update()
+
+        if self.i == 0:
+            self.backward_button.configure(state = 'disabled')
+            self.backward_button.update()
+        
 
 class AutoScrollbar(tk.Scrollbar):
     ''' A scrollbar that hides itself if it's not needed.
@@ -42,11 +86,21 @@ class Application(tk.Frame):
         vbar.grid(row=1, column=1, sticky='ns')
         hbar.grid(row=2, column=0, sticky='we')
 
-        self.toolbar = tk.Frame(self.master, bg = "gray")
-        self.button = tk.Button(self.toolbar, text = "idk", command = None)
-        self.button.pack(side = "left", padx =2 , pady = 2)
+        
 
+        self.toolbar = tk.Frame(self.master, bg = "gray")
         self.toolbar.grid(row = 0, column = 0, sticky = 'nswe' )
+
+        self.gt = grid_tracker.Grid_Randomizer()
+        self.gt.set_final_order()
+        self.final_order = self.gt.get_final_order()
+        self.gridw_button = tk.Button(self.toolbar, text = "Open Grid", command = self.open_grid_window)
+        self.gridw_button.pack(side = "left", padx =2 , pady = 2)
+
+        
+
+
+        
 
 
         # Create canvas and put image on it
@@ -81,7 +135,13 @@ class Application(tk.Frame):
         self.container = self.canvas.create_rectangle(0, 0, self.width, self.height, width=0)
         self.show_image()
 
-        self.master.geometry(str(self.width) + "x" + str(self.height))
+        
+        self.x, self.y = pyautogui.position()
+        self.positionStr = 'X: ' + str(self.x).rjust(4) + ' Y: ' + str(self.y).rjust(4)
+        self.coordbar = tk.Label(self.master, text = self.positionStr) 
+        self.coordbar.grid(row = 3, column = 0, sticky = 'sw')
+
+        self.master.geometry(str(500) + "x" + str(500))
         
         self.rows = 7
         self.columns = 7
@@ -111,6 +171,8 @@ class Application(tk.Frame):
                 n += 1
                 if n > num_squares:
                     break
+    def open_grid_window(self):
+        Grid_Window(self.master, self.canvas, self.final_order)
 
     def open_popup(self, event):
         x = event.x
@@ -298,7 +360,7 @@ def open_image():
 if __name__ == "__main__":
     root = tk.Tk()
 
-    find_image_button = tk.Button(root, text="Pick Image File", command = lambda: open_image())
+    find_image_button = tk.Button(root, text="Pick Image File", command = open_image)
     find_image_button.grid(column = 0, row = 0)
 
     root.mainloop()

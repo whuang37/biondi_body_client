@@ -54,11 +54,11 @@ class Grid_Randomizer():
         else:
             self.final_order.extend(set2)
             self.final_order.extend(set1)
-        print(self.final_order)
-        return self.final_order
-        
 
-        
+    def get_final_order(self):
+        return self.final_order
+
+    
 class Grid_Window():
     def __init__(self, master):
         self.master = master
