@@ -6,6 +6,7 @@ from math import floor
 from screenshot import LilSnippy
 from time import time
 from image_viewer import ImageViewer
+from file_management import FileManagement
 
 initials = tk.StringVar #global var for user initials
 
@@ -221,7 +222,7 @@ class Marker(tk.Frame):
         mpC = tk.Checkbutton(marker, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
         unsure = tk.Checkbutton(marker, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
         note_entry = tk.Entry(marker, textvariable = self.notes)
-        button_ok = tk.Button(marker, text = "OK", command = lambda: self.draw(self.body_type.get(), x, y, marker))
+        button_ok = tk.Button(marker, text = "OK", command = lambda: self.draw(marker))
         
         dropdown.grid(row = 0, column = 0)
         grC.grid(row = 0, column = 1, sticky = 'w')
@@ -237,11 +238,12 @@ class Marker(tk.Frame):
         time_added = int(time())
         body_file_name = str(self.body_type.get()) + "_" + str(time_added)
         annotation_file_name = body_file_name + "_ANNOTATION"
+        fm = FileManagement(self.folder_path)
         
         data = {"time": time_added,
                 "annotator_name": self.annotator,
                 "body_name": self.body_type.get(),
-                "body_number": 0,
+                "body_number": fm.count_body_type(self.body_type.get()) + 1,
                 "x": self.x,
                 "y": self.y,
                 "grid_id": self.grid_id,
@@ -262,6 +264,39 @@ class Marker(tk.Frame):
         key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         return key[(row_num * self.columns) + column_num]
 
+    
+    def call_screenshot(self, data):
+        app = LilSnippy(self.master, data, self.folder_path)
+        app.create_screen_canvas()
+        
+    def draw(self, marker):
+        data = self.get_data()
+        GridMark(self.marker_canvas, self.folder_path, data["body_name"], 
+               data["body_number"], data["x"], data["y"])
+        marker.destroy()
+        self.call_screenshot(data)
+
+class GridMark():
+    def __init__(self, marker_canvas, folder_path, body_name, body_number, x, y):
+        self.marker_canvas = marker_canvas
+        self.folder_path = folder_path
+        self.body_name = body_name
+        self.body_number = body_number
+
+        self.tag = body_name + str(body_number)
+        
+        self.marker_canvas.create_text(x,y, font = ("Calibri", 24, "bold"), fill = 'WHITE', activefill = "red",
+                                       text = self.get_letter(body_name), tag = self.tag)
+        
+        self.marker_canvas.tag_bind(self.tag, '<ButtonPress-1>', self.on_click)
+        self.marker_canvas.update 
+        
+    def on_click(self, event):
+        body_name = self.body_name
+        body_number = self.body_number
+        ImageViewer(self.folder_path).open_file(body_name, body_number)
+        print(self.body_name, self.body_number)
+        
     def get_letter(self, string): #used with draw
         body_index = {"drop": "d",
                     "crescent": "c",
@@ -273,17 +308,6 @@ class Marker(tk.Frame):
                     "kettlebell": "kb",
                     "multi inc": "mi"}
         return body_index[string]
-    
-    def call_screenshot(self, data):
-        app = LilSnippy(self.master, data, self.folder_path)
-        app.create_screen_canvas()
-        
-    def draw(self, body_type, x, y, marker):
-        self.marker_canvas.create_text(x,y, font = "Calibri",fill = 'WHITE', text = self.get_letter(body_type), tag="marker")
-        self.marker_canvas.update
-        marker.destroy()
-        self.call_screenshot(self.get_data())
-
 
 def open_image(v):
 
