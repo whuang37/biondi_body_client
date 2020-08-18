@@ -145,7 +145,10 @@ class Application(tk.Frame):
         self.gt.set_final_order()
         self.final_order = self.gt.get_final_order()
         self.gridw_button = tk.Button(self.toolbar, text = "Open Grid", command = self.open_grid_window)
-        self.gridw_button.pack(side = "left", padx =2 , pady = 2)
+        self.gridw_button.pack(side = "left", padx = 2 , pady = 2)
+
+        self.open_new_button = tk.Button(self.toolbar, text = "Open New Folder", command = self.open_new_folder)
+        self.open_new_button.pack(side = "left", padx = 2, pady = 2)
 
 
 
@@ -219,6 +222,10 @@ class Application(tk.Frame):
    
     def open_grid_window(self):
         Grid_Window(self.master, self.canvas, self.final_order, self.width, self.height)
+
+    def open_new_folder(self):
+        path = filedialog.askdirectory()
+        i = Application(root, path=path)
 
     def update_coords(self, event):
         self.mousex.set(event.x)
