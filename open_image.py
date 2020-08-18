@@ -9,7 +9,111 @@ from image_viewer import ImageViewer
 from file_management import FileManagement
 from markings import GridMark
 
-initials = tk.StringVar #global var for user initials
+import screenshot
+import grid_tracker
+
+
+
+class Grid_Window(tk.Frame):
+    def __init__(self, master, main_canvas, final_order, width, height):
+        self.master = master
+        self.main_canvas = main_canvas
+        self.final_order = final_order
+        self.total_squares = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw"
+
+        self.width = height
+        self.height = height
+        
+        self.i = 0
+        self.gw = tk.Toplevel()
+        self.gw.geometry("150x75")
+        self.v = tk.StringVar()
+        self.v.set(str(self.final_order[self.i]))
+        self.text = tk.Label(self.gw, text = "Current Grid Square:")
+        self.text.grid(row = 0, column = 1)
+        self.current_grid = tk.Label(self.gw, text = self.v.get())
+        self.current_grid.grid(row = 1, column = 1)
+
+
+        self.forward_button = tk.Button(self.gw, text = ">", command = self.forward)
+        self.forward_button.grid(row=2, column = 2)
+        
+
+        self.backward_button = tk.Button(self.gw, text = "<", command = self.backward)
+        self.backward_button.grid(row=2, column = 0)
+
+        self.jumpto_button = tk.Button(self.gw, text = "Jump to", command = self.move_canvas)
+        self.jumpto_button.grid(row = 2, column  = 1)
+
+    def get_scrollx(self):
+        index = self.total_squares.find(self.final_order[self.i])
+        w = self.width/7
+        return (index % 7) * w
+
+    def get_scrolly(self):
+        row1 = "ABCDEFG"
+        row2 = "HIJKLMN"
+        row3 = "OPQRSTU"
+        row4 = "VWXYZab"
+        row5 = "cdefghi"
+        row6 = "jklmnop"
+        row7 = "qrstuvw"
+        scrolly = 0
+        h = self.height/7
+        
+        if row2.find(self.final_order[self.i]) != -1:
+            scrolly = h
+        if row3.find(self.final_order[self.i]) != -1:
+            scrolly = h * 2
+        if row4.find(self.final_order[self.i]) != -1:
+            scrolly = h * 3 
+        if row5.find(self.final_order[self.i]) != -1:
+            scrolly = h * 4
+        if row6.find(self.final_order[self.i]) != -1:
+            scrolly = h * 5
+        if row7.find(self.final_order[self.i]) != -1:
+            scrolly = h * 6 
+
+        return scrolly        
+
+    def move_canvas(self):
+        scrollx = self.get_scrollx()
+        scrolly = self.get_scrolly()
+
+        offsetx = +1 if scrollx >= 0 else 0
+        offsety = +1 if scrolly >= 0 else 0
+        self.main_canvas.xview_moveto(float(scrollx + offsetx)/self.width)
+        self.main_canvas.yview_moveto(float(scrolly + offsety)/self.height)
+        self.master.geometry("600x600")
+        
+    def forward(self):
+        while True:
+            self.i += 1 
+            self.v.set(str(self.final_order[self.i]))
+            self.current_grid.configure(text = self.v.get())
+            self.current_grid.update()
+            
+            if self.i == 46:
+                self.forward_button.configure(state = tk.DISABLED)
+                self.forward_button.update()
+                break
+            break
+
+    def backward(self):
+        while True:
+            if self.i == 0:
+                self.backward_button.configure(state = tk.DISABLED)
+                self.backward_button.update()
+                break     
+            self.i -= 1 
+            self.v.set((self.final_order[self.i]))
+            self.current_grid.configure(text = self.v.get())
+            self.current_grid.update()
+            if self.i == 0:
+                self.backward_button.configure(state = tk.DISABLED)
+                self.backward_button.update()
+                break
+            break
 
 class AutoScrollbar(tk.Scrollbar):
     ''' A scrollbar that hides itself if it's not needed.
@@ -32,14 +136,36 @@ class Application(tk.Frame):
     def __init__(self, mainframe, path):
         self.box = 0
         self.master = mainframe
+
         ''' Initialize the main Frame '''
         tk.Frame.__init__(self, master=mainframe)
         self.master.title('Zoom with mouse wheel')
         # Vertical and horizontal scrollbars for canvas
         vbar = AutoScrollbar(self.master, orient='vertical')
         hbar = AutoScrollbar(self.master, orient='horizontal')
-        vbar.grid(row=0, column=1, sticky='ns')
-        hbar.grid(row=1, column=0, sticky='we')
+        vbar.grid(row=1, column=1, sticky='ns')
+        hbar.grid(row=2, column=0, sticky='we')
+
+        #coord bar
+        self.mousex = tk.IntVar()
+        self.mousey = tk.IntVar()
+        self.mousex.set(0)
+        self.mousey.set(0)
+        self.coord_label = tk.Label(self.master, text = "X: " + str(self.mousex.get()) + "  " + "Y: " + str(self.mousey.get())) 
+        self.coord_label.grid(row = 3, column = 0, sticky = 'sw')
+
+        #tool bar
+        self.toolbar = tk.Frame(self.master, bg = "gray")
+        self.toolbar.grid(row = 0, column = 0, sticky = 'nswe' )
+
+        self.gt = grid_tracker.Grid_Randomizer()
+        self.gt.set_final_order()
+        self.final_order = self.gt.get_final_order()
+        self.gridw_button = tk.Button(self.toolbar, text = "Open Grid", command = self.open_grid_window)
+        self.gridw_button.pack(side = "left", padx =2 , pady = 2)
+
+
+
         # Create canvas and put image on it
         self.canvas = tk.Canvas(self.master, highlightthickness=0, xscrollcommand = hbar.set, yscrollcommand = vbar.set)
         self.canvas.configure(yscrollincrement = '2')
@@ -48,12 +174,12 @@ class Application(tk.Frame):
         self.marker_canvas = self.canvas
         self.grid_canvas = self.canvas
         
-        self.canvas.grid(row=0, column=0, sticky='nswe')
+        self.canvas.grid(row=1, column=0, sticky='nswe')
         self.canvas.update()  # wait till canvas is created
         vbar.configure(command=self.scroll_y)  # bind scrollbars to the canvas
         hbar.configure(command=self.scroll_x)
         # Make the canvas expandable
-        self.master.rowconfigure(0, weight=1)
+        self.master.rowconfigure(1, weight=1)
         self.master.columnconfigure(0, weight=1)
         # Bind events to the Canvas
         self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
@@ -61,7 +187,8 @@ class Application(tk.Frame):
         self.canvas.bind('<B3-Motion>', self.move_to)
         self.canvas.bind('<MouseWheel>', self.verti_wheel)
         self.canvas.bind('<Shift-MouseWheel>', self.hori_wheel)  
-        self.canvas.bind("<Button-1>", self.open_popup)
+        self.canvas.bind('<Button-1>', self.open_popup)
+        self.canvas.bind('<Motion>', self.update_coords)
         #self.canvas.bind('<Return>', self.call_screenshot)
 
         self.folder_path = path + "/"
@@ -73,7 +200,7 @@ class Application(tk.Frame):
         self.container = self.canvas.create_rectangle(0, 0, self.width, self.height, width=0)
         self.show_image()
 
-        self.master.geometry(str(self.width) + "x" + str(self.height))
+        self.master.geometry(str(500) + "x" + str(500))
         
         self.rows = 7
         self.columns = 7
@@ -106,6 +233,16 @@ class Application(tk.Frame):
                 n += 1
                 if n > num_squares:
                     break
+   
+    def open_grid_window(self):
+        Grid_Window(self.master, self.canvas, self.final_order, self.width, self.height)
+
+    def update_coords(self, event):
+        self.mousex.set(event.x)
+        self.mousey.set(event.y)
+
+        self.coord_label.configure(text = "X: " + str(self.mousex.get()) + "  " + "Y: " + str(self.mousey.get()))
+        self.coord_label.update()
 
     def open_popup(self, event):
         x = event.x
@@ -275,22 +412,14 @@ class Marker(tk.Frame):
         marker.destroy()
         self.call_screenshot(data)
 
-
 def open_image(v):
-
     path = filedialog.askdirectory()
     i = Application(root, path=path)
-    initials = v
+    
 
 if __name__ == "__main__":
     root = tk.Tk()
 
-    find_image_button = tk.Button(root, text="Pick Image File", command = lambda: open_image(v.get()))
+    find_image_button = tk.Button(root, text="Pick Image File", command = open_image)
     find_image_button.grid(column = 0, row = 0)
-
-    v = tk.StringVar() #initials
-    v.set("Enter Initials, eg. \"BJ\"")
-    name_entry = tk.Entry(root, textvariable = v)
-    name_entry.grid(column = 0, row = 1)
-
     root.mainloop()
