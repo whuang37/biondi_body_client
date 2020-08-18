@@ -54,15 +54,10 @@ class Grid_Randomizer():
         else:
             self.final_order.extend(set2)
             self.final_order.extend(set1)
-
+            
     def get_final_order(self):
         return self.final_order
 
-    
-class Grid_Window():
-    def __init__(self, master):
-        self.master = master
-        master.title("Grid Tool") 
 
 if __name__ == "__main__":
     #root = tk.Tk()
