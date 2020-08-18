@@ -246,8 +246,10 @@ class Application(tk.Frame):
         i = Application(root, path=path)
 
     def update_coords(self, event):
-        self.mousex.set(event.x)
-        self.mousey.set(event.y)
+        x = self.canvas.canvasx(event.x)
+        y = self.canvas.canvasy(event.y)
+        self.mousex.set(x)
+        self.mousey.set(y)
 
         self.coord_label.configure(text = "X: " + str(self.mousex.get()) + "  " + "Y: " + str(self.mousey.get()))
         self.coord_label.update()
