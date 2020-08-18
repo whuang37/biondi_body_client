@@ -412,7 +412,7 @@ class Marker(tk.Frame):
         marker.destroy()
         self.call_screenshot(data)
 
-def open_image(v):
+def open_image():
     path = filedialog.askdirectory()
     i = Application(root, path=path)
     
