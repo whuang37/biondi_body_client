@@ -149,6 +149,9 @@ class Application(tk.Frame):
 
         self.open_new_button = tk.Button(self.toolbar, text = "Open New Folder", command = self.open_new_folder)
         self.open_new_button.pack(side = "left", padx = 2, pady = 2)
+        
+        self.image_viewer_button = tk.Button(self.toolbar, text = "Image Viewer", command = self.open_image_viewer)
+        self.image_viewer_button.pack(side = "left", padx = 2, pady = 2)
 
 
 
@@ -173,7 +176,7 @@ class Application(tk.Frame):
         self.canvas.bind('<B3-Motion>', self.move_to)
         self.canvas.bind('<MouseWheel>', self.verti_wheel)
         self.canvas.bind('<Shift-MouseWheel>', self.hori_wheel)  
-        self.canvas.bind('<Button-1>', self.open_popup)
+        self.canvas.bind('<Button-2>', self.open_popup)
         self.canvas.bind('<Motion>', self.update_coords)
         #self.canvas.bind('<Return>', self.call_screenshot)
 
@@ -192,8 +195,10 @@ class Application(tk.Frame):
         self.columns = 7
         self.create_grid()
         
-        ImageViewer(self.folder_path, self.marker_canvas) #TEST CLASS
         self.initiate_markers()
+        
+    def open_image_viewer(self):
+        ImageViewer(self.folder_path, self.marker_canvas) #TEST CLASS
         
     def create_grid(self):
         box_width =  round(self.width / self.columns)

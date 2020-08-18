@@ -116,10 +116,10 @@ class ImageViewer(tk.Frame):
             name = i[1]
             number = i[2]
             body_name = "{} {}".format(name, number)
-            btn = tk.Button(self.interior, height=1, width=20, relief=tk.FLAT, 
-                            bg="gray99", fg="purple3", font="Dosis", text=body_name,
-                            command= lambda i = time: self.open_file(i))
-            btn.pack(padx=10, pady=5, side=tk.TOP)
+            btn = tk.Button(self.interior, height = 1, width = 20, relief=tk.FLAT, 
+                            bg="gray99", fg="purple3", font="Dosis", text = body_name,
+                            command = lambda i = time: self.open_file(i))
+            btn.pack(padx = 10, pady = 5, side = tk.TOP)
             print("created_button")
             
     def clear_information_canvas(self):
