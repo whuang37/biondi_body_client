@@ -2,7 +2,7 @@ import sqlite3
 import os 
 from shutil import copy
 from PIL import Image
-
+from grid_tracker import GridRandomizer
 class FileManagement():
     """A collection of functions used in sqlite3 data manipulation.
 
@@ -44,6 +44,9 @@ class FileManagement():
         
             self.c.execute(create_table_query)
         
+            create_grid_query = '''CREATE TABLE IF NOT EXISTS grid (GRID_ID TEXT NOT NULL,
+                                                                    FINISHED INTEGER'''
+            self.c.execute(create_table_query)
         except sqlite3.Error as error:
             print("Error while connecting to sqlite", error)
             self.conn.close()
@@ -54,6 +57,36 @@ class FileManagement():
         self.c.close()
         self.conn.close()
     
+    def grid_randomizer(self):
+        randomized = GridRandomizer().get_final_order()
+        
+        random_list = []
+        
+        for i in randomized:
+            x = (i, False)
+            random_list.append(x)
+            
+        add_grid_query = '''INSERT INTO grid (GRID_ID, FINISHED)
+                                                VALUES(?, ?)'''
+                                                
+        self.c.executemany(add_grid_query, random_list)
+        self.close()
+        
+    def get_grid(self):
+        get_grid_query = '''SELECT * FROM grid'''
+        self.c.execute(get_grid_query)
+        
+        result = self.c.fetchall()
+        return result
+    
+    def finish_grid(self, grid_id):
+        finish_grid_query = '''UPDATE bodies
+                SET FINISHED = ?, 
+                WHERE GRID_ID = ?'''
+        
+        self.c.execute(finish_grid_query, (grid_id, 1))
+        self.close()
+        
     def count_body_type(self, type):
         """Fetches the number of x biondi body.
         

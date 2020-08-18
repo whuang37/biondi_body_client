@@ -3,7 +3,7 @@ from PIL import Image, ImageTk
 import random
 
 
-class Grid_Randomizer():
+class GridRandomizer():
     def __init__(self):
 
         self.set1a = ["A", "C", "E", "G", "O", "Q", "S", "U", "c", "e", "g", "i", "q", "s", "u", "w"] #16
@@ -61,7 +61,7 @@ class Grid_Randomizer():
 
 if __name__ == "__main__":
     #root = tk.Tk()
-    gr = Grid_Randomizer()
+    gr = GridRandomizer()
     gr.set_final_order()
     #root.mainloop()
     

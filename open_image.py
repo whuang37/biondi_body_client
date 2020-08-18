@@ -141,7 +141,7 @@ class Application(tk.Frame):
         self.toolbar = tk.Frame(self.master, bg = "gray")
         self.toolbar.grid(row = 0, column = 0, sticky = 'nswe' )
 
-        self.gt = grid_tracker.Grid_Randomizer()
+        self.gt = grid_tracker.GridRandomizer()
         self.gt.set_final_order()
         self.final_order = self.gt.get_final_order()
         self.gridw_button = tk.Button(self.toolbar, text = "Open Grid", command = self.open_grid_window)
