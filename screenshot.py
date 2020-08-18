@@ -127,7 +127,7 @@ class Toolbar(): # creates the toolbar and its related functions
             pass # passes if no more objects are in array
         
     def save(self):
-        self.font = ImageFont.truetype("calibri.ttf", 14) 
+        self.font = ImageFont.truetype("calibrib.ttf", 20) 
         bounds = self.canvas.bbox("text")
         self.draw.text((bounds[0], bounds[1]), fill = 'white', 
                         font = self.font, anchor = "ne", text = self.text_annotation) #takes the bottom left coordinate of text and places the text on the pillow drawing
@@ -225,39 +225,32 @@ class LilSnippy(tk.Frame):
         self.rec_position()
 
         if self.start_x <= self.curX and self.start_y <= self.curY:
-            print("right down")
             self.take_bounded_screenshot(self.start_x, self.start_y, self.curX - self.start_x, self.curY - self.start_y)
 
         elif self.start_x >= self.curX and self.start_y <= self.curY:
-            print("left down")
             self.take_bounded_screenshot(self.curX, self.start_y, self.start_x - self.curX, self.curY - self.start_y)
 
         elif self.start_x <= self.curX and self.start_y >= self.curY:
-            print("right up")
             self.take_bounded_screenshot(self.start_x, self.curY, self.curX - self.start_x, self.start_y - self.curY)
 
         elif self.start_x >= self.curX and self.start_y >= self.curY:
-            print("left up")
             self.take_bounded_screenshot(self.curX, self.curY, self.start_x - self.curX, self.start_y - self.curY)
 
         self.exit_screenshot_mode()
         return event
 
     def exit_screenshot_mode(self):
-        print("Screenshot mode exited")
         self.screen_canvas.destroy()
         self.master_screen.withdraw()
         self.master.deiconify()
 
     def exit_application(self): # not used yet
-        print("Application exit")
         root.quit()
 
     def on_button_press(self, event):
         # save mouse drag start position
         self.start_x = self.screen_canvas.canvasx(event.x)
         self.start_y = self.screen_canvas.canvasy(event.y)
-        print("this works")
         self.rect = self.screen_canvas.create_rectangle(self.x, self.y, 1, 1, outline='red', width=3, fill="blue")
 
     def on_move_press(self, event):

@@ -287,8 +287,6 @@ class FileManagement():
         MP_param_ph = self.secondary_name_grouping(MP_param, body_param)
         unsure_param_ph = self.secondary_name_grouping(unsure_param, body_param)
         
-        # params = tuple(body_param)
-        # print(params)
         group_query = '''SELECT TIME, BODY_NAME, BODY_NUMBER, X_POSITION, Y_POSITION
                         FROM bodies 
                         WHERE BODY_NAME IN ({0}) 
@@ -355,7 +353,6 @@ class FileManagement():
             return False
         
         for i in range(body_number, num_bodies + 1):
-            print(i)
             self.c.execute(renumber_query, (i, body_name, time[i-1][0]))
 
     def delete_img(self, body_name, body_number):

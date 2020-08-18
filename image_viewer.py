@@ -9,11 +9,9 @@ class ImageViewer(tk.Frame):
         self.marker_canvas = marker_canvas
         self.folder_path = folder_path       
         
-        try:
-            if not self.image_viewer:
-                pass
-        except:
-            self.image_viewer = tk.Toplevel()
+        self.image_viewer = tk.Toplevel()
+        self.image_viewer.focus_set()
+        self.image_viewer.grab_set()
             
         self.image_viewer.columnconfigure(2, weight=1)
         self.image_viewer.rowconfigure(1, weight=1)
@@ -107,7 +105,6 @@ class ImageViewer(tk.Frame):
         interior.bind('<Configure>', _configure_interior)
     
     def create_buttons(self, body_param, GR_param, MAF_param, MP_param, unsure_param):
-        print("succes")
         fm = FileManagement(self.folder_path)
         data = fm.query_images(body_param, GR_param, MAF_param, MP_param, unsure_param)
         
@@ -120,7 +117,6 @@ class ImageViewer(tk.Frame):
                             bg="gray99", fg="purple3", font="Dosis", text = body_name,
                             command = lambda i = time: self.open_file(i))
             btn.pack(padx = 10, pady = 5, side = tk.TOP)
-            print("created_button")
             
     def clear_information_canvas(self):
         self.information_frame.destroy()
@@ -364,5 +360,10 @@ class ImageViewer(tk.Frame):
         for choice in ("drop", "crescent", "spear", "green spear", "saturn", 
                         "rod", "green rod", "ring", "kettlebell", "multi inc"):
             self.choices[choice] = tk.IntVar(value=0)
-            #menu.add_checkbutton(label=choice, variable=self.choices[choice], 
+        
+        self.var_GR.set(False)
+        self.var_MAF.set(False)
+        self.var_MP.set(False)
+        self.var_unsure.set(False)
+
         

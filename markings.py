@@ -21,7 +21,6 @@ class GridMark():
     def on_click(self, event):
         time = self.time
         ImageViewer(self.folder_path, self.marker_canvas).open_file(time)
-        print(self.body_name, self.body_number)
         
     def get_letter(self, string): #used with draw
         body_index = {"drop": "d",
