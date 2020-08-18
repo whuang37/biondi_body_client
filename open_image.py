@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import filedialog
-from tkinter.constants import NSEW
 from PIL import Image, ImageTk
 from math import floor
 from screenshot import LilSnippy
@@ -8,8 +7,6 @@ from time import time
 from image_viewer import ImageViewer
 from file_management import FileManagement
 from markings import GridMark
-
-import screenshot
 import grid_tracker
 
 
@@ -214,7 +211,12 @@ class Application(tk.Frame):
                                         fill = "white", width = 4)
             
         num_squares = self.rows * self.columns
-        padding = 50
+        
+        if round(box_width / 5) > round(box_height / 5):
+            padding = round(box_height / 5)
+        else:
+            padding = round(box_width / 5)
+            
         key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         n = 0
         for i in range(0, self.rows):

@@ -121,7 +121,7 @@ class Toolbar(): # creates the toolbar and its related functions
             currentundone = self.undone.pop() 
             for coords in currentundone: #pulls from list of undoes to recreate the first one
                 self.canvas.create_line(coords, width = self.line_width, fill = self.color, 
-                                    capstyle = "ROUND", smooth = "TRUE", splinesteps = 36, tag=['line' + str(self.counter)])
+                                    capstyle = "round", smooth = "TRUE", splinesteps = 36, tag=['line' + str(self.counter)])
             self.counter += 1
         except IndexError:
             pass # passes if no more objects are in array
