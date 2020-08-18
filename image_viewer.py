@@ -257,7 +257,7 @@ class ImageViewer(tk.Frame):
     def delete_image(self, name, number):
         fm  = FileManagement(self.folder_path)
         fm.delete_img(name, number)
-        self.refresh_button_list()
+        self.remake_button_list()
         self.filter()
         self.information_frame.destroy()
         
