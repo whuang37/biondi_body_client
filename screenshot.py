@@ -2,15 +2,17 @@ import tkinter as tk
 import pyautogui
 from PIL import ImageTk, Image, ImageDraw, ImageFont
 from tkinter.colorchooser import askcolor
-import file_management
-import os
+from file_management import FileManagement
+
 class Toolbar(): # creates the toolbar and its related functions
     counter =  1
     DEFAULT_COLOR = 'white'
-    def __init__(self, master, canvas, im, h , w, body_info):
+    def __init__(self, master, canvas, im, h , w, body_info, folder_path, marker_canvas, new):
+        self.new = new
         self.master = master
         self.height = h
         self.width = w
+        self.text_annotation = body_info["grid_id"] + " " + str(body_info["x"]) + ", " + str(body_info["y"])
         if self.width > self.height: # find the appropriate margin for the text
             self.margin = .05 * self.height
         else:
@@ -39,10 +41,11 @@ class Toolbar(): # creates the toolbar and its related functions
         self.setup()
         
         self.body_info = body_info
-        self.text_annotation = body_info["grid_id"] + " " + str(body_info["x"]) + ", " + str(body_info["y"])
+        self.folder_path = folder_path
         self.canvas.create_text(self.margin, self.margin, text = self.text_annotation, 
                                 font =("Calibri", 14), anchor = "nw", fill = 'white', tag ="text") # creates text location
         
+        self.marker_canvas = marker_canvas
         
     
     def setup(self):
@@ -127,13 +130,18 @@ class Toolbar(): # creates the toolbar and its related functions
         self.font = ImageFont.truetype("calibri.ttf", 14) 
         bounds = self.canvas.bbox("text")
         self.draw.text((bounds[0], bounds[1]), fill = 'white', 
-                        font = self.font, anchor = "ne", text = "text right here please look") #takes the bottom left coordinate of text and places the text on the pillow drawing
+                        font = self.font, anchor = "ne", text = self.text_annotation) #takes the bottom left coordinate of text and places the text on the pillow drawing
         
-        fm = file_management.FileManagement("")
-        fm.save_image(self.body_info, self.im, self.annotation)
+        if self.new == True:
+            fm = FileManagement(self.folder_path)
+            fm.save_image(self.body_info, self.im, self.annotation)
+            from markings import GridMark
+            GridMark(self.marker_canvas, self.folder_path, self.body_info)
+        else: 
+            self.annotation.save(self.folder_path + self.body_info["annotation_file_name"])
 
 class ScreenshotEditor(tk.Frame):
-    def __init__(self, body_info):
+    def __init__(self, body_info, folder_path, marker_canvas, new):
         self.screenshot = tk.Toplevel()
         self.screenshot.withdraw()
 
@@ -144,6 +152,9 @@ class ScreenshotEditor(tk.Frame):
         self.screenshot_frame.grid(row = 1, column = 0)
         
         self.body_info = body_info
+        self.folder_path = folder_path
+        self.new = new
+        self.marker_canvas = marker_canvas
 
     def create_screenshot_canvas(self, im):
         
@@ -157,12 +168,13 @@ class ScreenshotEditor(tk.Frame):
         self.screenshot_canvas.pack(expand=tk.YES)
         self.screenshot_canvas.create_image(0, 0, image = img, anchor = "nw")
         self.screenshot_canvas.img = img
-        self.my_toolbar = Toolbar(self.toolbar_frame, self.screenshot_canvas, im, height, width, self.body_info)
+        self.my_toolbar = Toolbar(self.toolbar_frame, self.screenshot_canvas, im, height, width,
+                                    self.body_info, self.folder_path, self.marker_canvas, self.new)
         self.screenshot_canvas.focus_set()
 
 
 class LilSnippy(tk.Frame):
-    def __init__(self, master, body_info, *args, **kwargs):
+    def __init__(self, master, body_info, folder_path, marker_canvas, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.master = master
         self.rect = None
@@ -179,11 +191,12 @@ class LilSnippy(tk.Frame):
         self.picture_frame.pack(fill=tk.BOTH, expand=tk.YES)
         
         self.body_info = body_info
-        
+        self.folder_path = folder_path
+        self.marker_canvas = marker_canvas
     def take_bounded_screenshot(self, x1, y1, x2, y2):
         im = pyautogui.screenshot(region=(x1, y1, x2, y2))
         
-        self.screenshot_editor = ScreenshotEditor(self.body_info)
+        self.screenshot_editor = ScreenshotEditor(self.body_info, self.folder_path, self.marker_canvas, True)
         self.screenshot_editor.create_screenshot_canvas(im)
 
     def create_screen_canvas(self):

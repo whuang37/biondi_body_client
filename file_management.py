@@ -17,10 +17,10 @@ class FileManagement():
         c: the cursor the the previously mentioned sqlite3 database
         
     Typical usage example:
-    
-    fm = FileManagement(new_folder_path)
-    bar = fm.function_bar()
+        fm = FileManagement(new_folder_path)
+        bar = fm.function_bar()
     """
+    
     def __init__(self, folder_path):
         self.folder_path = folder_path
         try:
@@ -73,7 +73,6 @@ class FileManagement():
         return c_result[0]
     
     def initiate_folder(self, img_path):
-        
         """Preps a folder for biondi body analysis.
         
         Takes a folder directory and creates a new database and gridfile
@@ -116,9 +115,9 @@ class FileManagement():
                 to binary when entered into the database.
             body_img (PIL img): image of just the biondi body
             annotation_img (pil img): image of just the annotation.
-            """
+        """
             
-        body_info["body_number"] = self.count_body_type(body_info["body_type"]) + 1
+        body_info["body_number"] = self.count_body_type(body_info["body_name"]) + 1
         body_img.save(self.folder_path + body_info["body_file_name"])
         annotation_img.save(self.folder_path + body_info["annotation_file_name"])
         
@@ -142,6 +141,17 @@ class FileManagement():
         self.c.execute(insert_query, data_values)
         self.close()
     
+    def get_image_time(self, time):
+        select_time_query = '''SELECT *
+                FROM bodies 
+                WHERE TIME = ?'''
+
+        self.c.execute(select_time_query, (time,))
+        row = self.c.fetchone()
+        self.close()
+        
+        return self.convert_tuple(row)
+        
     def get_image(self, body_name, body_number):
         """Fetch image information from database.
         
@@ -153,13 +163,13 @@ class FileManagement():
             body_number (int): Number of specific body.
             
         Returns:
-            row (tuple): a tuple of all the values included in the database in 
+            row (dict): a dict of all the values included in the database in 
                 the order of (time (int), annotator name (str), body name (str), 
                 body number (int), x position (int),y position (int), grid id (str),
                 green ring (int), multiautoflorescence (int), multiprong (int), 
                 unsure (int), notes (str), body file name (str), and
                 annotation file name (str). Values may be enclosed in another tuple.
-            """
+        """
             
         select_query = '''SELECT *
                         FROM bodies 
@@ -167,9 +177,25 @@ class FileManagement():
         
         self.c.execute(select_query, (body_name, body_number))
         row = self.c.fetchone()
-        
         self.close()
-        return row
+        
+        return self.convert_tuple(row)
+    
+    def convert_tuple(self, group):
+        data = {}
+        i = 0
+        for choice in ("time", "annotator_name", "body_name", "body_number", 
+                        "x", "y", "grid_id", "GR", "MAF", "MP", "unsure", 
+                        "notes", "body_file_name", "annotation_file_name"):
+            data[choice] = group[i]
+            i += 1
+            
+        for choice in ("GR", "MAF", "MP", "unsure"): #can make into function later
+            if data[choice] == 1:
+                data[choice] = True
+            else:
+                data[choice] = False
+        return data
     
     def secondary_name_grouping(self, name, params):
         """Get appropriate amount of placeholders.
@@ -189,6 +215,7 @@ class FileManagement():
             param_ph (list): Appended parameter list with GR, MAF, and MP values
                 listed.
         """
+
         if name:
             param_ph = "?"
             params.append(1)
@@ -198,7 +225,7 @@ class FileManagement():
             params.append(1)
         return param_ph
 
-    def query_image(self, body_param, GR_param, MAF_param, MP_param, unsure_param):
+    def query_images(self, body_param, GR_param, MAF_param, MP_param, unsure_param):
         """Takes a set of parameters to pull all images that fall under params.
         
         Using a series of strings and bools that can be dictated through an image searcher,
@@ -227,15 +254,16 @@ class FileManagement():
         MP_param_ph = self.secondary_name_grouping(MP_param, body_param)
         unsure_param_ph = self.secondary_name_grouping(unsure_param, body_param)
         
-        params = tuple(body_param)
-        print(params)
+        # params = tuple(body_param)
+        # print(params)
         group_query = '''SELECT TIME, BODY_NAME, BODY_NUMBER, X_POSITION, Y_POSITION
                         FROM bodies 
                         WHERE BODY_NAME IN ({0}) 
                         AND GR IN ({1}) 
                         AND MAF IN ({2}) 
                         AND MP IN ({3})
-                        AND UNSURE IN ({4})'''.format(body_param_ph, GR_param_ph, MAF_param_ph, MP_param_ph, unsure_param_ph)
+                        AND UNSURE IN ({4})
+                        ORDER BY TIME DESC'''.format(body_param_ph, GR_param_ph, MAF_param_ph, MP_param_ph, unsure_param_ph)
         
         self.c.execute(group_query, body_param)
         group = self.c.fetchall()
@@ -243,6 +271,22 @@ class FileManagement():
         self.close()
         return group
     
+    def edit_info(self, edited_info):
+        edit_query = '''UPDATE bodies
+                        SET BODY_NAME = ?,
+                        GR = ?,
+                        MAF = ?,
+                        MP = ?, 
+                        UNSURE = ?, 
+                        NOTES = ? 
+                        WHERE TIME = ?'''
+                        
+        
+        self.c.execute(edit_query, edited_info)
+        self.close()
+
+
+                        
     def renumber_img(self, body_name, body_number):
         """Fixes body number if any discrepancies occur.
         
@@ -254,7 +298,7 @@ class FileManagement():
         Args:
             body_name (str): name of the wanted body
             body_number (int): number of the selected body where all following
-                bodies would be renumbered. 
+                bodies would be renumbered Starts from 1. 
             
         Returns:
             bool: False if there are no bodies in the selected body type
@@ -284,7 +328,7 @@ class FileManagement():
     def delete_img(self, body_name, body_number):
         delete_query = '''DELETE 
                         FROM bodies 
-                        WHERE BODY_NAME = ? AND BODY_NUMBER = ?''' 
+                        WHERE BODY_NAME = ? and BODY_NUMBER = ?''' 
                         
         self.c.execute(delete_query, (body_name, body_number))
         self.renumber_img(body_name, body_number)
@@ -338,6 +382,7 @@ class FileManagement():
             new_folder_path (str): File directory where the exported case will
                 be saved
         """
+
         all_files_query = '''SELECT ANNOTATOR_NAME, 
                             BODY_NAME, 
                             BODY_NUMBER, 
@@ -366,10 +411,10 @@ class FileManagement():
 
 if __name__ == "__main__":
     fm = FileManagement("")
-    #print(fm.count_body_type("drop"))
-    #print(fm.find_image("drop", 6))
-    #print(fm.query_image(["drop", "saturn", "kettlebell"], True, False, True, True,))
+    #print(fm.count_body_type("saturn"))
+    fm.edit_info(("rod", 1, 1, 1, 1, "dsasd", 1597648898))
+    #print(fm.get_image("crescent", 1))
+    #print(fm.query_image(["saturn", "kettlebell"], False, False, False, False,))
     #fm.delete_img("multi inc", 4)
     #fm.renumber_img("saturn", 1)
     #fm.refresh_database()
-    #fm.export_case("drop_1597186688", "drop_1597186688_ANNOTATION")

@@ -1,9 +1,13 @@
 import tkinter as tk
 from tkinter import filedialog
+from tkinter.constants import NSEW
 from PIL import Image, ImageTk
 from math import floor
+from screenshot import LilSnippy
 from time import time
-
+from image_viewer import ImageViewer
+from file_management import FileManagement
+from markings import GridMark
 
 import screenshot
 import grid_tracker
@@ -180,14 +184,15 @@ class Application(tk.Frame):
         # Bind events to the Canvas
         self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
         self.canvas.bind('<ButtonPress-3>', self.move_from)
-        self.canvas.bind('<B3-Motion>',     self.move_to)
+        self.canvas.bind('<B3-Motion>', self.move_to)
         self.canvas.bind('<MouseWheel>', self.verti_wheel)
         self.canvas.bind('<Shift-MouseWheel>', self.hori_wheel)  
         self.canvas.bind('<Button-1>', self.open_popup)
         self.canvas.bind('<Motion>', self.update_coords)
         #self.canvas.bind('<Return>', self.call_screenshot)
 
-        self.image = Image.open(path)  # open image
+        self.folder_path = path + "/"
+        self.image = Image.open(self.folder_path + "gridfile.jpg")  # open image
         self.width, self.height = self.image.size
         self.imscale = 1.0  # scale for the canvas image
         self.delta = 1.3  # zoom magnitude
@@ -200,7 +205,10 @@ class Application(tk.Frame):
         self.rows = 7
         self.columns = 7
         self.create_grid()
-
+        
+        ImageViewer(self.folder_path, self.marker_canvas) #TEST CLASS
+        
+        
     def create_grid(self):
         box_width =  round(self.width / self.columns)
         box_height = round(self.height / self.rows)
@@ -239,7 +247,7 @@ class Application(tk.Frame):
     def open_popup(self, event):
         x = event.x
         y = event.y
-        Marker(self.master, x, y, self.marker_canvas, self.height, self.width, self.columns, self.rows)
+        Marker(self.master, x, y, self.marker_canvas, self.height, self.width, self.columns, self.rows, self.folder_path)
         
     def scroll_y(self, *args, **kwargs):
         ''' Scroll canvas vertically and redraw the image '''
@@ -307,7 +315,7 @@ class Application(tk.Frame):
             self.canvas.imagetk = imagetk  # keep an extra reference to prevent garbage-collection
             
 class Marker(tk.Frame):
-    def __init__(self, master, x, y, marker_canvas, height, width, columns, rows):
+    def __init__(self, master, x, y, marker_canvas, height, width, columns, rows, folder_path):
         self.master = master
         self.x = x
         self.y = y
@@ -352,7 +360,7 @@ class Marker(tk.Frame):
         mpC = tk.Checkbutton(marker, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
         unsure = tk.Checkbutton(marker, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
         note_entry = tk.Entry(marker, textvariable = self.notes)
-        button_ok = tk.Button(marker, text = "OK", command = lambda: self.draw(self.body_type.get(), x, y, marker))
+        button_ok = tk.Button(marker, text = "OK", command = lambda: self.draw(marker))
         
         dropdown.grid(row = 0, column = 0)
         grC.grid(row = 0, column = 1, sticky = 'w')
@@ -361,16 +369,19 @@ class Marker(tk.Frame):
         unsure.grid(row = 0, column = 2)
         note_entry.grid(row = 3, column = 1)
         button_ok.grid(row = 2, column = 2)
+        
+        self.folder_path = folder_path
 
     def get_data(self):
         time_added = int(time())
         body_file_name = str(self.body_type.get()) + "_" + str(time_added)
         annotation_file_name = body_file_name + "_ANNOTATION"
+        fm = FileManagement(self.folder_path)
         
         data = {"time": time_added,
                 "annotator_name": self.annotator,
-                "body_type": self.body_type.get(),
-                "body_number": 0,
+                "body_name": self.body_type.get(),
+                "body_number": fm.count_body_type(self.body_type.get()) + 1,
                 "x": self.x,
                 "y": self.y,
                 "grid_id": self.grid_id,
@@ -391,31 +402,18 @@ class Marker(tk.Frame):
         key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         return key[(row_num * self.columns) + column_num]
 
-    def get_letter(self, string): #used with draw
-        body_index = {"drop": "d",
-                    "crescent": "c",
-                    "spear": "s",
-                    "green spear": "grs",
-                    "saturn": "sa",
-                    "rod": "r",
-                    "ring": "ri",
-                    "kettlebell": "kb",
-                    "multi inc": "mi"}
-        return body_index[string]
     
     def call_screenshot(self, data):
-        app = screenshot.LilSnippy(self.master, data)
+        app = LilSnippy(self.master, data, self.folder_path, self.marker_canvas)
         app.create_screen_canvas()
         
-    def draw(self, body_type, x, y, marker):
-        self.marker_canvas.create_text(x,y, font = "Calibri",fill = 'WHITE', text = self.get_letter(body_type), tag="marker")
-        self.marker_canvas.update
+    def draw(self, marker):
+        data = self.get_data()
         marker.destroy()
-        self.call_screenshot(self.get_data())
+        self.call_screenshot(data)
 
-def open_image():
-
-    path = filedialog.askopenfilename()
+def open_image(v):
+    path = filedialog.askdirectory()
     i = Application(root, path=path)
     
 
@@ -424,6 +422,4 @@ if __name__ == "__main__":
 
     find_image_button = tk.Button(root, text="Pick Image File", command = open_image)
     find_image_button.grid(column = 0, row = 0)
-
     root.mainloop()
-
