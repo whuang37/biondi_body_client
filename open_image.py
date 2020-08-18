@@ -3,8 +3,7 @@ from tkinter import filedialog
 from PIL import Image, ImageTk
 from math import floor
 from time import time
-import pyautogui
-import sys
+
 
 import screenshot
 import grid_tracker
@@ -84,19 +83,33 @@ class Grid_Window(tk.Frame):
         self.master.geometry("600x600")
         
     def forward(self):
-        self.i += 1 
-        self.v.set(str(self.final_order[self.i]))
-        self.current_grid.configure(text = self.v.get())
-        self.current_grid.update()
+        while True:
+            self.i += 1 
+            self.v.set(str(self.final_order[self.i]))
+            self.current_grid.configure(text = self.v.get())
+            self.current_grid.update()
+            
+            if self.i == 46:
+                self.forward_button.configure(state = tk.DISABLED)
+                self.forward_button.update()
+                break
+            break
 
     def backward(self):
-        self.i -= 1 
-        self.v.set((self.final_order[self.i]))
-        self.current_grid.configure(text = self.v.get())
-        self.current_grid.update()
-
-        
-        
+        while True:
+            if self.i == 0:
+                self.backward_button.configure(state = tk.DISABLED)
+                self.backward_button.update()
+                break     
+            self.i -= 1 
+            self.v.set((self.final_order[self.i]))
+            self.current_grid.configure(text = self.v.get())
+            self.current_grid.update()
+            if self.i == 0:
+                self.backward_button.configure(state = tk.DISABLED)
+                self.backward_button.update()
+                break
+            break
 
 class AutoScrollbar(tk.Scrollbar):
     ''' A scrollbar that hides itself if it's not needed.
@@ -129,8 +142,15 @@ class Application(tk.Frame):
         vbar.grid(row=1, column=1, sticky='ns')
         hbar.grid(row=2, column=0, sticky='we')
 
-        
+        #coord bar
+        self.mousex = tk.IntVar()
+        self.mousey = tk.IntVar()
+        self.mousex.set(0)
+        self.mousey.set(0)
+        self.coord_label = tk.Label(self.master, text = "X: " + str(self.mousex.get()) + "  " + "Y: " + str(self.mousey.get())) 
+        self.coord_label.grid(row = 3, column = 0, sticky = 'sw')
 
+        #tool bar
         self.toolbar = tk.Frame(self.master, bg = "gray")
         self.toolbar.grid(row = 0, column = 0, sticky = 'nswe' )
 
@@ -140,10 +160,6 @@ class Application(tk.Frame):
         self.gridw_button = tk.Button(self.toolbar, text = "Open Grid", command = self.open_grid_window)
         self.gridw_button.pack(side = "left", padx =2 , pady = 2)
 
-        
-
-
-        
 
 
         # Create canvas and put image on it
@@ -167,7 +183,8 @@ class Application(tk.Frame):
         self.canvas.bind('<B3-Motion>',     self.move_to)
         self.canvas.bind('<MouseWheel>', self.verti_wheel)
         self.canvas.bind('<Shift-MouseWheel>', self.hori_wheel)  
-        self.canvas.bind("<Button-1>", self.open_popup)
+        self.canvas.bind('<Button-1>', self.open_popup)
+        self.canvas.bind('<Motion>', self.update_coords)
         #self.canvas.bind('<Return>', self.call_screenshot)
 
         self.image = Image.open(path)  # open image
@@ -177,12 +194,6 @@ class Application(tk.Frame):
         # Put image into container rectangle and use it to set proper coordinates to the image
         self.container = self.canvas.create_rectangle(0, 0, self.width, self.height, width=0)
         self.show_image()
-
-        
-        self.x, self.y = pyautogui.position()
-        self.positionStr = 'X: ' + str(self.x).rjust(4) + ' Y: ' + str(self.y).rjust(4)
-        self.coordbar = tk.Label(self.master, text = self.positionStr) 
-        self.coordbar.grid(row = 3, column = 0, sticky = 'sw')
 
         self.master.geometry(str(500) + "x" + str(500))
         
@@ -214,8 +225,16 @@ class Application(tk.Frame):
                 n += 1
                 if n > num_squares:
                     break
+   
     def open_grid_window(self):
         Grid_Window(self.master, self.canvas, self.final_order, self.width, self.height)
+
+    def update_coords(self, event):
+        self.mousex.set(event.x)
+        self.mousey.set(event.y)
+
+        self.coord_label.configure(text = "X: " + str(self.mousex.get()) + "  " + "Y: " + str(self.mousey.get()))
+        self.coord_label.update()
 
     def open_popup(self, event):
         x = event.x
