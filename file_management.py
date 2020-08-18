@@ -328,7 +328,7 @@ class FileManagement():
     def delete_img(self, body_name, body_number):
         delete_query = '''DELETE 
                         FROM bodies 
-                        WHERE BODY_NAME = ? AND BODY_NUMBER = ?''' 
+                        WHERE BODY_NAME = ? and BODY_NUMBER = ?''' 
                         
         self.c.execute(delete_query, (body_name, body_number))
         self.renumber_img(body_name, body_number)
@@ -418,4 +418,3 @@ if __name__ == "__main__":
     #fm.delete_img("multi inc", 4)
     #fm.renumber_img("saturn", 1)
     #fm.refresh_database()
-    #fm.export_case("drop_1597186688", "drop_1597186688_ANNOTATION")

@@ -5,9 +5,16 @@ from file_management import FileManagement
 from datetime import datetime
 from screenshot import ScreenshotEditor
 class ImageViewer(tk.Frame):
-    def __init__(self, folder_path, *args, **kw):
+    def __init__(self, folder_path, marker_canvas, *args, **kw):
+        self.marker_canvas = marker_canvas
         self.folder_path = folder_path       
-        self.image_viewer = tk.Toplevel()
+        
+        try:
+            if not self.image_viewer:
+                pass
+        except:
+            self.image_viewer = tk.Toplevel()
+            
         self.image_viewer.columnconfigure(2, weight=1)
         self.image_viewer.rowconfigure(1, weight=1)
 
@@ -100,18 +107,18 @@ class ImageViewer(tk.Frame):
         interior.bind('<Configure>', _configure_interior)
     
     def create_buttons(self, body_param, GR_param, MAF_param, MP_param, unsure_param):
-        #self.button_list_canvas.delete("body_button")
         print("succes")
         fm = FileManagement(self.folder_path)
         data = fm.query_images(body_param, GR_param, MAF_param, MP_param, unsure_param)
         
         for i in data:
+            time = i[0]
             name = i[1]
             number = i[2]
             body_name = "{} {}".format(name, number)
             btn = tk.Button(self.interior, height=1, width=20, relief=tk.FLAT, 
                             bg="gray99", fg="purple3", font="Dosis", text=body_name,
-                            command= lambda i = name, x = number: self.open_file(i, x))
+                            command= lambda i = time: self.open_file(i))
             btn.pack(padx=10, pady=5, side=tk.TOP)
             print("created_button")
             
@@ -135,12 +142,13 @@ class ImageViewer(tk.Frame):
 
         self.image_viewer.geometry(str(w) + "x" + str(h))
     
-    def open_file(self, name, number):
+    def open_file(self, time):
         fm = FileManagement(self.folder_path)
-        body_info = fm.get_image(name, number)
+        body_info = fm.get_image_time(time)
         self.clear_information_canvas()
         self.show_information(body_info)
         self.open_annotation_image(body_info['body_file_name'], body_info['annotation_file_name'])
+        
         
     def show_information(self, body_info):
         self.make_information_labels(body_info)
@@ -179,11 +187,23 @@ class ImageViewer(tk.Frame):
         edit_img = tk.Button(self.information_frame, text = "Edit Image", 
                              command = lambda x = body_info, i = self.folder_path: self.edit_img(body_info))
         delete = tk.Button(self.information_frame, text = "Delete", 
-                              command = lambda x = body_info["body_name"], i = body_info["body_number"]: self.delete_image(x, i))
+                              command = lambda x = body_info["body_name"], i = body_info["body_number"], z = body_info["time"]: self.delete_image(x, i ,z))
             
         edit_info.grid(row = 4, column = 6, sticky = "e", padx = 3, pady = 3)
         edit_img.grid(row = 4, column = 7, sticky = "e", padx = 3, pady = 3)
         delete.grid(row = 4, column = 8, sticky = "e", padx = 3, pady = 3)
+        
+    def get_letter(self, string):
+        body_index = {"drop": "d",
+                    "crescent": "c",
+                    "spear": "s",
+                    "green spear": "grs",
+                    "saturn": "sa",
+                    "rod": "r",
+                    "ring": "ri",
+                    "kettlebell": "kb",
+                    "multi inc": "mi"}
+        return body_index[string]
         
     def edit_info(self, time, edited_body_name, edited_GR, edited_MAF, edited_MP, edited_unsure, edited_notes, body_info):
         edited = (edited_body_name, edited_GR, edited_MAF, edited_MP, edited_unsure, edited_notes, time)
@@ -200,6 +220,8 @@ class ImageViewer(tk.Frame):
             fm.renumber_img(edited_body_name, 1)
             fm.close()
             self.filter()
+            tag = "m" + str(time)
+            self.marker_canvas.itemconfig(tag, text = self.get_letter(edited_body_name))
             
         self.clear_information_canvas()
         self.show_information(new_info)
@@ -242,7 +264,7 @@ class ImageViewer(tk.Frame):
                                                                     edit_var_GR.get(), edit_var_MAF.get(), 
                                                                     edit_var_MP.get(), edit_var_unsure.get(), edit_notes.get(), body_info))
         
-        dropdown.grid(row = 1, column = 0)
+        dropdown.grid(row = 1, column = 1)
         edit_gr.grid(row = 1, column = 5)
         edit_maf.grid(row = 1, column = 6)
         edit_mp.grid(row = 1, column = 7)
@@ -252,14 +274,17 @@ class ImageViewer(tk.Frame):
         
     def edit_img(self, body_info):
         body_image = Image.open(self.folder_path + body_info["body_file_name"])
-        ScreenshotEditor(body_info, self.folder_path, False).create_screenshot_canvas(body_image)
+        ScreenshotEditor(body_info, self.folder_path, self.marker_canvas, False).create_screenshot_canvas(body_image)
 
-    def delete_image(self, name, number):
+    def delete_image(self, name, number, time):
         fm  = FileManagement(self.folder_path)
         fm.delete_img(name, number)
         self.remake_button_list()
         self.filter()
         self.information_frame.destroy()
+        tag = "m" + str(time)
+        self.marker_canvas.delete(tag)
+        self.marker_canvas.update()
         
     
     def add_information(self, body_info):
@@ -333,7 +358,7 @@ class ImageViewer(tk.Frame):
         self.remake_button_list()
         self.create_buttons(body_param, GR_param, MAF_param, MP_param, unsure_param)
 
-    def reset(self):
+    def reset(self): #look at
         self.remake_button_list()
         self.create_buttons(self.all_bodies, False, False, False, False)
         for choice in ("drop", "crescent", "spear", "green spear", "saturn", 
