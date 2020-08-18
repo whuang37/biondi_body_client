@@ -415,14 +415,22 @@ class Marker(tk.Frame):
         marker.destroy()
         self.call_screenshot(data)
 
+
 def open_image():
     path = filedialog.askdirectory()
     i = Application(root, path=path)
     
-
+def initiate_folder():
+    folder_path = filedialog.askdirectory()
+    folder_path = folder_path + "/"
+    file_name = filedialog.askopenfilename()
+    FileManagement(folder_path).initiate_folder(file_name)
+    
 if __name__ == "__main__":
     root = tk.Tk()
 
     find_image_button = tk.Button(root, text="Pick Image File", command = open_image)
     find_image_button.grid(column = 0, row = 0)
+    initiate_folder_button = tk.Button(root, text = "Initiate Folder", command = initiate_folder)
+    initiate_folder_button.grid(column = 0, row = 1)
     root.mainloop()
