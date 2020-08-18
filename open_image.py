@@ -12,47 +12,90 @@ import grid_tracker
 
 
 class Grid_Window(tk.Frame):
-    def __init__(self, master, main_canvas, final_order):
+    def __init__(self, master, main_canvas, final_order, width, height):
         self.master = master
         self.main_canvas = main_canvas
         self.final_order = final_order
+        self.total_squares = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw"
+
+        self.width = height
+        self.height = height
         
         self.i = 0
-
         self.gw = tk.Toplevel()
+        self.gw.geometry("150x75")
         self.v = tk.StringVar()
-        self.v.set("Current Grid Square: " + str(self.final_order[self.i]))
+        self.v.set(str(self.final_order[self.i]))
+        self.text = tk.Label(self.gw, text = "Current Grid Square:")
+        self.text.grid(row = 0, column = 1)
         self.current_grid = tk.Label(self.gw, text = self.v.get())
-        self.current_grid.grid(row = 0, column = 1)
+        self.current_grid.grid(row = 1, column = 1)
 
 
         self.forward_button = tk.Button(self.gw, text = ">", command = self.forward)
-        self.forward_button.grid(row=1, column = 2)
+        self.forward_button.grid(row=2, column = 2)
         
 
         self.backward_button = tk.Button(self.gw, text = "<", command = self.backward)
-        self.backward_button.grid(row=1, column = 0)
-        
+        self.backward_button.grid(row=2, column = 0)
 
+        self.jumpto_button = tk.Button(self.gw, text = "Jump to", command = self.move_canvas)
+        self.jumpto_button.grid(row = 2, column  = 1)
+
+    def get_scrollx(self):
+        index = self.total_squares.find(self.final_order[self.i])
+        w = self.width/7
+        return (index % 7) * w
+
+    def get_scrolly(self):
+        row1 = "ABCDEFG"
+        row2 = "HIJKLMN"
+        row3 = "OPQRSTU"
+        row4 = "VWXYZab"
+        row5 = "cdefghi"
+        row6 = "jklmnop"
+        row7 = "qrstuvw"
+        scrolly = 0
+        h = self.height/7
+        
+        if row2.find(self.final_order[self.i]) != -1:
+            scrolly = h
+        if row3.find(self.final_order[self.i]) != -1:
+            scrolly = h * 2
+        if row4.find(self.final_order[self.i]) != -1:
+            scrolly = h * 3 
+        if row5.find(self.final_order[self.i]) != -1:
+            scrolly = h * 4
+        if row6.find(self.final_order[self.i]) != -1:
+            scrolly = h * 5
+        if row7.find(self.final_order[self.i]) != -1:
+            scrolly = h * 6 
+
+        return scrolly        
+
+    def move_canvas(self):
+        scrollx = self.get_scrollx()
+        scrolly = self.get_scrolly()
+
+        offsetx = +1 if scrollx >= 0 else 0
+        offsety = +1 if scrolly >= 0 else 0
+        self.main_canvas.xview_moveto(float(scrollx + offsetx)/self.width)
+        self.main_canvas.yview_moveto(float(scrolly + offsety)/self.height)
+        self.master.geometry("600x600")
+        
     def forward(self):
         self.i += 1 
-        self.v.set("Current Grid Square: " + str(self.final_order[self.i]))
+        self.v.set(str(self.final_order[self.i]))
         self.current_grid.configure(text = self.v.get())
         self.current_grid.update()
-
-        if self.i == 48:
-            self.forward_button.configure(state = 'disabled')
-            self.forward_button.update()
 
     def backward(self):
         self.i -= 1 
-        self.v.set("Current Grid Square: " + str(self.final_order[self.i]))
+        self.v.set((self.final_order[self.i]))
         self.current_grid.configure(text = self.v.get())
         self.current_grid.update()
 
-        if self.i == 0:
-            self.backward_button.configure(state = 'disabled')
-            self.backward_button.update()
+        
         
 
 class AutoScrollbar(tk.Scrollbar):
@@ -172,7 +215,7 @@ class Application(tk.Frame):
                 if n > num_squares:
                     break
     def open_grid_window(self):
-        Grid_Window(self.master, self.canvas, self.final_order)
+        Grid_Window(self.master, self.canvas, self.final_order, self.width, self.height)
 
     def open_popup(self, event):
         x = event.x
