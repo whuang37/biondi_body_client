@@ -193,7 +193,7 @@ class Application(tk.Frame):
         self.create_grid()
         
         ImageViewer(self.folder_path, self.marker_canvas) #TEST CLASS
-        
+        self.initiate_markers()
         
     def create_grid(self):
         box_width =  round(self.width / self.columns)
@@ -220,6 +220,19 @@ class Application(tk.Frame):
                 if n > num_squares:
                     break
    
+    def initiate_markers(self):
+        all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
+                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
+        fm = FileManagement(self.folder_path)
+        data = fm.query_images(all_bodies, False, False, False, False)
+        for i in data:
+            body_info = {}
+            x = 0
+            for choice in ("time", "body_name", "body_number", "x", "y"):
+                body_info[choice] = i[x]
+                x += 1
+            GridMark(self.marker_canvas, self.folder_path, body_info)
+    
     def open_grid_window(self):
         Grid_Window(self.master, self.canvas, self.final_order, self.width, self.height)
 
