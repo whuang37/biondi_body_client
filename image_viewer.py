@@ -1,26 +1,22 @@
 import tkinter as tk
-from tkinter.constants import LEFT
 from PIL import Image, ImageTk
 from file_management import FileManagement
 from datetime import datetime
 from screenshot import ScreenshotEditor
-class ImageViewer(tk.Frame):
-    def __init__(self, folder_path, marker_canvas, *args, **kw):
+class ImageViewer(tk.Toplevel):
+    def __init__(self, folder_path, marker_canvas):
+        tk.Toplevel.__init__(self)
         self.marker_canvas = marker_canvas
         self.folder_path = folder_path       
-        
-        self.image_viewer = tk.Toplevel()
-        self.image_viewer.focus_set()
-        self.image_viewer.grab_set()
             
-        self.image_viewer.columnconfigure(2, weight=1)
-        self.image_viewer.rowconfigure(1, weight=1)
+        self.columnconfigure(2, weight=1)
+        self.rowconfigure(1, weight=1)
 
         # create a canvas object and a vertical scrollbar for scrolling it
-        scrollbar = tk.Scrollbar(self.image_viewer, orient = "vertical")
+        scrollbar = tk.Scrollbar(self, orient = "vertical")
         scrollbar.grid(row = 1, column = 1 , sticky = 'ns')
         
-        self.button_list_canvas = tk.Canvas(self.image_viewer, bd=0, highlightthickness=0,
+        self.button_list_canvas = tk.Canvas(self, bd=0, highlightthickness=0,
                         yscrollcommand=scrollbar.set)
         self.button_list_canvas.grid(row=1, column=0, sticky = 'ns')
         
@@ -30,13 +26,13 @@ class ImageViewer(tk.Frame):
         
         self.make_button_frame()
 
-        self.biondi_image_canvas = tk.Canvas(self.image_viewer, bd = 0)
+        self.biondi_image_canvas = tk.Canvas(self, bd = 0)
         self.biondi_image_canvas.grid(row=1, column=2, sticky = 'nswe')
         
-        self.filter_options_canvas = tk.Canvas(self.image_viewer, bd = 0)
+        self.filter_options_canvas = tk.Canvas(self, bd = 0)
         self.filter_options_canvas.grid(row=0, columnspan=3, sticky = "w")
         
-        self.information_frame = tk.Frame(self.image_viewer)
+        self.information_frame = tk.Frame(self)
         self.information_frame.grid(row = 3, column = 0, columnspan = 3, sticky = "nsew")
         
         self.var_GR = tk.BooleanVar()
@@ -104,6 +100,21 @@ class ImageViewer(tk.Frame):
         self.button_list_canvas.bind('<Configure>', _configure_canvas)
         interior.bind('<Configure>', _configure_interior)
     
+    def set_window_size(self, img):
+        img_w, img_h = img.size
+        
+        if img_h + 180 < 550:
+            h = 550
+        else:
+            h = img_h + 180
+            
+        if img_w + 230 < 750:
+            w = 750
+        else:
+            w = img_w + 245
+
+        self.geometry(str(w) + "x" + str(h))
+        
     def create_buttons(self, body_param, GR_param, MAF_param, MP_param, unsure_param):
         fm = FileManagement(self.folder_path)
         data = fm.query_images(body_param, GR_param, MAF_param, MP_param, unsure_param)
@@ -118,40 +129,7 @@ class ImageViewer(tk.Frame):
                             command = lambda i = time: self.open_file(i))
             btn.pack(padx = 10, pady = 5, side = tk.TOP)
             
-    def clear_information_canvas(self):
-        self.information_frame.destroy()
-        self.information_frame = tk.Frame(self.image_viewer)
-        self.information_frame.grid(row = 3, column = 0, columnspan = 3, sticky = "nsew")
-        
-    def set_window_size(self, img):
-        img_w, img_h = img.size
-        
-        if img_h + 180 < 550:
-            h = 550
-        else:
-            h = img_h + 180
-            
-        if img_w + 230 < 750:
-            w = 750
-        else:
-            w = img_w + 245
-
-        self.image_viewer.geometry(str(w) + "x" + str(h))
-    
-    def open_file(self, time):
-        fm = FileManagement(self.folder_path)
-        body_info = fm.get_image_time(time)
-        self.clear_information_canvas()
-        self.show_information(body_info)
-        self.open_annotation_image(body_info['body_file_name'], body_info['annotation_file_name'])
-        
-        
-    def show_information(self, body_info):
-        self.make_information_labels(body_info)
-        self.make_edit_buttons(body_info)
-        self.add_information(body_info)
-        
-    def make_information_labels(self, body_info):
+    def make_information_labels(self):
         x = 0
         column_widths =  ("20", "11", "12", "9", "12", "5", "5", "5", "8")
         for i in column_widths:
@@ -175,15 +153,32 @@ class ImageViewer(tk.Frame):
             
             notes = tk.Label(self.information_frame, text = "Notes:", font = ("Dosis", 10, "bold"), anchor = "w")
             notes.grid(row = 2, column = 0, sticky = "w")
-            
-            
+    
+    def open_file(self, time):
+        fm = FileManagement(self.folder_path)
+        body_info = fm.get_image_time(time)
+        
+        self.clear_information_canvas()
+        self.show_information(body_info)
+        self.open_annotation_image(body_info)
+        
+    def show_information(self, body_info):
+        self.make_information_labels()
+        self.make_edit_buttons(body_info)
+        self.add_information(body_info)
+        
+    def clear_information_canvas(self):
+        self.information_frame.destroy()
+        self.information_frame = tk.Frame(self)
+        self.information_frame.grid(row = 3, column = 0, columnspan = 3, sticky = "nsew")
+        
     def make_edit_buttons(self, body_info):
         edit_info = tk.Button(self.information_frame, text = "Edit Info", 
-                              command = lambda x = body_info: self.create_edit_entries(x))
+                            command = lambda : self.create_edit_entries(body_info))
         edit_img = tk.Button(self.information_frame, text = "Edit Image", 
-                             command = lambda x = body_info, i = self.folder_path: self.edit_img(body_info))
+                            command = lambda: self.edit_image(body_info))
         delete = tk.Button(self.information_frame, text = "Delete", 
-                              command = lambda x = body_info["body_name"], i = body_info["body_number"], z = body_info["time"]: self.delete_image(x, i ,z))
+                            command = lambda: self.delete_image(body_info))
             
         edit_info.grid(row = 4, column = 6, sticky = "e", padx = 3, pady = 3)
         edit_img.grid(row = 4, column = 7, sticky = "e", padx = 3, pady = 3)
@@ -224,7 +219,7 @@ class ImageViewer(tk.Frame):
         
     def create_edit_entries(self, body_info):
         self.clear_information_canvas()
-        self.make_information_labels(body_info)
+        self.make_information_labels()
         
         edit_body_name = tk.StringVar()
         edit_body_name.set(body_info["body_name"])
@@ -268,11 +263,14 @@ class ImageViewer(tk.Frame):
         edit_note_entry.grid(row = 3, columnspan = 9, sticky = "w")
         edit_button_ok.grid(row = 4, column = 8, sticky = "w")
         
-    def edit_img(self, body_info):
+    def edit_image(self, body_info):
         body_image = Image.open(self.folder_path + body_info["body_file_name"])
-        ScreenshotEditor(body_info, self.folder_path, self.marker_canvas, False).create_screenshot_canvas(body_image)
+        editor = ScreenshotEditor(body_info, self.folder_path, self.marker_canvas, body_image, False)
 
-    def delete_image(self, name, number, time):
+    def delete_image(self, body_info):
+        name = body_info["body_name"]
+        number = body_info["body_number"]
+        time = body_info["time"]
         fm  = FileManagement(self.folder_path)
         fm.delete_img(name, number)
         self.remake_button_list()
@@ -282,7 +280,6 @@ class ImageViewer(tk.Frame):
         self.marker_canvas.delete(tag)
         self.marker_canvas.update()
         
-    
     def add_information(self, body_info):
         info = (datetime.fromtimestamp(body_info["time"]),
                 body_info["annotator_name"],
@@ -305,12 +302,12 @@ class ImageViewer(tk.Frame):
             x += 1
             
             notes = tk.Label(self.information_frame, text = body_info["notes"], font = ("Dosis", 10), anchor = "w",
-                             wraplength = 200, justify = "left")
+                            wraplength = 200, justify = "left")
             notes.grid(row = 3, columnspan = 9, sticky = "w")
             
-            
-    
-    def open_annotation_image(self, body_file_name, annotation_file_name):
+    def open_annotation_image(self, body_info):
+        body_file_name = body_info['body_file_name']
+        annotation_file_name = body_info['annotation_file_name']
         try:
             body_img = Image.open(self.folder_path + body_file_name)  # open image
         except:
@@ -354,7 +351,7 @@ class ImageViewer(tk.Frame):
         self.remake_button_list()
         self.create_buttons(body_param, GR_param, MAF_param, MP_param, unsure_param)
 
-    def reset(self): #look at
+    def reset(self):
         self.remake_button_list()
         self.create_buttons(self.all_bodies, False, False, False, False)
         for choice in ("drop", "crescent", "spear", "green spear", "saturn", 
@@ -365,5 +362,3 @@ class ImageViewer(tk.Frame):
         self.var_MAF.set(False)
         self.var_MP.set(False)
         self.var_unsure.set(False)
-
-        

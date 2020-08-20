@@ -11,8 +11,8 @@ class FileManagement():
     actions like exporting, saving, and deleting images
 
     Attributes:
-        folder_path: the directory to the selected folder where all images
-        are saved
+        folder_path (str): the directory to the selected folder where all images
+            are saved
         conn: A connection to the sqlite3 database 
         c: the cursor the the previously mentioned sqlite3 database
         
@@ -96,7 +96,7 @@ class FileManagement():
             type (str): a type of biondi body. Must be same as ones entered through dict.
         
         Returns:
-        c_result[0] (int): Return value with the number of selected body in the database.
+            c_result[0] (int): Return value with the number of selected body in the database.
         """
         
         count_query = '''SELECT COUNT(*) 
