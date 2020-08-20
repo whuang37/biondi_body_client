@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter.constants import LEFT
 from PIL import Image, ImageTk
 from file_management import FileManagement
 from datetime import datetime
@@ -9,9 +8,6 @@ class ImageViewer(tk.Toplevel):
         tk.Toplevel.__init__(self)
         self.marker_canvas = marker_canvas
         self.folder_path = folder_path       
-        
-        self.focus_set()
-        self.grab_set()
             
         self.columnconfigure(2, weight=1)
         self.rowconfigure(1, weight=1)
@@ -180,7 +176,7 @@ class ImageViewer(tk.Toplevel):
         edit_info = tk.Button(self.information_frame, text = "Edit Info", 
                             command = lambda : self.create_edit_entries(body_info))
         edit_img = tk.Button(self.information_frame, text = "Edit Image", 
-                            command = lambda: self.edit_img(body_info))
+                            command = lambda: self.edit_image(body_info))
         delete = tk.Button(self.information_frame, text = "Delete", 
                             command = lambda: self.delete_image(body_info))
             
@@ -267,14 +263,9 @@ class ImageViewer(tk.Toplevel):
         edit_note_entry.grid(row = 3, columnspan = 9, sticky = "w")
         edit_button_ok.grid(row = 4, column = 8, sticky = "w")
         
-    def edit_img(self, body_info):
+    def edit_image(self, body_info):
         body_image = Image.open(self.folder_path + body_info["body_file_name"])
         editor = ScreenshotEditor(body_info, self.folder_path, self.marker_canvas, body_image, False)
-        if "normal" == editor.state():
-            print("true")
-            self.grab_set()
-            self.image_viewer.focus_set()
-            
 
     def delete_image(self, body_info):
         name = body_info["body_name"]
@@ -311,7 +302,7 @@ class ImageViewer(tk.Toplevel):
             x += 1
             
             notes = tk.Label(self.information_frame, text = body_info["notes"], font = ("Dosis", 10), anchor = "w",
-                             wraplength = 200, justify = "left")
+                            wraplength = 200, justify = "left")
             notes.grid(row = 3, columnspan = 9, sticky = "w")
             
     def open_annotation_image(self, body_info):
@@ -360,7 +351,7 @@ class ImageViewer(tk.Toplevel):
         self.remake_button_list()
         self.create_buttons(body_param, GR_param, MAF_param, MP_param, unsure_param)
 
-    def reset(self): #look at
+    def reset(self):
         self.remake_button_list()
         self.create_buttons(self.all_bodies, False, False, False, False)
         for choice in ("drop", "crescent", "spear", "green spear", "saturn", 
