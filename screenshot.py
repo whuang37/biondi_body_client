@@ -54,17 +54,17 @@ class ScreenshotEditor(tk.Toplevel):
         self.annotation = Image.new("RGBA", (self.width, self.height))
         self.draw = ImageDraw.Draw(self.annotation) #initialize a pillow drawing that runs in the background for saving annotations
         
-        self.screenshot = tk.Toplevel()
+        # self.screenshot = tk.Toplevel()
         if new == False:
-            self.screenshot.focus_set()
-            self.screenshot.grab_set()
+            self.focus_set()
+            self.grab_set()
         
-        self.screenshot_frame = tk.Frame(self.screenshot)
+        self.screenshot_frame = tk.Frame(self)
         self.screenshot_frame.grid(row = 1, column = 0)
         
         self.create_screenshot_canvas()
 
-        self.toolbar_frame = tk.Frame(self.screenshot)
+        self.toolbar_frame = tk.Frame(self)
         self.toolbar_frame.grid(row=0, column = 0)
         
         self.create_toolbar()
@@ -263,7 +263,7 @@ class ScreenshotEditor(tk.Toplevel):
         else: # if the annotations are being edited from Image Viewer
             self.annotation.save(self.folder_path + self.body_info["annotation_file_name"])
         
-        self.screenshot.destroy()
+        self.destroy()
 
 class LilSnippy(tk.Frame):
     """A selection and screenshot tool.
