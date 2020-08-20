@@ -270,7 +270,7 @@ class ImageViewer(tk.Frame):
         
     def edit_img(self, body_info):
         body_image = Image.open(self.folder_path + body_info["body_file_name"])
-        ScreenshotEditor(body_info, self.folder_path, self.marker_canvas, False).create_screenshot_canvas(body_image)
+        ScreenshotEditor(body_info, self.folder_path, self.marker_canvas, body_image, False)
 
     def delete_image(self, name, number, time):
         fm  = FileManagement(self.folder_path)
