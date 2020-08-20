@@ -45,8 +45,6 @@ class Application(tk.Frame):
         self.image_viewer_button = tk.Button(self.toolbar, text = "Image Viewer", command = self.open_image_viewer)
         self.image_viewer_button.pack(side = "left", padx = 2, pady = 2)
 
-
-
         # Create canvas and put image on it
         self.canvas = tk.Canvas(self.master, highlightthickness=0)
         
@@ -208,6 +206,10 @@ class Grid_Window(tk.Frame):
 
         self.width = width
         self.height = height
+        self.w = 0
+        self.h = 0
+        self.rows = 7
+        self.columns = 7
         
         self.i = 0
         self.gw = tk.Toplevel()
@@ -232,38 +234,22 @@ class Grid_Window(tk.Frame):
 
     def get_scrollx(self):
         index = self.total_squares.find(self.final_order[self.i])
-        w = self.width/7
-        return (index % 7) * w
+        self.w = self.width / self.columns
+        return (index % self.columns) * self.w
 
     def get_scrolly(self):
-        row1 = "ABCDEFG"
-        row2 = "HIJKLMN"
-        row3 = "OPQRSTU"
-        row4 = "VWXYZab"
-        row5 = "cdefghi"
-        row6 = "jklmnop"
-        row7 = "qrstuvw"
-        scrolly = 0
-        h = self.height/7
-        
-        if row2.find(self.final_order[self.i]) != -1:
-            scrolly = h
-        if row3.find(self.final_order[self.i]) != -1:
-            scrolly = h * 2
-        if row4.find(self.final_order[self.i]) != -1:
-            scrolly = h * 3 
-        if row5.find(self.final_order[self.i]) != -1:
-            scrolly = h * 4
-        if row6.find(self.final_order[self.i]) != -1:
-            scrolly = h * 5
-        if row7.find(self.final_order[self.i]) != -1:
-            scrolly = h * 6 
-
-        return scrolly        
+        c = self.final_order[self.i]
+        self.h = self.height / self.rows
+        if c.islower():
+            index = ord(c) - 96 + 26
+        else:
+            index = ord(c) - 64
+        scrolly = floor(index / self.rows) * self.h
+        return scrolly    
 
     def move_canvas(self):
-        scrollx = self.get_scrollx()
-        scrolly = self.get_scrolly()
+        scrollx = self.get_scrollx() - (self.w / 4)
+        scrolly = self.get_scrolly() - (self.h / 4)
 
         offsetx = +1 if scrollx >= 0 else 0
         offsety = +1 if scrolly >= 0 else 0
