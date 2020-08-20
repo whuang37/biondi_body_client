@@ -4,7 +4,7 @@ from PIL import ImageTk, Image, ImageDraw, ImageFont
 from tkinter.colorchooser import askcolor
 from file_management import FileManagement
 
-class ScreenshotEditor(tk.Frame):
+class ScreenshotEditor(tk.Toplevel):
     """A basic image editor for image markups.
     
     This class is used to initialize a new window with options to annotate
@@ -41,6 +41,7 @@ class ScreenshotEditor(tk.Frame):
         ScreenshotEditor(body_info, folder_path, marker_canvas, im, new)   
     """
     def __init__(self, body_info, folder_path, marker_canvas, im, new):
+        tk.Toplevel.__init__(self)
         self.body_info = body_info
         self.folder_path = folder_path
         self.marker_canvas = marker_canvas
@@ -54,7 +55,9 @@ class ScreenshotEditor(tk.Frame):
         self.draw = ImageDraw.Draw(self.annotation) #initialize a pillow drawing that runs in the background for saving annotations
         
         self.screenshot = tk.Toplevel()
-        # self.screenshot.withdraw()
+        if new == False:
+            self.screenshot.focus_set()
+            self.screenshot.grab_set()
         
         self.screenshot_frame = tk.Frame(self.screenshot)
         self.screenshot_frame.grid(row = 1, column = 0)
@@ -259,6 +262,8 @@ class ScreenshotEditor(tk.Frame):
             GridMark(self.marker_canvas, self.folder_path, self.body_info)
         else: # if the annotations are being edited from Image Viewer
             self.annotation.save(self.folder_path + self.body_info["annotation_file_name"])
+        
+        self.screenshot.destroy()
 
 class LilSnippy(tk.Frame):
     """A selection and screenshot tool.
