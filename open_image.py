@@ -121,10 +121,7 @@ class Application(tk.Frame):
         tk.Frame.__init__(self, master=mainframe)
         self.master.title('Zoom with mouse wheel')
         # Vertical and horizontal scrollbars for canvas
-        vbar = AutoScrollbar(self.master, orient='vertical')
-        hbar = AutoScrollbar(self.master, orient='horizontal')
-        vbar.grid(row=1, column=1, sticky='ns')
-        hbar.grid(row=2, column=0, sticky='we')
+
 
         #coord bar
         self.mousex = tk.IntVar()
@@ -153,24 +150,29 @@ class Application(tk.Frame):
 
 
         # Create canvas and put image on it
-        self.canvas = tk.Canvas(self.master, highlightthickness=0, xscrollcommand = hbar.set, yscrollcommand = vbar.set)
-        self.canvas.configure(yscrollincrement = '2')
-        self.canvas.configure(xscrollincrement = '2')
+        self.canvas = tk.Canvas(self.master, highlightthickness=0)
+        
 
         self.marker_canvas = self.canvas
         self.grid_canvas = self.canvas
         
         self.canvas.grid(row=1, column=0, sticky='nswe')
         self.canvas.update()  # wait till canvas is created
-        vbar.configure(command=self.scroll_y)  # bind scrollbars to the canvas
-        hbar.configure(command=self.scroll_x)
+
+        vbar = tk.Scrollbar(self.master, orient='vertical', command = self.canvas.yview)
+        hbar = tk.Scrollbar(self.master, orient='horizontal', command = self.canvas.xview)
+        vbar.grid(row=1, column=1, sticky='ns')
+        hbar.grid(row=2, column=0, sticky='we')
+        self.canvas.configure(xscrollcommand = hbar.set, yscrollcommand = vbar.set, xscrollincrement = '2', yscrollincrement = '2')
+        self.canvas.update()
+
         # Make the canvas expandable
         self.master.rowconfigure(1, weight=1)
         self.master.columnconfigure(0, weight=1)
         # Bind events to the Canvas
-        self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
-        self.canvas.bind('<ButtonPress-3>', self.move_from)
-        self.canvas.bind('<B3-Motion>', self.move_to)
+        #self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
+        #self.canvas.bind('<ButtonPress-3>', self.move_from)
+        #self.canvas.bind('<B3-Motion>', self.move_to)
         self.canvas.bind('<MouseWheel>', self.verti_wheel)
         self.canvas.bind('<Shift-MouseWheel>', self.hori_wheel)  
         self.canvas.bind('<Button-2>', self.open_popup)
@@ -184,6 +186,7 @@ class Application(tk.Frame):
         self.delta = 1.3  # zoom magnitude
         # Put image into container rectangle and use it to set proper coordinates to the image
         self.container = self.canvas.create_rectangle(0, 0, self.width, self.height, width=0)
+
         self.show_image()
 
         self.master.geometry(str(500) + "x" + str(500))
@@ -264,12 +267,12 @@ class Application(tk.Frame):
     def scroll_y(self, *args, **kwargs):
         ''' Scroll canvas vertically and redraw the image '''
         self.canvas.yview(*args, **kwargs)  # scroll vertically
-        self.show_image()  # redraw the image
+        #self.show_image()  # redraw the image
 
     def scroll_x(self, *args, **kwargs):
         ''' Scroll canvas horizontally and redraw the image '''
         self.canvas.xview(*args, **kwargs)  # scroll horizontally
-        self.show_image()  # redraw the image
+        #self.show_image()  # redraw the image
 
     def move_from(self, event):
         ''' Remember previous coordinates for scrolling with the mouse '''
@@ -285,46 +288,45 @@ class Application(tk.Frame):
             self.canvas.yview('scroll', 20, 'units')
         if event.num == 4 or event.delta == 120:
             self.canvas.yview('scroll', -20, 'units')
-        self.show_image()
+        #self.show_image()
 
     def hori_wheel(self, event):
         if event.num == 5 or event.delta == -120:  # scroll down
             self.canvas.xview('scroll', 20, 'units')
         if event.num == 4 or event.delta == 120:
             self.canvas.xview('scroll', -20, 'units')
-        self.show_image()
+        #self.show_image()
 
     def show_image(self, event=None):
         ''' Show image on the Canvas '''
-        bbox1 = self.canvas.bbox(self.container)  # get image area
+        # bbox1 = self.canvas.bbox(self.container)  # get image area
         # Remove 1 pixel shift at the sides of the bbox1
-        bbox1 = (bbox1[0] + 1, bbox1[1] + 1, bbox1[2] - 1, bbox1[3] - 1)
-        bbox2 = (self.canvas.canvasx(0),  # get visible area of the canvas
-                self.canvas.canvasy(0),
-                self.canvas.canvasx(self.canvas.winfo_width()),
-                self.canvas.canvasy(self.canvas.winfo_height()))
-        bbox = [min(bbox1[0], bbox2[0]), min(bbox1[1], bbox2[1]),  # get scroll region box
-                max(bbox1[2], bbox2[2]), max(bbox1[3], bbox2[3])]
-        if bbox[0] == bbox2[0] and bbox[2] == bbox2[2]:  # whole image in the visible area
-            bbox[0] = bbox1[0]
-            bbox[2] = bbox1[2]
-        if bbox[1] == bbox2[1] and bbox[3] == bbox2[3]:  # whole image in the visible area
-            bbox[1] = bbox1[1]
-            bbox[3] = bbox1[3]
-        self.canvas.configure(scrollregion=bbox)  # set scroll region
-        x1 = max(bbox2[0] - bbox1[0], 0)  # get coordinates (x1,y1,x2,y2) of the image tile
-        y1 = max(bbox2[1] - bbox1[1], 0)
-        x2 = min(bbox2[2], bbox1[2]) - bbox1[0]
-        y2 = min(bbox2[3], bbox1[3]) - bbox1[1]
-        if int(x2 - x1) > 0 and int(y2 - y1) > 0:  # show image if it in the visible area
-            x = min(int(x2 / self.imscale), self.width)   # sometimes it is larger on 1 pixel...
-            y = min(int(y2 / self.imscale), self.height)  # sometimes not
-            image = self.image.crop((int(x1 / self.imscale), int(y1 / self.imscale), x, y))
-            imagetk = ImageTk.PhotoImage(image.resize((int(x2 - x1), int(y2 - y1))))
-            imageid = self.canvas.create_image(max(bbox2[0], bbox1[0]), max(bbox2[1], bbox1[1]),
-                                                anchor= 'nw', image=imagetk)
-            self.canvas.lower(imageid)  # set image into background
-            self.canvas.imagetk = imagetk  # keep an extra reference to prevent garbage-collection
+        # bbox1 = (bbox1[0] + 1, bbox1[1] + 1, bbox1[2] - 1, bbox1[3] - 1)
+        # bbox2 = (self.canvas.canvasx(0),  # get visible area of the canvas
+        #         self.canvas.canvasy(0),
+        #         self.canvas.canvasx(self.canvas.winfo_width()),
+        #         self.canvas.canvasy(self.canvas.winfo_height()))
+        # bbox = [min(bbox1[0], bbox2[0]), min(bbox1[1], bbox2[1]),  # get scroll region box
+        #         max(bbox1[2], bbox2[2]), max(bbox1[3], bbox2[3])]
+        # if bbox[0] == bbox2[0] and bbox[2] == bbox2[2]:  # whole image in the visible area
+        #     bbox[0] = bbox1[0]
+        #     bbox[2] = bbox1[2]
+        # if bbox[1] == bbox2[1] and bbox[3] == bbox2[3]:  # whole image in the visible area
+        #     bbox[1] = bbox1[1]
+        #     bbox[3] = bbox1[3]
+        self.canvas.configure(scrollregion=self.canvas.bbox(self.container))  # set scroll region
+        # x1 = max(bbox2[0] - bbox1[0], 0)  # get coordinates (x1,y1,x2,y2) of the image tile
+        # y1 = max(bbox2[1] - bbox1[1], 0)
+        # x2 = min(bbox2[2], bbox1[2]) - bbox1[0]
+        # y2 = min(bbox2[3], bbox1[3]) - bbox1[1]
+        # if int(x2 - x1) > 0 and int(y2 - y1) > 0:  # show image if it in the visible area
+        #     x = min(int(x2 / self.imscale), self.width)   # sometimes it is larger on 1 pixel...
+        #     y = min(int(y2 / self.imscale), self.height)  # sometimes not
+        image = self.image
+        imagetk = ImageTk.PhotoImage(image)
+        imageid = self.canvas.create_image(0,0,anchor= 'nw', image=imagetk)
+        self.canvas.lower(imageid)  # set image into background
+        self.canvas.imagetk = imagetk  # keep an extra reference to prevent garbage-collection
             
 class Marker(tk.Frame):
     def __init__(self, master, x, y, marker_canvas, height, width, columns, rows, folder_path):
@@ -336,8 +338,8 @@ class Marker(tk.Frame):
         self.width = width
         self.columns = columns
         self.rows = rows
-        canvas_x = self.marker_canvas.canvasx(x)
-        canvas_y = self.marker_canvas.canvasy(y)
+        self.canvas_x = self.marker_canvas.canvasx(x)
+        self.canvas_y = self.marker_canvas.canvasy(y)
         
         self.annotator = "wh"
         self.body_type = tk.StringVar()
@@ -346,7 +348,7 @@ class Marker(tk.Frame):
         self.var_MAF = tk.BooleanVar()
         self.var_MP = tk.BooleanVar()
         self.var_unsure = tk.BooleanVar()
-        self.grid_id = self.get_grid(canvas_x, canvas_y)
+        self.grid_id = self.get_grid(self.canvas_x, self.canvas_y)
         self.notes = tk.StringVar()
         
         marker = tk.Toplevel() #create window
@@ -394,8 +396,8 @@ class Marker(tk.Frame):
                 "annotator_name": self.annotator,
                 "body_name": self.body_type.get(),
                 "body_number": fm.count_body_type(self.body_type.get()) + 1,
-                "x": self.x,
-                "y": self.y,
+                "x": self.canvas_x,
+                "y": self.canvas_y,
                 "grid_id": self.grid_id,
                 "GR": self.var_GR.get(),
                 "MAF": self.var_MAF.get(),
