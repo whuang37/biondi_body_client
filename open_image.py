@@ -21,7 +21,6 @@ class Application(tk.Frame):
         self.master.title('Zoom with mouse wheel')
         # Vertical and horizontal scrollbars for canvas
 
-
         #coord bar
         self.mousex = tk.IntVar()
         self.mousey = tk.IntVar()

@@ -11,14 +11,11 @@ class ImageViewer(tk.Toplevel):
             
         self.columnconfigure(2, weight=1)
         self.rowconfigure(1, weight=1)
-
         # create a canvas object and a vertical scrollbar for scrolling it
         scrollbar = tk.Scrollbar(self, orient = "vertical")
-        scrollbar.grid(row = 1, column = 1 , sticky = 'ns')
-        
         self.button_list_canvas = tk.Canvas(self, bd=0, highlightthickness=0,
                         yscrollcommand=scrollbar.set)
-        self.button_list_canvas.grid(row=1, column=0, sticky = 'ns')
+        #self.button_list_canvas.grid(row=1, column=0, sticky = 'ns')
         
         scrollbar.config(command=self.button_list_canvas.yview)
         self.button_list_canvas.xview_moveto(0)
@@ -27,13 +24,22 @@ class ImageViewer(tk.Toplevel):
         self.make_button_frame()
 
         self.biondi_image_canvas = tk.Canvas(self, bd = 0)
-        self.biondi_image_canvas.grid(row=1, column=2, sticky = 'nswe')
+        #self.biondi_image_canvas.grid(row=1, column=2, sticky = 'nswe')
         
-        self.filter_options_canvas = tk.Canvas(self, bd = 0)
-        self.filter_options_canvas.grid(row=0, columnspan=3, sticky = "w")
+        self.filter_options_frame = tk.Frame(self)
+        #self.filter_options_frame.grid(row=0, columnspan=3, sticky = "w")
         
         self.information_frame = tk.Frame(self)
-        self.information_frame.grid(row = 3, column = 0, columnspan = 3, sticky = "nsew")
+        self.edit_buttons_frame = tk.Frame(self.information_frame)
+        #self.information_frame.grid(row = 3, column = 0, columnspan = 3, sticky = "nswe")
+        
+        self.button_list_canvas.pack(side = tk.LEFT, fill = tk.Y)
+        scrollbar.pack(side = tk.LEFT, fill = tk.BOTH)
+        self.filter_options_frame.pack(side = tk.TOP, fill = tk.X)
+        self.biondi_image_canvas.pack(side = tk.TOP, expand = True, fill = tk.BOTH)
+        self.information_frame.pack(side = tk.BOTTOM, expand = True, fill = tk.X)
+        
+        self.edit_buttons_frame.grid(row = 4, column = 0, columnspan = 3, sticky = "w")
         
         self.var_GR = tk.BooleanVar()
         self.var_MAF = tk.BooleanVar()
@@ -47,7 +53,7 @@ class ImageViewer(tk.Toplevel):
         self.create_buttons(self.all_bodies, False, False, False, False)
         
     def make_filter_buttons(self):
-        filter_bodies = tk.Menubutton(self.filter_options_canvas, text="Biondi Bodies", 
+        filter_bodies = tk.Menubutton(self.filter_options_frame, text="Biondi Bodies", 
                                     indicatoron=True, borderwidth=1, relief="raised")
         menu = tk.Menu(filter_bodies, tearoff=False)
         filter_bodies.configure(menu=menu)
@@ -62,12 +68,12 @@ class ImageViewer(tk.Toplevel):
                                 onvalue=1, offvalue=0)
         
         
-        grC = tk.Checkbutton(self.filter_options_canvas, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
-        mafC = tk.Checkbutton(self.filter_options_canvas, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
-        mpC = tk.Checkbutton(self.filter_options_canvas, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
-        unsure = tk.Checkbutton(self.filter_options_canvas, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
-        apply  = tk.Button(self.filter_options_canvas, text = "Apply", command = lambda : self.filter())
-        reset = tk.Button(self.filter_options_canvas, text = "Reset", command = lambda : self.reset())
+        grC = tk.Checkbutton(self.filter_options_frame, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
+        mafC = tk.Checkbutton(self.filter_options_frame, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
+        mpC = tk.Checkbutton(self.filter_options_frame, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
+        unsure = tk.Checkbutton(self.filter_options_frame, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
+        apply  = tk.Button(self.filter_options_frame, text = "Apply", command = lambda : self.filter())
+        reset = tk.Button(self.filter_options_frame, text = "Reset", command = lambda : self.reset())
         
         grC.pack(padx=10, pady = 10, side = tk.LEFT)
         mafC.pack(padx=10, pady = 10, side = tk.LEFT)
@@ -103,13 +109,13 @@ class ImageViewer(tk.Toplevel):
     def set_window_size(self, img):
         img_w, img_h = img.size
         
-        if img_h + 180 < 550:
-            h = 550
+        if img_h + 180 < 700:
+            h = 700
         else:
             h = img_h + 180
             
-        if img_w + 230 < 750:
-            w = 750
+        if img_w + 230 < 1200:
+            w = 1200
         else:
             w = img_w + 245
 
@@ -169,20 +175,23 @@ class ImageViewer(tk.Toplevel):
         
     def clear_information_canvas(self):
         self.information_frame.destroy()
+        self.edit_buttons_frame.destroy()
         self.information_frame = tk.Frame(self)
-        self.information_frame.grid(row = 3, column = 0, columnspan = 3, sticky = "nsew")
+        self.information_frame.pack(side = tk.BOTTOM, fill = tk.X)
+        self.edit_buttons_frame = tk.Frame(self.information_frame)
+        self.edit_buttons_frame.grid(row = 4, column = 0, columnspan = 3, sticky = "w")
         
     def make_edit_buttons(self, body_info):
-        edit_info = tk.Button(self.information_frame, text = "Edit Info", 
+        edit_info = tk.Button(self.edit_buttons_frame, text = "Edit Info", 
                             command = lambda : self.create_edit_entries(body_info))
-        edit_img = tk.Button(self.information_frame, text = "Edit Image", 
+        edit_img = tk.Button(self.edit_buttons_frame, text = "Edit Image", 
                             command = lambda: self.edit_image(body_info))
-        delete = tk.Button(self.information_frame, text = "Delete", 
+        delete = tk.Button(self.edit_buttons_frame, text = "Delete", 
                             command = lambda: self.delete_image(body_info))
             
-        edit_info.grid(row = 4, column = 6, sticky = "e", padx = 3, pady = 3)
-        edit_img.grid(row = 4, column = 7, sticky = "e", padx = 3, pady = 3)
-        delete.grid(row = 4, column = 8, sticky = "e", padx = 3, pady = 3)
+        edit_info.grid(row = 4, column = 0, sticky = "e", padx = 3, pady = 3)
+        edit_img.grid(row = 4, column = 1, sticky = "e", padx = 3, pady = 3)
+        delete.grid(row = 4, column = 2, sticky = "e", padx = 3, pady = 3)
         
     def get_letter(self, string):
         body_index = {"drop": "d",

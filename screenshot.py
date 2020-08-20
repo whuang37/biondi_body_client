@@ -54,10 +54,8 @@ class ScreenshotEditor(tk.Toplevel):
         self.annotation = Image.new("RGBA", (self.width, self.height))
         self.draw = ImageDraw.Draw(self.annotation) #initialize a pillow drawing that runs in the background for saving annotations
         
-        # self.screenshot = tk.Toplevel()
-        if new == False:
-            self.focus_set()
-            self.grab_set()
+        self.focus_set()
+        self.grab_set()
         
         self.screenshot_frame = tk.Frame(self)
         self.screenshot_frame.grid(row = 1, column = 0)
