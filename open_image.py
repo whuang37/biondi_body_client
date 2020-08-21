@@ -35,9 +35,6 @@ class Application(tk.Frame):
         self.toolbar = tk.Frame(self.master, bg = "gray")
         self.toolbar.grid(row = 0, column = 0, sticky = 'nswe' )
 
-        self.gt = grid_tracker.GridRandomizer()
-        self.gt.set_final_order()
-        self.final_order = self.gt.get_final_order()
         self.gridw_button = tk.Button(self.toolbar, text = "Open Grid", command = self.open_grid_window)
         self.gridw_button.pack(side = "left", padx = 2 , pady = 2)
 
@@ -97,7 +94,7 @@ class Application(tk.Frame):
         self.initiate_markers()
         
         #grid window
-        grid_window = GridWindow(self.master, self.canvas, self.final_order, self.width, self.height)
+        grid_window = GridWindow(self.master, self.canvas, self.folder_path, self.width, self.height)
         grid_window.grid(row = 3, column = 0)
         
     def open_image_viewer(self):
@@ -206,12 +203,12 @@ class Application(tk.Frame):
         self.canvas.imagetk = imagetk  # keep an extra reference to prevent garbage-collection
 
 class GridWindow(tk.Frame):
-    def __init__(self, master, main_canvas, final_order, width, height):
+    def __init__(self, master, main_canvas, folder_path, width, height):
         tk.Frame.__init__(self)
         self.master = master
         self.main_canvas = main_canvas
-        self.final_order = final_order
-        self.total_squares = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw"
+        self.folder_path = folder_path
+        self.final_order = FileManagement(self.folder_path).get_grid()
 
         self.width = width
         self.height = height
@@ -222,12 +219,11 @@ class GridWindow(tk.Frame):
         
         self.i = 0
         self.v = tk.StringVar()
-        self.v.set(str(self.final_order[self.i]))
+        self.v.set(str(self.final_order[self.i][0]))
         self.text = tk.Label(self, text = "Current Grid Square:")
         self.text.grid(row = 0, column = 1)
         self.current_grid = tk.Label(self, text = self.v.get())
         self.current_grid.grid(row = 1, column = 1)
-
 
         self.forward_button = tk.Button(self, text = ">", command = self.forward)
         self.forward_button.grid(row=2, column = 2)
@@ -238,14 +234,30 @@ class GridWindow(tk.Frame):
 
         self.jumpto_button = tk.Button(self, text = "Jump to", command = self.move_canvas)
         self.jumpto_button.grid(row = 2, column  = 1)
+        
+        self.make_check_button()
+
+    def make_check_button(self):
+        self.var_fin = tk.IntVar()
+        self.var_fin.set(self.final_order[self.i][1])
+        self.finished = tk.Checkbutton(self, text = "Finished", variable = self.var_fin,
+                                        onvalue = 1, offvalue = 0, command = lambda y = self.final_order[self.i][0]: self.update_finished(y))
+        self.finished.grid(row = 3, column = 1)
+        
+    def update_finished(self, grid_id):
+        fin = self.var_fin.get()
+        print(grid_id, fin)
+        FileManagement(self.folder_path).finish_grid(grid_id, fin)
+        self.final_order = FileManagement(self.folder_path).get_grid()
 
     def get_scrollx(self):
-        index = self.total_squares.find(self.final_order[self.i])
+        total_squares = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw"
+        index = total_squares.find(self.final_order[self.i][0])
         self.w = self.width / self.columns
         return (index % self.columns) * self.w
 
     def get_scrolly(self):
-        c = self.final_order[self.i]
+        c = self.final_order[self.i][0]
         self.h = self.height / self.rows
         if c.islower():
             index = ord(c) - 96 + 26
@@ -265,17 +277,25 @@ class GridWindow(tk.Frame):
         self.master.geometry("600x600")
         
     def forward(self):
-        self.i += 1 
-        self.v.set(str(self.final_order[self.i]))
+        if self.i < len(self.final_order) -1:
+            self.i += 1 
+        self.v.set(str(self.final_order[self.i][0]))
+        
         self.current_grid.configure(text = self.v.get())
         self.current_grid.update()
+        
+        self.finished.destroy()
+        self.make_check_button()
 
     def backward(self): 
-        self.i -= 1 
-        self.v.set((self.final_order[self.i]))
+        if self.i > 0:
+            self.i -= 1 
+        self.v.set((self.final_order[self.i][0]))
         self.current_grid.configure(text = self.v.get())
         self.current_grid.update()
-            
+        
+        self.finished.destroy()
+        self.make_check_button()
 class Marker(tk.Frame):
     def __init__(self, master, x, y, marker_canvas, height, width, columns, rows, folder_path):
         self.master = master

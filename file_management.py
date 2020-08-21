@@ -26,27 +26,6 @@ class FileManagement():
         try:
             self.conn = sqlite3.connect(self.folder_path + 'body_database.db')
             self.c = self.conn.cursor()
-            
-            create_table_query = '''CREATE TABLE IF NOT EXISTS bodies (TIME INTEGER NOT NULL,
-                                                    ANNOTATOR_NAME TEXT,
-                                                    BODY_NAME TEXT NOT NULL, 
-                                                    BODY_NUMBER INTEGER NOT NULL,
-                                                    X_POSITION INTEGER NOT NULL,
-                                                    Y_POSITION INTEGER NOT NULL,
-                                                    GRID_ID TEXT NOT NULL,
-                                                    GR INTEGER,
-                                                    MAF INTEGER,
-                                                    MP INTEGER,
-                                                    UNSURE INTEGER,
-                                                    NOTES TEXT,
-                                                    BODY_FILE_NAME,
-                                                    ANNOTATION_FILE_NAME)'''
-        
-            self.c.execute(create_table_query)
-        
-            create_grid_query = '''CREATE TABLE IF NOT EXISTS grid (GRID_ID TEXT NOT NULL,
-                                                                    FINISHED INTEGER'''
-            self.c.execute(create_table_query)
         except sqlite3.Error as error:
             print("Error while connecting to sqlite", error)
             self.conn.close()
@@ -57,21 +36,6 @@ class FileManagement():
         self.c.close()
         self.conn.close()
     
-    def grid_randomizer(self):
-        randomized = GridRandomizer().get_final_order()
-        
-        random_list = []
-        
-        for i in randomized:
-            x = (i, False)
-            random_list.append(x)
-            
-        add_grid_query = '''INSERT INTO grid (GRID_ID, FINISHED)
-                                                VALUES(?, ?)'''
-                                                
-        self.c.executemany(add_grid_query, random_list)
-        self.close()
-        
     def get_grid(self):
         get_grid_query = '''SELECT * FROM grid'''
         self.c.execute(get_grid_query)
@@ -79,12 +43,12 @@ class FileManagement():
         result = self.c.fetchall()
         return result
     
-    def finish_grid(self, grid_id):
-        finish_grid_query = '''UPDATE bodies
-                SET FINISHED = ?, 
+    def finish_grid(self, grid_id, state):
+        finish_grid_query = '''UPDATE grid
+                SET FINISHED = ? 
                 WHERE GRID_ID = ?'''
         
-        self.c.execute(finish_grid_query, (grid_id, 1))
+        self.c.execute(finish_grid_query, (state, grid_id))
         self.close()
         
     def count_body_type(self, type):
@@ -133,6 +97,22 @@ class FileManagement():
                                                             ANNOTATION_FILE_NAME TEXT)'''
         
         self.c.execute(create_table_query)
+        
+        create_grid_query = '''CREATE TABLE IF NOT EXISTS grid (GRID_ID TEXT NOT NULL,
+                                                                    FINISHED INTEGER)'''
+        self.c.execute(create_grid_query)
+        
+        randomized = GridRandomizer().get_final_order()
+        random_list = []
+        
+        for i in randomized:
+            x = (i, False)
+            random_list.append(x)
+            
+        add_grid_query = '''INSERT INTO grid (GRID_ID, FINISHED)
+                                                VALUES(?, ?)'''
+                                                
+        self.c.executemany(add_grid_query, random_list)
         self.close()
         
     def save_image(self, body_info, body_img, annotation_img):
@@ -442,9 +422,8 @@ class FileManagement():
 if __name__ == "__main__":
     fm = FileManagement("")
     #print(fm.count_body_type("saturn"))
-    fm.edit_info(("rod", 1, 1, 1, 1, "dsasd", 1597648898))
+    #fm.edit_info(("rod", 1, 1, 1, 1, "dsasd", 1597648898))
     #print(fm.get_image("crescent", 1))
     #print(fm.query_image(["saturn", "kettlebell"], False, False, False, False,))
     #fm.delete_img("multi inc", 4)
-    #fm.renumber_img("saturn", 1)
-    #fm.refresh_database()
+    fm.renumber_img("saturn", 1)
