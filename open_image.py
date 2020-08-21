@@ -27,8 +27,10 @@ class Application(tk.Frame):
         self.mousex.set(0)
         self.mousey.set(0)
         self.coord_label = tk.Label(self.master, text = "X: " + str(self.mousex.get()) + "  " + "Y: " + str(self.mousey.get())) 
-        self.coord_label.grid(row = 3, column = 0, sticky = 'sw')
+        self.coord_label.grid(row = 4, column = 0, sticky = 'sw')
 
+        
+        
         #tool bar
         self.toolbar = tk.Frame(self.master, bg = "gray")
         self.toolbar.grid(row = 0, column = 0, sticky = 'nswe' )
@@ -62,6 +64,7 @@ class Application(tk.Frame):
         self.canvas.configure(xscrollcommand = hbar.set, yscrollcommand = vbar.set, xscrollincrement = '2', yscrollincrement = '2')
         self.canvas.update()
 
+        
         # Make the canvas expandable
         self.master.rowconfigure(1, weight=1)
         self.master.columnconfigure(0, weight=1)
@@ -92,6 +95,10 @@ class Application(tk.Frame):
         self.create_grid()
         
         self.initiate_markers()
+        
+        #grid window
+        grid_window = GridWindow(self.master, self.canvas, self.final_order, self.width, self.height)
+        grid_window.grid(row = 3, column = 0)
         
     def open_image_viewer(self):
         ImageViewer(self.folder_path, self.marker_canvas) #TEST CLASS
@@ -140,8 +147,9 @@ class Application(tk.Frame):
             GridMark(self.marker_canvas, self.folder_path, body_info)
     
     def open_grid_window(self):
-        Grid_Window(self.master, self.canvas, self.final_order, self.width, self.height)
-
+        grid_window = GridWindow(self.master, self.canvas, self.final_order, self.width, self.height)
+        grid_window.grid(row = 3, column = 0)
+        
     def open_new_folder(self):
         path = filedialog.askdirectory()
         i = Application(root, path=path)
@@ -197,8 +205,9 @@ class Application(tk.Frame):
         self.canvas.lower(imageid)  # set image into background
         self.canvas.imagetk = imagetk  # keep an extra reference to prevent garbage-collection
 
-class Grid_Window(tk.Frame):
+class GridWindow(tk.Frame):
     def __init__(self, master, main_canvas, final_order, width, height):
+        tk.Frame.__init__(self)
         self.master = master
         self.main_canvas = main_canvas
         self.final_order = final_order
@@ -212,24 +221,22 @@ class Grid_Window(tk.Frame):
         self.columns = 7
         
         self.i = 0
-        self.gw = tk.Toplevel()
-        self.gw.geometry("150x75")
         self.v = tk.StringVar()
         self.v.set(str(self.final_order[self.i]))
-        self.text = tk.Label(self.gw, text = "Current Grid Square:")
+        self.text = tk.Label(self, text = "Current Grid Square:")
         self.text.grid(row = 0, column = 1)
-        self.current_grid = tk.Label(self.gw, text = self.v.get())
+        self.current_grid = tk.Label(self, text = self.v.get())
         self.current_grid.grid(row = 1, column = 1)
 
 
-        self.forward_button = tk.Button(self.gw, text = ">", command = self.forward)
+        self.forward_button = tk.Button(self, text = ">", command = self.forward)
         self.forward_button.grid(row=2, column = 2)
         
 
-        self.backward_button = tk.Button(self.gw, text = "<", command = self.backward)
+        self.backward_button = tk.Button(self, text = "<", command = self.backward)
         self.backward_button.grid(row=2, column = 0)
 
-        self.jumpto_button = tk.Button(self.gw, text = "Jump to", command = self.move_canvas)
+        self.jumpto_button = tk.Button(self, text = "Jump to", command = self.move_canvas)
         self.jumpto_button.grid(row = 2, column  = 1)
 
     def get_scrollx(self):
