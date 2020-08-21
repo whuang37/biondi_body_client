@@ -29,27 +29,14 @@ class Application(tk.Frame):
         self.coord_label = tk.Label(self.master, text = "X: " + str(self.mousex.get()) + "  " + "Y: " + str(self.mousey.get())) 
         self.coord_label.grid(row = 4, column = 0, sticky = 'sw')
 
-        
-        
-        #tool bar
-        self.toolbar = tk.Frame(self.master, bg = "gray")
-        self.toolbar.grid(row = 0, column = 0, sticky = 'nswe' )
-
-        self.gridw_button = tk.Button(self.toolbar, text = "Open Grid", command = self.open_grid_window)
-        self.gridw_button.pack(side = "left", padx = 2 , pady = 2)
-
-        self.open_new_button = tk.Button(self.toolbar, text = "Open New Folder", command = self.open_new_folder)
-        self.open_new_button.pack(side = "left", padx = 2, pady = 2)
-        
-        self.image_viewer_button = tk.Button(self.toolbar, text = "Image Viewer", command = self.open_image_viewer)
-        self.image_viewer_button.pack(side = "left", padx = 2, pady = 2)
-
         # Create canvas and put image on it
         self.canvas = tk.Canvas(self.master, highlightthickness=0)
         
 
         self.marker_canvas = self.canvas
         self.grid_canvas = self.canvas
+        
+        
         
         self.canvas.grid(row=1, column=0, sticky='nswe')
         self.canvas.update()  # wait till canvas is created
@@ -92,6 +79,10 @@ class Application(tk.Frame):
         self.create_grid()
         
         self.initiate_markers()
+        
+        #tool bar
+        self.toolbar = GridToolbar()
+        self.toolbar.grid(row = 0, column = 0, sticky = 'nswe' )
         
         #grid window
         grid_window = GridWindow(self.master, self.canvas, self.folder_path, self.width, self.height)
@@ -142,10 +133,6 @@ class Application(tk.Frame):
                 body_info[choice] = i[x]
                 x += 1
             GridMark(self.marker_canvas, self.folder_path, body_info)
-    
-    def open_grid_window(self):
-        grid_window = GridWindow(self.master, self.canvas, self.final_order, self.width, self.height)
-        grid_window.grid(row = 3, column = 0)
         
     def open_new_folder(self):
         path = filedialog.askdirectory()
@@ -394,6 +381,23 @@ class Marker(tk.Frame):
         marker.destroy()
         self.call_screenshot(data)
 
+class GridToolbar(tk.Frame):
+    def __init__(self,):
+        tk.Frame.__init__(self)
+        
+        file = tk.Menubutton(self, text = "File", relief = "raised")
+        file.pack(side = "left")
+        
+        view = tk.Menubutton(self, text = "View", relief = "raised")
+        view.pack(side = "left")
+        # self.gridw_button = tk.Button(self.toolbar, text = "Open Grid", command = self.open_grid_window)
+        # self.gridw_button.pack(side = "left", padx = 2 , pady = 2)
+
+        # self.open_new_button = tk.Button(self.toolbar, text = "Open New Folder", command = self.open_new_folder)
+        # self.open_new_button.pack(side = "left", padx = 2, pady = 2)
+        
+        # self.image_viewer_button = tk.Button(self.toolbar, text = "Image Viewer", command = self.open_image_viewer)
+        # self.image_viewer_button.pack(side = "left", padx = 2, pady = 2)
 
 def open_image():
     path = filedialog.askdirectory()
