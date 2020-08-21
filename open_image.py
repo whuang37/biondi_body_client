@@ -31,14 +31,13 @@ class Application(tk.Frame):
 
         # Create canvas and put image on it
         self.canvas = tk.Canvas(self.master, highlightthickness=0)
-        
-
         self.marker_canvas = self.canvas
         self.grid_canvas = self.canvas
         
-        
-        
         self.canvas.grid(row=1, column=0, sticky='nswe')
+        self.grid_canvas.grid(row=1, column=0, sticky='nswe')
+        self.marker_canvas.grid(row=1, column=0, sticky='nswe')
+        
         self.canvas.update()  # wait till canvas is created
 
         vbar = tk.Scrollbar(self.master, orient='vertical', command = self.canvas.yview)
@@ -72,7 +71,7 @@ class Application(tk.Frame):
 
         self.show_image()
 
-        self.master.geometry(str(500) + "x" + str(500))
+        self.master.geometry(str(600) + "x" + str(600))
         
         self.rows = 7
         self.columns = 7
@@ -81,15 +80,12 @@ class Application(tk.Frame):
         self.initiate_markers()
         
         #tool bar
-        self.toolbar = GridToolbar()
+        self.toolbar = GridToolbar(self.master, self.folder_path, self.marker_canvas, self.grid_canvas)
         self.toolbar.grid(row = 0, column = 0, sticky = 'nswe' )
         
         #grid window
         grid_window = GridWindow(self.master, self.canvas, self.folder_path, self.width, self.height)
         grid_window.grid(row = 3, column = 0)
-        
-    def open_image_viewer(self):
-        ImageViewer(self.folder_path, self.marker_canvas) #TEST CLASS
         
     def create_grid(self):
         box_width =  round(self.width / self.columns)
@@ -99,10 +95,10 @@ class Application(tk.Frame):
         
         for i in range(0, num_v_lines):
             self.grid_canvas.create_line(box_width * (i+1), 0, box_width * (i+1), self.height,
-                                        fill = "white", width = 4)
+                                        fill = "white", width = 4, tag = "line")
         for i in range(0, num_h_lines):
             self.grid_canvas.create_line(0, box_height * (i+1), self.width, box_height * (i+1),
-                                        fill = "white", width = 4)
+                                        fill = "white", width = 4, tag = "line")
             
         num_squares = self.rows * self.columns
         
@@ -116,7 +112,7 @@ class Application(tk.Frame):
         for i in range(0, self.rows):
             for j in range(0, self.columns):
                 self.grid_canvas.create_text((j + 1) * box_height - padding, (i + 1) * box_width - padding,
-                                            font = ("Calibri", 24), fill = 'WHITE', text = key[n], tag = key[n])
+                                            font = ("Calibri", 24), fill = 'WHITE', text = key[n], tag = "letter")
                 n += 1
                 if n > num_squares:
                     break
@@ -382,22 +378,100 @@ class Marker(tk.Frame):
         self.call_screenshot(data)
 
 class GridToolbar(tk.Frame):
-    def __init__(self,):
+    def __init__(self, master, folder_path, marker_canvas, grid_canvas):
         tk.Frame.__init__(self)
+        self.master = master
+        self.folder_path = folder_path
+        self.marker_canvas = marker_canvas
+        self.grid_canvas = grid_canvas
         
-        file = tk.Menubutton(self, text = "File", relief = "raised")
-        file.pack(side = "left")
+        self.new_folder_path = tk.StringVar()
+        self.new_folder_path.set("")
+        self.case_name = tk.StringVar()
+        self.case_name.set("")
+        self.grid_var = tk.BooleanVar()
+        self.grid_var.set(True)
+        self.letter_var = tk.BooleanVar()
+        self.letter_var.set(True)
         
-        view = tk.Menubutton(self, text = "View", relief = "raised")
-        view.pack(side = "left")
-        # self.gridw_button = tk.Button(self.toolbar, text = "Open Grid", command = self.open_grid_window)
-        # self.gridw_button.pack(side = "left", padx = 2 , pady = 2)
-
-        # self.open_new_button = tk.Button(self.toolbar, text = "Open New Folder", command = self.open_new_folder)
-        # self.open_new_button.pack(side = "left", padx = 2, pady = 2)
+        file_b = tk.Menubutton(self, text = "File", relief = "raised")
+        file_menu = tk.Menu(file_b, tearoff = False)
+        file_b.configure(menu = file_menu)
+        file_b.pack(side = "left")
         
-        # self.image_viewer_button = tk.Button(self.toolbar, text = "Image Viewer", command = self.open_image_viewer)
-        # self.image_viewer_button.pack(side = "left", padx = 2, pady = 2)
+        file_menu.add_command (label = "Open New Folder", command = self.open_new_folder)
+        file_menu.add_command(label = "Export Images", command = self.export_images)
+        
+        view_b = tk.Menubutton(self, text = "View", relief = "raised")
+        view_menu = tk.Menu(view_b, tearoff = False)
+        view_b.configure(menu = view_menu)
+        view_b.pack(side = "left")
+        
+        view_menu.add_command(label = "Open Image Viewer", command = self.open_image_viewer)
+        view_menu.add_command(label = "Set Window to Original Size", command = self.original_size)
+        view_menu.add_checkbutton(label = "Show Grid", variable = self.grid_var, onvalue = True,
+                                  offvalue = False, command = self.show_grid)
+        view_menu.add_checkbutton(label = "Show Letters", variable = self.letter_var, onvalue = True,
+                                  offvalue = False, command = self.show_letter)
+    def open_new_folder(self):
+        path = filedialog.askdirectory()
+        i = Application(root, path=path)
+        
+    def export_images(self):
+        export = tk.Toplevel()
+        export.transient(root)
+        export.title("Export")
+        export.geometry("300x130")
+        export.columnconfigure(2, weight = 1)
+        export.resizable(False, False)
+        
+        name = tk.Label(export, text = "Case Name:")
+        name.grid(row = 1, column = 1, padx =10, pady = 10, sticky = "nsew")
+        
+        name_entry = tk.Entry(export, textvariable = self.case_name)
+        name_entry.grid(row = 1, column = 2, padx =10, pady = 10, sticky = "nsew")
+        
+        folder_entry = tk.Entry(export, textvariable = self.new_folder_path)
+        folder_entry.grid(row = 2, column = 2, padx =10, pady = 10, sticky = "nsew")
+        
+        def select_folder():
+            path = filedialog.askdirectory()
+            if path == "":
+                return
+            else:
+                self.new_folder_path.set(path + "/")
+                folder_entry.update()
+            
+        folder_button = tk.Button(export, text = "Browse", command = select_folder)
+        folder_button.grid(row = 2, column = 1, padx = 10, pady = 10, sticky = "nsew")
+        
+        def confirm():
+            if self.case_name.get() == "" or self.new_folder_path.get() == "/":
+                return
+            else:
+                FileManagement(self.folder_path).export_case(self.new_folder_path.get(), self.case_name.get())
+                export.destroy()
+        
+        ok_button = tk.Button(export, text = "Okay", command = confirm)
+        ok_button.grid(row = 3, column = 2, padx = 10, pady = 10, sticky = "e")
+        
+    def open_image_viewer(self):
+        ImageViewer(self.folder_path, self.marker_canvas) #TEST CLASS
+    
+    def original_size(self):
+        self.master.geometry("600x600")
+        
+    def show_grid(self):
+        if self.grid_var.get() == False: 
+            self.grid_canvas.itemconfigure("line", state = "hidden")
+        else:
+            self.grid_canvas.itemconfigure("line", state = "normal")
+            
+    def show_letter(self):
+        if self.letter_var.get() == False:
+            self.grid_canvas.itemconfigure("letter", state = "hidden")
+        else:
+            self.grid_canvas.itemconfigure("letter", state = "normal")
 
 def open_image():
     path = filedialog.askdirectory()
