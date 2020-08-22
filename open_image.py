@@ -2,13 +2,10 @@ import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 from math import floor
-from time import time
 
 from image_viewer import ImageViewer
 from file_management import FileManagement
 from markings import GridMark, Marker
-import grid_tracker
-from screenshot import LilSnippy
 
 class Application(tk.Frame):
     def __init__(self, mainframe, path):
@@ -115,7 +112,7 @@ class Application(tk.Frame):
                 n += 1
                 if n > num_squares:
                     break
-   
+
     def initiate_markers(self):
         all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
                         "rod", "green rod", "ring", "kettlebell", "multi inc"]
