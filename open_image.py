@@ -11,14 +11,46 @@ import grid_tracker
 from screenshot import LilSnippy
 
 class Application(tk.Frame):
+    """The main hub window for viewing and editing the gridfile.
+    
+    The Main Application consists of three main aspects: A scrollable canvas to view the image, 
+    a top toolbar, and a bottom tool to track and jump to whatever grid square you are on. This window has all the main
+    functionalities such as creating clickable markers, opening new folders, jumping and tracking grid squares, and opening the
+    biondi body image viewer.
+    
+    Attributes:
+        master (tk.Tk): This is a copy of the root and used as the main window
+        mousex (tk.IntVar): Used to store the x mouse position on the image
+        mousey (tk.IntVar): Used to store the y mouse position on the image
+        coord_label (tk.Label): Displays the current x and y position of the mouse on the image using the 
+            mousex and mouse y vars
+        canvas (tk.Canvas): Used to hold and display the image
+        marker_canvas (tk.Canvas): A copy of canvas; used to store and display the clickable grid markings
+        grid_canvas (tk.Canvas): A copy of canvas; used to store and display the 7x7 grid overlay
+        vbar (tk.Scrollbar): The vertical scrollbar used to scroll canvas
+        hbar (tk.Scrollbar): The horizontal scrollbar used to scroll canvas
+        path (str: The inputed used folder path directory)
+        folder_path (str): path + "\ ". This is so we can access different components in the folder easier 
+            (dont have to re add \ every time)
+        image (PIL Image): The image object to which the gridfile image is assigned to
+        width (int): width of the image
+        height (int): height of the image
+        container (tkinter rectangle): used to enclose the image; allows scrolling on the canvas
+        rows (int): 7 rows; used as a var to create the grid overlay
+        columns (int): 7 columns; used as a var to create the grid overlay
+        toolbar (tk.Frame): object that is attributed to storing and displaying the top toolbar.
+        grid_window (tk.Frame): object that is attributed to storing and displaying the bottom grid square tracker
+
+
+    Typical usage example:
+        i = Application(root, path=path)
+    """
     def __init__(self, mainframe, path):
-        self.box = 0
         self.master = mainframe
 
-        ''' Initialize the main Frame '''
+        #initializes the main frame
         tk.Frame.__init__(self, master=mainframe)
-        self.master.title('Zoom with mouse wheel')
-        # Vertical and horizontal scrollbars for canvas
+        self.master.title('Imaris Screenshot Tool')
 
         #coord bar
         self.mousex = tk.IntVar()
@@ -26,7 +58,7 @@ class Application(tk.Frame):
         self.mousex.set(0)
         self.mousey.set(0)
         self.coord_label = tk.Label(self.master, text = "X: " + str(self.mousex.get()) + "  " + "Y: " + str(self.mousey.get())) 
-        self.coord_label.grid(row = 4, column = 0, sticky = 'sw')
+        self.coord_label.grid(row = 3, column = 0, sticky = 'sw')
 
         # Create canvas and put image on it
         self.canvas = tk.Canvas(self.master, highlightthickness=0)
@@ -50,22 +82,19 @@ class Application(tk.Frame):
         # Make the canvas expandable
         self.master.rowconfigure(1, weight=1)
         self.master.columnconfigure(0, weight=1)
+
         # Bind events to the Canvas
-        #self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
-        #self.canvas.bind('<ButtonPress-3>', self.move_from)
-        #self.canvas.bind('<B3-Motion>', self.move_to)
+
         self.canvas.bind('<MouseWheel>', self.verti_wheel)
         self.canvas.bind('<Shift-MouseWheel>', self.hori_wheel)  
         self.canvas.bind('<Button-3>', self.open_popup)
         self.canvas.bind('<Motion>', self.update_coords)
-        #self.canvas.bind('<Return>', self.call_screenshot)
+
 
         self.folder_path = path + "/"
         self.image = Image.open(self.folder_path + "gridfile.jpg")  # open image
         self.width, self.height = self.image.size
-        self.imscale = 1.0  # scale for the canvas image
-        self.delta = 1.3  # zoom magnitude
-        # Put image into container rectangle and use it to set proper coordinates to the image
+
         self.container = self.canvas.create_rectangle(0, 0, self.width, self.height, width=0)
 
         self.show_image()
@@ -84,15 +113,22 @@ class Application(tk.Frame):
         
         #grid window
         grid_window = GridWindow(self.master, self.canvas, self.folder_path, self.width, self.height)
-        grid_window.grid(row = 3, column = 0)
+        grid_window.grid(row = 4, column = 0)
         
     def create_grid(self):
+        """Creates the grid overlay.
+        
+        Creates a 7x7 white grid overlay that is placed on top of canvas. The grid overlay is stored in grid_canvas.
+        size of the grid overlay scales with the image size using box_height and box_width.
+
+        """
         box_width =  round(self.width / self.columns)
         box_height = round(self.height / self.rows)
         num_v_lines = self.rows - 1
         num_h_lines = self.rows - 1
         
-        for i in range(0, num_v_lines):
+        #for loops go through 7 times each creating equally spaced lines
+        for i in range(0, num_v_lines): 
             self.grid_canvas.create_line(box_width * (i+1), 0, box_width * (i+1), self.height,
                                         fill = "white", width = 4, tag = "line")
         for i in range(0, num_h_lines):
@@ -108,7 +144,7 @@ class Application(tk.Frame):
             
         key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         n = 0
-        for i in range(0, self.rows):
+        for i in range(0, self.rows): #for loop that runs 49 times to create appropriatly scaled grid letters
             for j in range(0, self.columns):
                 self.grid_canvas.create_text((j + 1) * box_height - padding, (i + 1) * box_width - padding,
                                             font = ("Calibri", 24), fill = 'WHITE', text = key[n], tag = "letter")
@@ -116,7 +152,12 @@ class Application(tk.Frame):
                 if n > num_squares:
                     break
    
-    def initiate_markers(self):
+    def initiate_markers(self): #look at later
+        """Initializes marker info in FileManagment.
+    
+        Creates and instance of Filemanagment and an instance of Grid Mark to be used for later
+        
+        """
         all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
                         "rod", "green rod", "ring", "kettlebell", "multi inc"]
         fm = FileManagement(self.folder_path)
@@ -130,10 +171,19 @@ class Application(tk.Frame):
             GridMark(self.marker_canvas, self.folder_path, body_info)
         
     def open_new_folder(self):
+        """Opens a new folder with its respective image and Markings.
+
+        Reopens a new instance of Application.
+        """
         path = filedialog.askdirectory()
         i = Application(root, path=path)
 
     def update_coords(self, event):
+        """ Event method that updates mouse position on the image
+
+        Activates on mouse movement. Gets current x y canvas position of the mouse. 
+        Sets those values on the coord_label
+        """
         x = self.canvas.canvasx(event.x)
         y = self.canvas.canvasy(event.y)
         self.mousex.set(x)
@@ -143,48 +193,75 @@ class Application(tk.Frame):
         self.coord_label.update()
 
     def open_popup(self, event):
+        """Event method that opens up the Marker popup.
+
+        x and y are the coords of where the mouse clicked(needs to be converted in Marker to canvas coords). 
+        Calls Marker class in markings.py
+        """
         x = event.x
         y = event.y
         Marker(self.master, x, y, self.marker_canvas, self.height, self.width, self.columns, self.rows, self.folder_path)
-        
-    def scroll_y(self, *args, **kwargs):
-        ''' Scroll canvas vertically and redraw the image '''
-        self.canvas.yview(*args, **kwargs)  # scroll vertically
-
-    def scroll_x(self, *args, **kwargs):
-        ''' Scroll canvas horizontally and redraw the image '''
-        self.canvas.xview(*args, **kwargs)  # scroll horizontally
-
-    # def move_from(self, event):
-    #     ''' Remember previous coordinates for scrolling with the mouse '''
-    #     self.canvas.scan_mark(event.x, event.y)
-
-    # def move_to(self, event):
-    #     ''' Drag (move) canvas to the new position '''
-    #     self.canvas.scan_dragto(event.x, event.y, gain=1)
-    #     self.show_image()  # redraw the image
 
     def verti_wheel(self, event):
+        """Event method that scrolls the image vertically using the mousewheel.
+
+        Scrolls the image 20 units up or down depending on the direction of the mousewheel input.
+        """
         if event.num == 5 or event.delta == -120:  # scroll down
             self.canvas.yview('scroll', 20, 'units')
         if event.num == 4 or event.delta == 120:
             self.canvas.yview('scroll', -20, 'units')
 
     def hori_wheel(self, event):
+        """Event method that scrolls the image horizontally using shift + mousewheel.
+
+        Scrolls the image 20 units left or right depending on the direction of the mousewheel.
+        """
         if event.num == 5 or event.delta == -120:  # scroll down
             self.canvas.xview('scroll', 20, 'units')
         if event.num == 4 or event.delta == 120:
             self.canvas.xview('scroll', -20, 'units')
 
-    def show_image(self, event=None):
+    def show_image(self):
+        """Displays the image on canvas
+
+        Configures a scroll region on canvas (allows it to be scrollable) and sets the dimensions to
+        self.container (has the witdh and height of the image). ImageTk.PhotoImage allows pngs and jpgs to be
+        displayed. 
+        """
         self.canvas.configure(scrollregion=self.canvas.bbox(self.container))  # set scroll region
         image = self.image
         imagetk = ImageTk.PhotoImage(image)
-        imageid = self.canvas.create_image(0,0,anchor= 'nw', image=imagetk)
+        imageid = self.canvas.create_image(0,0,anchor= 'nw', image=imagetk) #glues the image to the topleft of the place where the image is stored.
         self.canvas.lower(imageid)  # set image into background
         self.canvas.imagetk = imagetk  # keep an extra reference to prevent garbage-collection
 
 class GridWindow(tk.Frame):
+    """The grid square tool located at the bottom of Application
+    
+    Used to scroll between grid squares based on the file's unique randomized grid order. 
+    You can mark grids as complete and jump to grid squares on the image without having to scroll.
+    
+    Attributes:
+        master (tk.Tk): The current instance of Application's master is stored here
+        main_canvas (tk.Canvas): The current instance of Application's canvas is stored here
+        folder_path (str): the path directory of the current opened folder
+        final_order (list): the randomized grid order unique to the folder
+        width (int): the width of the image in Application
+        height (int): the height of the image in Application
+        rows (int): 7 rows of grid squares
+        columns (int): 7 columns of grid squares
+        i (int): the current index of the final_order list
+        v (tk.StringVar): the variable used to store the current grid square in the current_grid label
+        text (tk.Label): the label which displays the text "current grid square:"
+        current_grid (tk.Label): the label which displays v, the current grid square
+        forward_button (tk.Button): calls the forward method
+        backward_button (tk.Button): calls the backward method
+        jumpto_button (tk.Button): calls the move_canvas method
+
+    Typical usage example:
+         grid_window = GridWindow(root, canvas, folder_path, width, height)
+    """
     def __init__(self, master, main_canvas, folder_path, width, height):
         tk.Frame.__init__(self)
         self.master = master
@@ -218,6 +295,10 @@ class GridWindow(tk.Frame):
         self.make_check_button()
 
     def make_check_button(self):
+        """Checkbox that marks a grid square as complete.
+
+        stores if the grid is finished in var_fin. On mark, the method update_finished is called
+        """
         self.var_fin = tk.IntVar()
         self.var_fin.set(self.final_order[self.i][1])
         self.finished = tk.Checkbutton(self, text = "Finished", variable = self.var_fin,
@@ -225,17 +306,35 @@ class GridWindow(tk.Frame):
         self.finished.grid(row = 3, column = 1)
         
     def update_finished(self, grid_id):
+        """Updates the database of a finished grid square.
+
+            Sends the grid square over to the database to be marked as complete and be remembered for future 
+            use of the folder
+
+            Args:
+                grid_id (str): The grid square letter marked as complete
+
+        """
         fin = self.var_fin.get()
         FileManagement(self.folder_path).finish_grid(grid_id, fin)
         self.final_order = FileManagement(self.folder_path).get_grid()
 
     def get_scrollx(self):
+        """Figures out the amount of x units that need to be scrolled to a grid square.
+
+        w is the base amount of scrolling per one grid tile. The return statment calculates how far the grid is
+        on the x axis and scales it with w.
+        """
         total_squares = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw"
         index = total_squares.find(self.final_order[self.i][0])
         self.w = self.width / self.columns
         return (index % self.columns) * self.w
 
-    def get_scrolly(self):
+    def get_scrolly(self): #look at later
+        """Figures out the amount of y units that need to be scrolled to a grid square
+
+        h is the base amount of scrolling per one grid tile.  
+        """
         c = self.final_order[self.i][0]
         self.h = self.height / self.rows
         if c.islower():
@@ -246,6 +345,10 @@ class GridWindow(tk.Frame):
         return scrolly    
 
     def move_canvas(self):
+        """Scrolls the canvas to the current grid square.
+
+        Moves the canvas view based on the amounts of scrollx and scrolly.
+        """
         scrollx = self.get_scrollx()
         scrolly = self.get_scrolly()
 
@@ -256,6 +359,10 @@ class GridWindow(tk.Frame):
         self.master.geometry("600x600")
         
     def forward(self):
+        """Moves forward to the next grid square in final_order.
+
+        Increases i by 1 and updates the Label text and checkbuttons.
+        """
         if self.i < len(self.final_order) -1:
             self.i += 1 
         self.v.set(str(self.final_order[self.i][0]))
@@ -267,6 +374,10 @@ class GridWindow(tk.Frame):
         self.make_check_button()
 
     def backward(self): 
+        """Moves backward to the previous grid square in final_order
+
+        Decreases i by 1 and updates the Label text and checkbuttons
+        """
         if self.i > 0:
             self.i -= 1 
         self.v.set((self.final_order[self.i][0]))
@@ -277,6 +388,38 @@ class GridWindow(tk.Frame):
         self.make_check_button()
 
 class GridToolbar(tk.Frame):
+    """The toolbar located at the top of Application
+    
+    Has two main functions: File and View. The File dropdown can open a new folder, export biondi body images, 
+    and close the application. The View dropdown menu can open the biondi body image viewer, reset the window size, 
+    toggle the grid lines on and off, toggle the grid letters on and off, sort marker buttons based on body type, and 
+    sort marker buttons based on secondary body type (GR, MAF, MP).
+    
+    Attributes:
+        master (tk.Tk): The current instance of Application's master is stored here
+        folder_path (str): the path directory of the current opened folder
+        marker_canvas (tk.Canvas): Application's marker_canvas is stored here
+        grid_canvas (tk.Canvas): Application's grid_canvas is stored here
+        new_folder_path (tk.StringVar): Where a folder path would be stored if user opens a new folder
+        case_name (tk.StringVar): Case name user would input if they export images
+        grid_var (tk.BooleanVar): Stores whether grid lines should be hidden or not
+        letter_var (tk.BooleanVar): Stores whether grid letters should be hidden or not
+        file_b (tk.MenuButton): The object to which the File dropdown button is assigned to
+        file_menu (tk.Menu): The object to which the File dropdown options are assigned to
+        view_b (tk.MenuButton): The object to which the View dropdown button is assigned to
+        view_menu (tk.Menu): the object to which the View dropwdown options are assigned to
+        body_menu (tk.Menu): the object to which the primary body options are assigned to 
+            (sublist of view_menu)
+        all_bodies (list): the options for body_menu
+        choices (dict): stores the options in all_bodies as checkbuttons
+        secondary_menu (tk.Menu): the object to which the secondary body name options are assigned to
+            (sublist of view_menu)
+        secondary (list): the options for secondary_menu
+        secondary_choices (dict): stores the options in secondary as checkbuttons
+
+    Typical usage example:
+        toolbar = GridToolbar(root, folder_path, marker_canvas, grid_canvas)
+    """
     def __init__(self, master, folder_path, marker_canvas, grid_canvas):
         tk.Frame.__init__(self)
         self.master = master
@@ -331,10 +474,20 @@ class GridToolbar(tk.Frame):
         view_menu.add_cascade(label = "Show Secondary", menu = secondary_menu)
         
     def open_new_folder(self):
+        """Opens a new instance of Application.
+
+            Opens a new instance of Application using a folder from file explorer.
+        """
         path = filedialog.askdirectory()
         i = Application(root, path=path)
         
     def export_images(self):
+        """Exports biondi body images.
+
+            Exports current biondi body images (combines markings with screenshots), takes in the Case Name 
+            from the user, and allows the user to select where the images can be exported through a browse folder path
+            button.
+        """
         export = tk.Toplevel()
         export.transient(root)
         export.title("Export")
@@ -352,6 +505,10 @@ class GridToolbar(tk.Frame):
         folder_entry.grid(row = 2, column = 0, padx =10, pady = 10, sticky = "nsew")
         
         def select_folder():
+            """Selects folder where exported images should go.
+
+                Gets the image path from file explorer on click of the browse button.
+            """
             path = filedialog.askdirectory()
             if path == "":
                 return
@@ -360,9 +517,13 @@ class GridToolbar(tk.Frame):
                 folder_entry.update()
             
         folder_button = tk.Button(export, text = "Browse", command = select_folder)
-        folder_button.grid(row = 2, column = 1, padx = 10, pady = 10, sticky = "nsew")
+        folder_button.grid(row = 2, column = 1, padx = 10, pady = 10, sticky = "w")
         
         def confirm():
+            """Exports images to folder_path.
+
+            Takes case name and folder path and exports biondi images to the designated folder.
+            """
             if self.case_name.get() == "" or self.new_folder_path.get() == "/":
                 return
             else:
@@ -370,27 +531,49 @@ class GridToolbar(tk.Frame):
                 export.destroy()
         
         ok_button = tk.Button(export, text = "Okay", command = confirm)
-        ok_button.grid(row = 3, column = 2, padx = 10, pady = 10, sticky = "e")
+        ok_button.grid(row = 3, column = 1, padx = 10, pady = 10, sticky = "e")
         
     def open_image_viewer(self):
+        """Opens the biondi body image viewer.
+
+        Calls the ImageViewer class in image_viewer.py.
+        """
         ImageViewer(self.folder_path, self.marker_canvas) #TEST CLASS
     
     def original_size(self):
+        """Resets the Application window to the original size.
+
+        Changes the Application window to the original 600 by 600 size using
+        master.
+        """
         self.master.geometry("600x600")
         
     def show_grid(self):
+        """Toggles grid lines on and off.
+
+        If grid_var is true, grid lines are displayed, else they are hidden.
+        """
         if self.grid_var.get() == False: 
             self.grid_canvas.itemconfigure("line", state = "hidden")
         else:
             self.grid_canvas.itemconfigure("line", state = "normal")
             
     def show_letter(self):
+        """Toggles grid letters on and off
+
+        If letter_var is true, grid letters are displayed, else they are hidden.
+        """
         if self.letter_var.get() == False:
             self.grid_canvas.itemconfigure("letter", state = "hidden")
         else:
             self.grid_canvas.itemconfigure("letter", state = "normal")
             
     def _get_body_selection(self):
+        """Gets what options in body_selection are markes as True.
+
+        Used with show_select_markers. Goes thru list and appends which ever options are 
+        True to choices.
+        """
         body_selection = []
         for name, var in self.choices.items():
             if var.get() == True:
@@ -398,6 +581,11 @@ class GridToolbar(tk.Frame):
         return body_selection
     
     def _get_secondary_selection(self):
+        """Gets what options in secondary are markes as True.
+
+        Used with show_select_markers. Goes thru list and appends which ever options are 
+        True to secondary_choices.
+        """
         secondary_selection = []
         for name, var in self.secondary_choices.items():
             x = var.get()
@@ -405,6 +593,11 @@ class GridToolbar(tk.Frame):
         return secondary_selection
             
     def show_select_markers(self):
+        """Toggles which markers get shown based on the filter
+
+        Takes seconday_selection and body_selection and shows the markers based on those requirements
+        from FileManagement
+        """
         all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
                         "rod", "green rod", "ring", "kettlebell", "multi inc"]
         all_data = FileManagement(self.folder_path).query_images(all_bodies, False, False, False, False)
@@ -425,6 +618,11 @@ class GridToolbar(tk.Frame):
             GridMark(self.marker_canvas, self.folder_path, body_info)
 
 def open_image(welcome_label1, welcome_label2, welcome_label3, button_frame):
+    """Opens initial Application and destroys initial window assests
+
+    Creates Application and destroys Initial Asssests so they do not interfere with
+    Applicaiton.
+    """
     path = filedialog.askdirectory()
     if path == "":
         return
@@ -435,6 +633,11 @@ def open_image(welcome_label1, welcome_label2, welcome_label3, button_frame):
     i = Application(root, path=path)
 
 def confirm_function(name, folder_path, file_name, nf):
+    """Initializes a new folder and creates a success label
+
+    Calls Filemangement to initate a folder with a grid image file and annotator initials. Creates a success
+    window on completion.
+    """
     if folder_path == "" or file_name == "":
         return
     nf.destroy()
@@ -452,6 +655,12 @@ def confirm_function(name, folder_path, file_name, nf):
     close_button.grid(row = 3, column = 0, sticky = 's')
 
 def initiate_folder():
+    """Creates a Window for inputting args to initialize folder
+
+
+    Does not actually initialize folder, just has two entry boxes with browse buttons for the folder path,
+    grid file path, and an entry box for annotator initials.
+    """
     nf = tk.Toplevel()
     nf.geometry("365x165")
     nf.transient(root)

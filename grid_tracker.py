@@ -2,8 +2,26 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import random
 
-
 class GridRandomizer():
+    """Randomizes the grid square order for a new instance of a folder.
+    
+    Uses the original randomizing logic from the excel sheet: Randomizes if set 1 or 2 is first,
+    Randomizes if a or b is first for both sets. Combines all into one list
+    
+    Attributes:
+        set1a (list): List of the original set1a
+        set1b (list): List of the original set1b
+        set2a (list): List of the original set2a
+        set2b (list): List of the original set2b
+        which_set (int): A random int from 1-2. If 1, set 1 is first. If 2, set 2 is first.
+        which_subset1 (int): A random int from 1-2. If 1, set1a is first. If 2, set1b is first.
+        which_subset2 (int): A random int from 1-2. If 1, set2a is first. If 2, set2b is first.
+        final_order (list): where the combined order of all the sets is stored.
+
+
+    Typical usage example:
+         randomized = GridRandomizer().get_final_order()
+    """
     def __init__(self):
 
         self.set1a = ["A", "C", "E", "G", "O", "Q", "S", "U", "c", "e", "g", "i", "q", "s", "u", "w"] #16
@@ -22,11 +40,12 @@ class GridRandomizer():
 
         self.final_order = []
         self.set_final_order()
-        
-    def set_order_from_prev(self, final): #takes an array, but can be changed later to take a string
-        self.final_order = final
 
     def set_final_order(self):
+        """Sets the order of the grid squares to final_order.
+
+        Checks the randomized int vars to assign to final order.
+        """
         set1 = []
         set2 = []
         
@@ -54,6 +73,10 @@ class GridRandomizer():
             self.final_order.extend(set1)
             
     def get_final_order(self):
+        """Returns final_order.
+
+        Used in other classes as easy access to the final_order var.
+        """
         return self.final_order
 
 
