@@ -34,6 +34,7 @@ class ImageViewer(tk.Toplevel):
     """
     def __init__(self, folder_path, marker_canvas):
         tk.Toplevel.__init__(self)
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.folder_path = folder_path
         self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
                         "rod", "green rod", "ring", "kettlebell", "multi inc"]
@@ -247,6 +248,11 @@ class ImageViewer(tk.Toplevel):
         if self.previous_body_time != 0:
             self.marker_canvas.itemconfig("m"+str(self.previous_body_time), fill = "white")
         self.previous_body_time = time
+        
+    def on_closing(self):
+        """Resets marker color on window closing"""
+        self.marker_canvas.itemconfig("m"+str(self.previous_body_time), fill = "white")
+        self.destroy()
         
     def show_information(self, body_info):
         """Makes the information frame widgets.

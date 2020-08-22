@@ -16,8 +16,9 @@ class Marker(tk.Frame):
         self.rows = rows
         self.canvas_x = self.marker_canvas.canvasx(x)
         self.canvas_y = self.marker_canvas.canvasy(y)
+        self.folder_path = folder_path
         
-        self.annotator = "wh"
+        self.annotator = tk.StringVar(value = FileManagement(self.folder_path).get_annotator_name())
         self.body_type = tk.StringVar()
         self.body_type.set("drop")
         self.var_GR = tk.BooleanVar()
@@ -49,18 +50,21 @@ class Marker(tk.Frame):
         mafC = tk.Checkbutton(marker, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
         mpC = tk.Checkbutton(marker, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
         unsure = tk.Checkbutton(marker, text = "UNSURE", variable = self.var_unsure, onvalue = True, offvalue = False)
+        note_label = tk.Label(marker, text = "Notes:")
         note_entry = tk.Entry(marker, textvariable = self.notes)
-        button_ok = tk.Button(marker, text = "OK", command = lambda: self.draw(marker))
+        button_ok = tk.Button(marker, text = "OK", padx = 5, pady = 5, anchor = "se", command = lambda: self.draw(marker))
+        annotator_entry = tk.Entry(marker, textvariable = self.annotator)
         
         dropdown.grid(row = 0, column = 0)
         grC.grid(row = 0, column = 1, sticky = 'w')
         mafC.grid(row = 1, column = 1, sticky = 'w')
         mpC.grid(row = 2, column = 1, sticky = 'w')
         unsure.grid(row = 0, column = 2)
+        note_label.grid(row = 3, column = 0)
         note_entry.grid(row = 3, column = 1)
-        button_ok.grid(row = 2, column = 2)
+        button_ok.grid(row = 4, column = 2)
+        annotator_entry.grid(row = 4, column = 0)
         
-        self.folder_path = folder_path
 
     def get_data(self):
         time_added = int(time())
@@ -69,7 +73,7 @@ class Marker(tk.Frame):
         fm = FileManagement(self.folder_path)
         
         data = {"time": time_added,
-                "annotator_name": self.annotator,
+                "annotator_name": self.annotator.get(),
                 "body_name": self.body_type.get(),
                 "body_number": fm.count_body_type(self.body_type.get()) + 1,
                 "x": self.canvas_x,
