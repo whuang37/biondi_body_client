@@ -6,7 +6,7 @@ from time import time
 
 from image_viewer import ImageViewer
 from file_management import FileManagement
-from markings import GridMark
+from markings import GridMark, Marker
 import grid_tracker
 from screenshot import LilSnippy
 
@@ -281,7 +281,7 @@ class Grid_Window(tk.Frame):
         self.v.set((self.final_order[self.i]))
         self.current_grid.configure(text = self.v.get())
         self.current_grid.update()
-            
+      
 class Marker(tk.Frame):
     def __init__(self, master, x, y, marker_canvas, height, width, columns, rows, folder_path):
         self.master = master
@@ -379,11 +379,17 @@ class Marker(tk.Frame):
         data = self.get_data()
         marker.destroy()
         self.call_screenshot(data)
+        self.finished.destroy()
+        self.make_check_button()
+
 
 
 def open_image(welcome_label1, welcome_label2, welcome_label3, button_frame):
     path = filedialog.askdirectory()
     
+    if path == "":
+        return
+
     welcome_label1.destroy()
     welcome_label2.destroy()
     welcome_label3.destroy()
@@ -394,7 +400,8 @@ def open_image(welcome_label1, welcome_label2, welcome_label3, button_frame):
 def confirm_function(name, folder_path, file_name, nf):
     nf.destroy()
 
-    FileManagement(folder_path+ "/").initiate_folder(file_name)
+    FileManagement(folder_path + "/").initiate_folder(file_name, name)
+
     
     done_screen = tk.Toplevel()
 
@@ -409,6 +416,7 @@ def confirm_function(name, folder_path, file_name, nf):
 def initiate_folder():
     nf = tk.Toplevel()
     nf.geometry("365x165")
+    nf.transient(root)
 
     folder_path = tk.StringVar()
     folder_ebox = tk.Entry(nf, textvariable = folder_path, width = 50)

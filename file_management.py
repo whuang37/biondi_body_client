@@ -69,7 +69,7 @@ class FileManagement():
         c_result = self.c.fetchone()
         return c_result[0]
     
-    def initiate_folder(self, img_path):
+    def initiate_folder(self, img_path, name):
         """Preps a folder for biondi body analysis.
         
         Takes a folder directory and creates a new database and gridfile
@@ -95,12 +95,14 @@ class FileManagement():
                                                             NOTES TEXT,
                                                             BODY_FILE_NAME TEXT,
                                                             ANNOTATION_FILE_NAME TEXT)'''
-        
         self.c.execute(create_table_query)
         
         create_grid_query = '''CREATE TABLE IF NOT EXISTS grid (GRID_ID TEXT NOT NULL,
                                                                     FINISHED INTEGER)'''
         self.c.execute(create_grid_query)
+        
+        create_name_query = '''CREATE TABLE IF NOT EXISTS name (NAME TEXT NOT NULL)'''
+        self.c.execute(create_name_query)
         
         randomized = GridRandomizer().get_final_order()
         random_list = []
@@ -111,10 +113,21 @@ class FileManagement():
             
         add_grid_query = '''INSERT INTO grid (GRID_ID, FINISHED)
                                                 VALUES(?, ?)'''
-                                                
         self.c.executemany(add_grid_query, random_list)
+        
+        add_name_query = '''INSERT INTO name (NAME) VALUES(?)'''
+        self.c.execute(add_name_query, (name, ))
+
         self.close()
         
+    def get_annotator_name(self):
+        name_query = '''SELECT * FROM name'''
+        self.c.execute(name_query)
+        name = self.c.fetchone()
+        self.close()
+        return name[0]
+        
+                        
     def save_image(self, body_info, body_img, annotation_img):
         """Saves screenshots as image files and adds information to database.
         
