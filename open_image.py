@@ -413,6 +413,7 @@ class GridToolbar(tk.Frame):
                                   offvalue = False, command = self.show_grid)
         view_menu.add_checkbutton(label = "Show Letters", variable = self.letter_var, onvalue = True,
                                   offvalue = False, command = self.show_letter)
+        view_menu.add_cascade(label = "Show Bodies", menu = view_menu)
     def open_new_folder(self):
         path = filedialog.askdirectory()
         i = Application(root, path=path)
