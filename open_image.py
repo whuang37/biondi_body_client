@@ -148,11 +148,11 @@ class Application(tk.Frame):
                 if n > num_squares:
                     break
    
-    def initiate_markers(self): #look at later
+    def initiate_markers(self):
         """Initializes marker info in FileManagment.
     
-        Creates and instance of Filemanagment and an instance of Grid Mark to be used for later.
-        
+        Creates a marker for every body on the application's startup. Iterates
+        through the bodies in the database to do so.
         """
         all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
                         "rod", "green rod", "ring", "kettlebell", "multi inc"]
@@ -326,7 +326,8 @@ class GridWindow(tk.Frame):
     def get_scrolly(self): #look at later
         """Figures out the amount of y units that need to be scrolled to a grid square
 
-        h is the base amount of scrolling per one grid tile.  
+        Uses the ASCII number of a character to calculate where in the grid it is to get the
+        amount to scroll on y. 
         """
         c = self.final_order[self.i][0]
         self.h = self.height / self.rows
