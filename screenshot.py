@@ -408,5 +408,3 @@ class LilSnippy(tk.Frame):
 if __name__ == '__main__':
     help(LilSnippy)
     help(ScreenshotEditor)
-    
-    

@@ -21,10 +21,8 @@ class GridRandomizer():
         self.which_subset2 = random.randint(1,2) # for set 2
 
         self.final_order = []
+        self.set_final_order()
         
-
-
-
     def set_order_from_prev(self, final): #takes an array, but can be changed later to take a string
         self.final_order = final
 
@@ -64,9 +62,3 @@ if __name__ == "__main__":
     gr = GridRandomizer()
     gr.set_final_order()
     #root.mainloop()
-    
-    
-
-
-
-        
