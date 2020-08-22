@@ -426,6 +426,8 @@ class GridToolbar(tk.Frame):
 
 def open_image():
     path = filedialog.askdirectory()
+    if path == "":
+        return
     i = Application(root, path=path)
 
 def confirm_function(name, folder_path, file_name, nf):
