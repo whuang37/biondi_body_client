@@ -20,7 +20,6 @@ class Application(tk.Frame):
         self.master.title('Zoom with mouse wheel')
         # Vertical and horizontal scrollbars for canvas
 
-
         #coord bar
         self.mousex = tk.IntVar()
         self.mousey = tk.IntVar()
@@ -28,8 +27,6 @@ class Application(tk.Frame):
         self.mousey.set(0)
         self.coord_label = tk.Label(self.master, text = "X: " + str(self.mousex.get()) + "  " + "Y: " + str(self.mousey.get())) 
         self.coord_label.grid(row = 4, column = 0, sticky = 'sw')
-
-
 
         # Create canvas and put image on it
         self.canvas = tk.Canvas(self.master, highlightthickness=0)
@@ -197,6 +194,8 @@ class GridWindow(tk.Frame):
 
         self.width = width
         self.height = height
+        self.rows = 7
+        self.columns = 7
         
         self.i = 0
         self.v = tk.StringVar()
@@ -227,7 +226,6 @@ class GridWindow(tk.Frame):
         
     def update_finished(self, grid_id):
         fin = self.var_fin.get()
-        print(grid_id, fin)
         FileManagement(self.folder_path).finish_grid(grid_id, fin)
         self.final_order = FileManagement(self.folder_path).get_grid()
 
@@ -442,13 +440,13 @@ class GridToolbar(tk.Frame):
         export.resizable(False, False)
         
         name = tk.Label(export, text = "Case Name:")
-        name.grid(row = 1, column = 1, padx =10, pady = 10, sticky = "nsew")
+        name.grid(row = 1, column = 0, padx =10, pady = 10, sticky = "nsew")
         
         name_entry = tk.Entry(export, textvariable = self.case_name)
-        name_entry.grid(row = 1, column = 2, padx =10, pady = 10, sticky = "nsew")
+        name_entry.grid(row = 1, column = 1, padx =10, pady = 10, sticky = "nsew")
         
         folder_entry = tk.Entry(export, textvariable = self.new_folder_path)
-        folder_entry.grid(row = 2, column = 2, padx =10, pady = 10, sticky = "nsew")
+        folder_entry.grid(row = 2, column = 0, padx =10, pady = 10, sticky = "nsew")
         
         def select_folder():
             path = filedialog.askdirectory()
@@ -494,7 +492,6 @@ class GridToolbar(tk.Frame):
         for name, var in self.choices.items():
             if var.get() == True:
                 body_selection.append(name)
-        print(body_selection)
         return body_selection
     
     def _get_secondary_selection(self):
@@ -502,7 +499,6 @@ class GridToolbar(tk.Frame):
         for name, var in self.secondary_choices.items():
             x = var.get()
             secondary_selection.append(x)
-        print(secondary_selection)
         return secondary_selection
             
     def show_select_markers(self):
@@ -530,9 +526,11 @@ def open_image():
     i = Application(root, path=path)
 
 def confirm_function(name, folder_path, file_name, nf):
+    if folder_path == "" or file_name == "":
+        return
     nf.destroy()
 
-    FileManagement(folder_path+ "/").initiate_folder(file_name)
+    FileManagement(folder_path + "/").initiate_folder(file_name)
     
     done_screen = tk.Toplevel()
 
@@ -564,7 +562,7 @@ def initiate_folder():
     name_ebox.grid(row = 6, column = 0)
 
     confirm_button = tk.Button(nf, text = "Confirm", command = lambda: confirm_function(name.get(), folder_path.get(), file_name.get(), nf))
-    confirm_button.grid(row = 8, column = 0)
+    confirm_button.grid(row = 8, column = 1)
 
     folder_label = tk.Label(nf, text = "Enter an empty folder directory:")
     folder_label.grid(row = 0, column = 0, sticky = 'w')
