@@ -421,10 +421,14 @@ class GridToolbar(tk.Frame):
                 x += 1
             GridMark(self.marker_canvas, self.folder_path, body_info)
 
-def open_image():
+def open_image(welcome_label1, welcome_label2, welcome_label3, button_frame):
     path = filedialog.askdirectory()
     if path == "":
         return
+    welcome_label1.destroy()
+    welcome_label2.destroy()
+    welcome_label3.destroy()
+    button_frame.destroy()
     i = Application(root, path=path)
 
 def confirm_function(name, folder_path, file_name, nf):
@@ -440,6 +444,9 @@ def confirm_function(name, folder_path, file_name, nf):
     success_label2 = tk.Label(done_screen, text = "Press the \"Open Previous Folder\" button to access it.")
     success_label1.grid(row = 0, column = 0, sticky = 'nswe')
     success_label2.grid(row = 2, column = 0, sticky = 'nswe')
+
+    close_button = tk.Button(done_screen, text = "OK", command = lambda: done_screen.destroy())
+    close_button.grid(row = 3, column = 0, sticky = 's')
 
 def initiate_folder():
     nf = tk.Toplevel()
@@ -503,7 +510,7 @@ if __name__ == "__main__":
     button_frame = tk.Frame(root)
     button_frame.grid(row = 4, column = 2, sticky = 'ns')
 
-    find_image_button = tk.Button(button_frame, text="Open Previous Folder", command = open_image)
+    find_image_button = tk.Button(button_frame, text="Open Previous Folder", command = lambda: open_image(welcome_label1, welcome_label2, welcome_label3, button_frame))
     find_image_button.pack(side = "left", padx = 2 , pady = 2)
     initiate_folder_button = tk.Button(button_frame, text = "Initiate Folder", command = initiate_folder)
     initiate_folder_button.pack(side = "left", padx = 2 , pady = 2)
