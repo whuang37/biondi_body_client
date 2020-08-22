@@ -385,14 +385,11 @@ class GridToolbar(tk.Frame):
         self.marker_canvas = marker_canvas
         self.grid_canvas = grid_canvas
         
-        self.new_folder_path = tk.StringVar()
-        self.new_folder_path.set("")
-        self.case_name = tk.StringVar()
-        self.case_name.set("")
-        self.grid_var = tk.BooleanVar()
-        self.grid_var.set(True)
-        self.letter_var = tk.BooleanVar()
-        self.letter_var.set(True)
+        self.new_folder_path = tk.StringVar(value = "")
+        self.case_name = tk.StringVar(value = "")
+        self.grid_var = tk.BooleanVar(value = True)
+        self.letter_var = tk.BooleanVar(value = True)
+
         
         file_b = tk.Menubutton(self, text = "File", relief = "raised")
         file_menu = tk.Menu(file_b, tearoff = False)
@@ -401,6 +398,7 @@ class GridToolbar(tk.Frame):
         
         file_menu.add_command (label = "Open New Folder", command = self.open_new_folder)
         file_menu.add_command(label = "Export Images", command = self.export_images)
+        file_menu.add_command(label = "Exit", command = root.quit)
         
         view_b = tk.Menubutton(self, text = "View", relief = "raised")
         view_menu = tk.Menu(view_b, tearoff = False)
@@ -413,7 +411,26 @@ class GridToolbar(tk.Frame):
                                   offvalue = False, command = self.show_grid)
         view_menu.add_checkbutton(label = "Show Letters", variable = self.letter_var, onvalue = True,
                                   offvalue = False, command = self.show_letter)
-        view_menu.add_cascade(label = "Show Bodies", menu = view_menu)
+        
+        body_menu = tk.Menu(view_menu, tearoff = False)
+        self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
+                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
+        self.choices = {}
+        for choice in self.all_bodies:
+            self.choices[choice] = tk.BooleanVar(value = True)
+            body_menu.add_checkbutton(label=choice, variable=self.choices[choice], 
+                                onvalue = True, offvalue = False, command = self.show_select_markers)
+        view_menu.add_cascade(label = "Show Bodies", menu = body_menu)
+        
+        secondary_menu = tk.Menu(view_menu, tearoff = False)
+        self.secondary = ["GR", "MAF", "MP", "unsure"]
+        self.secondary_choices = {}
+        for choice in self.secondary:
+            self.secondary_choices[choice] = tk.BooleanVar(value = False)
+            secondary_menu.add_checkbutton(label=choice, variable=self.secondary_choices[choice], 
+                                onvalue = False, offvalue = True, command = self.show_select_markers)
+        view_menu.add_cascade(label = "Show Secondary", menu = secondary_menu)
+        
     def open_new_folder(self):
         path = filedialog.askdirectory()
         i = Application(root, path=path)
@@ -473,6 +490,42 @@ class GridToolbar(tk.Frame):
             self.grid_canvas.itemconfigure("letter", state = "hidden")
         else:
             self.grid_canvas.itemconfigure("letter", state = "normal")
+            
+    def _get_body_selection(self):
+        body_selection = []
+        for name, var in self.choices.items():
+            if var.get() == True:
+                body_selection.append(name)
+        print(body_selection)
+        return body_selection
+    
+    def _get_secondary_selection(self):
+        secondary_selection = []
+        for name, var in self.secondary_choices.items():
+            x = var.get()
+            secondary_selection.append(x)
+        print(secondary_selection)
+        return secondary_selection
+            
+    def show_select_markers(self):
+        all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
+                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
+        all_data = FileManagement(self.folder_path).query_images(all_bodies, False, False, False, False)
+        for i in all_data:
+            self.grid_canvas.delete("m" + str(i[0]))
+        
+        bodies = self._get_body_selection()
+        secondary_selection = self._get_secondary_selection()
+        
+        data = FileManagement(self.folder_path).query_images(bodies, secondary_selection[0], secondary_selection[1], 
+                               secondary_selection[2], secondary_selection[3])
+        for i in data:
+            body_info = {}
+            x = 0
+            for choice in ("time", "body_name", "body_number", "x", "y"):
+                body_info[choice] = i[x]
+                x += 1
+            GridMark(self.marker_canvas, self.folder_path, body_info)
 
 def open_image():
     path = filedialog.askdirectory()

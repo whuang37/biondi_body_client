@@ -1,6 +1,5 @@
 import tkinter as tk
 from image_viewer import ImageViewer
-from file_management import FileManagement
 
 class GridMark():
     def __init__(self, marker_canvas, folder_path, body_info):

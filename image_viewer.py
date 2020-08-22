@@ -27,6 +27,7 @@ class ImageViewer(tk.Toplevel):
         var_MAF (tk.BooleanVar): Boolean value where True is when user wants to sort by MAF.
         var_MP (tk.BooleanVar): Boolean value where True is when user wants to sort by MP.
         var_unsure (tk.BooleanVar): Boolean value where True is when user wants to sort by unsure.
+        previous_body_time (int): The unix time of the previous body selected.
         
     Typical usage example:
         img_v = ImageViewer(folder_path, marker_canvas)
@@ -68,6 +69,8 @@ class ImageViewer(tk.Toplevel):
         self.var_MAF = tk.BooleanVar()
         self.var_MP = tk.BooleanVar()
         self.var_unsure = tk.BooleanVar()
+        
+        self.previous_body_time = 0
         
         self.make_filter_buttons()
         self.create_buttons(self.all_bodies, False, False, False, False)
@@ -236,10 +239,14 @@ class ImageViewer(tk.Toplevel):
         """
         fm = FileManagement(self.folder_path)
         body_info = fm.get_image_time(time)
-        
         self.clear_information_canvas()
         self.show_information(body_info)
         self.open_annotation_image(body_info)
+        
+        self.marker_canvas.itemconfig("m" + str(time), fill = "red")
+        if self.previous_body_time != 0:
+            self.marker_canvas.itemconfig("m"+str(self.previous_body_time), fill = "white")
+        self.previous_body_time = time
         
     def show_information(self, body_info):
         """Makes the information frame widgets.

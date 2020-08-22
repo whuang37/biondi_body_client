@@ -62,9 +62,3 @@ if __name__ == "__main__":
     gr = GridRandomizer()
     gr.set_final_order()
     #root.mainloop()
-    
-    
-
-
-
-        

@@ -378,9 +378,9 @@ class FileManagement():
         body_img = Image.open(self.folder_path + img)
         annotation_img = Image.open(self.folder_path + annotation)
         body_img.paste(annotation_img, (0,0), annotation_img)
-        body_img.save("test.png")
+        body_img.save(new_name)
 
-    def export_case(self, new_folder_path):
+    def export_case(self, new_folder_path, case_name):
         """Turns all images into concentated images
         
         Iterates through all rows in the database to turn each row into
@@ -409,15 +409,17 @@ class FileManagement():
             body_info = self.c.fetchone()
             if body_info is None:
                 break
-            img_name = "{0}_{1}_{2}".format(body_info[1], body_info[0], body_info[3])
-            if body_info[4] == 1:
+            img_name = "{0}{1}_{2}_{3}_{4}".format(new_folder_path, case_name, body_info[1], body_info[0], body_info[2])
+            if body_info[3] == 1:
                 img_name += "_GR"
-            if body_info[5] == 1:
+            if body_info[4] == 1:
                 img_name += "_MAF"
-            if body_info[6] == 1:
+            if body_info[5] == 1:
                 img_name += "_MP"
+            img_name += ".png"
             
-            self.merge_img(self, body_info[8], body_info[9])
+            print(img_name)
+            self.merge_img(body_info[6], body_info[7], img_name)
 
 if __name__ == "__main__":
     fm = FileManagement("")
