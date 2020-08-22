@@ -11,7 +11,6 @@ import grid_tracker
 from screenshot import LilSnippy
 
 class Application(tk.Frame):
-    ''' Advanced zoom of the image  we did this yep cock'''
     def __init__(self, mainframe, path):
         self.box = 0
         self.master = mainframe
@@ -21,6 +20,7 @@ class Application(tk.Frame):
         self.master.title('Zoom with mouse wheel')
         # Vertical and horizontal scrollbars for canvas
 
+
         #coord bar
         self.mousex = tk.IntVar()
         self.mousey = tk.IntVar()
@@ -28,6 +28,8 @@ class Application(tk.Frame):
         self.mousey.set(0)
         self.coord_label = tk.Label(self.master, text = "X: " + str(self.mousex.get()) + "  " + "Y: " + str(self.mousey.get())) 
         self.coord_label.grid(row = 4, column = 0, sticky = 'sw')
+
+
 
         # Create canvas and put image on it
         self.canvas = tk.Canvas(self.master, highlightthickness=0)
@@ -195,10 +197,6 @@ class GridWindow(tk.Frame):
 
         self.width = width
         self.height = height
-        self.w = 0
-        self.h = 0
-        self.rows = 7
-        self.columns = 7
         
         self.i = 0
         self.v = tk.StringVar()
@@ -250,8 +248,8 @@ class GridWindow(tk.Frame):
         return scrolly    
 
     def move_canvas(self):
-        scrollx = self.get_scrollx() - (self.w / 4)
-        scrolly = self.get_scrolly() - (self.h / 4)
+        scrollx = self.get_scrollx()
+        scrolly = self.get_scrolly()
 
         offsetx = +1 if scrollx >= 0 else 0
         offsety = +1 if scrolly >= 0 else 0
@@ -530,18 +528,82 @@ class GridToolbar(tk.Frame):
 def open_image():
     path = filedialog.askdirectory()
     i = Application(root, path=path)
+
+def confirm_function(name, folder_path, file_name, nf):
+    nf.destroy()
+
+    FileManagement(folder_path+ "/").initiate_folder(file_name)
     
+    done_screen = tk.Toplevel()
+
+    success_label1 = tk.Label(done_screen, text = "Folder sucessfully initialized!")
+    success_label2 = tk.Label(done_screen, text = "Press the \"Open Previous Folder\" button to access it.")
+    success_label1.grid(row = 0, column = 0, sticky = 'nswe')
+    success_label2.grid(row = 2, column = 0, sticky = 'nswe')
+
 def initiate_folder():
-    folder_path = filedialog.askdirectory()
-    folder_path = folder_path + "/"
-    file_name = filedialog.askopenfilename()
-    FileManagement(folder_path).initiate_folder(file_name)
+    nf = tk.Toplevel()
+    nf.geometry("365x165")
+
+    folder_path = tk.StringVar()
+    folder_ebox = tk.Entry(nf, textvariable = folder_path, width = 50)
+    folder_ebox.grid(row = 1, column = 0)
+    
+    folder_button = tk.Button(nf, text = "Browse...", command = lambda: folder_path.set(filedialog.askdirectory()))
+    folder_button.grid(row = 1, column = 1)
+
+    file_name = tk.StringVar()
+    file_ebox = tk.Entry(nf, textvariable = file_name, width = 50)
+    file_ebox.grid(row = 4, column = 0)
+
+    file_button = tk.Button(nf, text = "Browse...", command = lambda: file_name.set(filedialog.askopenfilename()))
+    file_button.grid(row = 4, column = 1)
+
+    name = tk.StringVar()
+    name_ebox = tk.Entry(nf, textvariable = name, width = 50)
+    name_ebox.grid(row = 6, column = 0)
+
+    confirm_button = tk.Button(nf, text = "Confirm", command = lambda: confirm_function(name.get(), folder_path.get(), file_name.get(), nf))
+    confirm_button.grid(row = 8, column = 0)
+
+    folder_label = tk.Label(nf, text = "Enter an empty folder directory:")
+    folder_label.grid(row = 0, column = 0, sticky = 'w')
+
+    file_label = tk.Label(nf, text = "Enter the grid file directory:")
+    file_label.grid(row = 3, column = 0, sticky = 'w')
+
+    name_label = tk.Label(nf, text = "Please enter you initials (eg. BJ):")
+    name_label.grid(row = 5, column = 0, sticky = 'w')
+
+    
+    # folder_path = filedialog.askdirectory()
+    # folder_path = folder_path + "/"
+    #file_name = filedialog.askopenfilename()
+    
     
 if __name__ == "__main__":
     root = tk.Tk()
+    root.geometry("580x100")
+    root.title("Imaris Screenshot Tool")
 
-    find_image_button = tk.Button(root, text="Pick Image File", command = open_image)
-    find_image_button.grid(column = 0, row = 0)
-    initiate_folder_button = tk.Button(root, text = "Initiate Folder", command = initiate_folder)
-    initiate_folder_button.grid(column = 0, row = 1)
+    w1 = "Welcome to the Imaris Screenshot Tool!"
+    w2 = "If you are returning to a previous session, please click on the \"Open Previous Folder\" button."
+    w3 = "If you are starting a new session, please create an empty folder and select it using the \"Initiate Folder\" button."
+
+    welcome_label1 = tk.Label(root, text = w1)
+    welcome_label1.grid(row = 0, column = 2, sticky = 'nswe')
+    
+    welcome_label2 = tk.Label(root, text = w2)
+    welcome_label2.grid(row = 2, column = 2, sticky = 'nswe')
+    
+    welcome_label3 = tk.Label(root, text = w3)
+    welcome_label3.grid(row = 3, column = 2, sticky = 'nswe')
+    
+    button_frame = tk.Frame(root)
+    button_frame.grid(row = 4, column = 2, sticky = 'ns')
+
+    find_image_button = tk.Button(button_frame, text="Open Previous Folder", command = open_image)
+    find_image_button.pack(side = "left", padx = 2 , pady = 2)
+    initiate_folder_button = tk.Button(button_frame, text = "Initiate Folder", command = initiate_folder)
+    initiate_folder_button.pack(side = "left", padx = 2 , pady = 2)
     root.mainloop()
