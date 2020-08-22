@@ -37,6 +37,15 @@ class FileManagement():
         self.conn.close()
     
     def get_grid(self):
+        """Returns a tuple of grid ids
+        
+        Pulls from the database, a tuple of tuples with the completion boolean
+        and grid id.
+        
+        Returns:
+            result (tuple): A tuple of tuples consisting of the grid_id (char) and the 
+            finished (boolean).
+        """
         get_grid_query = '''SELECT * FROM grid'''
         self.c.execute(get_grid_query)
         
@@ -44,6 +53,12 @@ class FileManagement():
         return result
     
     def finish_grid(self, grid_id, state):
+        """Marks a grid id as finished in the database.
+        
+        Args:
+            grid_id (char): The selected grid id.
+            state (boolean): Whether the grid is finished or not.
+        """
         finish_grid_query = '''UPDATE grid
                 SET FINISHED = ? 
                 WHERE GRID_ID = ?'''
@@ -121,6 +136,7 @@ class FileManagement():
         self.close()
         
     def get_annotator_name(self):
+        """Pulls the annotator name from the database"""
         name_query = '''SELECT * FROM name'''
         self.c.execute(name_query)
         name = self.c.fetchone()
@@ -168,6 +184,19 @@ class FileManagement():
         self.close()
     
     def get_image_time(self, time):
+        """Pulls an image from the database using time as a parameter.
+        
+        Args:
+            time (int): Unix time of selected image.
+            
+        Returns:
+            row (dict): a dict of all the values included in the database in 
+                the order of (time (int), annotator name (str), body name (str), 
+                body number (int), x position (int),y position (int), grid id (str),
+                green ring (int), multiautoflorescence (int), multiprong (int), 
+                unsure (int), notes (str), body file name (str), and
+                annotation file name (str). Values may be enclosed in another tuple.
+        """
         select_time_query = '''SELECT *
                 FROM bodies 
                 WHERE TIME = ?'''
@@ -208,6 +237,15 @@ class FileManagement():
         return self.convert_tuple(row)
     
     def convert_tuple(self, group):
+        """Converts the database fetch from a tuple to a dictionary.
+        
+        Since the database saves booleans as integers, we must convert it for use
+        later. In doing so, we converted the tuple into a dictionary for easier data
+        access.
+        
+        Args:
+            Group (tuple): Tuple of data fetched from database
+        """
         data = {}
         i = 0
         for choice in ("time", "annotator_name", "body_name", "body_number", 
@@ -435,10 +473,4 @@ class FileManagement():
             self.merge_img(body_info[6], body_info[7], img_name)
 
 if __name__ == "__main__":
-    fm = FileManagement("")
-    #print(fm.count_body_type("saturn"))
-    #fm.edit_info(("rod", 1, 1, 1, 1, "dsasd", 1597648898))
-    #print(fm.get_image("crescent", 1))
-    #print(fm.query_image(["saturn", "kettlebell"], False, False, False, False,))
-    #fm.delete_img("multi inc", 4)
-    fm.renumber_img("saturn", 1)
+    pass

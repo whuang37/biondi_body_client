@@ -6,6 +6,7 @@ from math import floor
 from image_viewer import ImageViewer
 from file_management import FileManagement
 from markings import GridMark, Marker
+
 class Application(tk.Frame):
     """The main hub window for viewing and editing the gridfile.
     
@@ -147,7 +148,7 @@ class Application(tk.Frame):
                 n += 1
                 if n > num_squares:
                     break
-   
+
     def initiate_markers(self):
         """Initializes marker info in FileManagment.
     
