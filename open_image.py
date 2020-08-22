@@ -403,6 +403,9 @@ def confirm_function(name, folder_path, file_name, nf):
     success_label1.grid(row = 0, column = 0, sticky = 'nswe')
     success_label2.grid(row = 2, column = 0, sticky = 'nswe')
 
+    close_button = tk.Button(done_screen, text = "OK", command = lambda: done_screen.destroy())
+    close_button.grid(row = 3, column = 0, sticky = 's')
+
 def initiate_folder():
     nf = tk.Toplevel()
     nf.geometry("365x165")
