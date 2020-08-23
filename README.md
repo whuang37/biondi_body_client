@@ -22,7 +22,7 @@ The Biondi Body Morphology Client is an image screenshotter and annotation softw
 
 ## 2.1. Installation
 
-- Clone the github repository in your local system `git clone https://github.com/whuang37/mlab-imaris-analysis.git`
+- Clone the github repository in your local system `git clone https://github.com/whuang37/biondi_body_client.git`
 - Move into the mlab-imaris-analysis repository with `cd biondi_body_client`
 - Install all the libraries mentioned in [requirements.txt](https://github.com/whuang37/biondi_body_client/blob/master/requirements.txt) using `pip install -r requirements.txt`
 - Run the main python file `python biondi_body_client.py`
