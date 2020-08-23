@@ -668,8 +668,9 @@ class OpeningWindow:
             file_path (str): Path to the gridfile image to be copied into the saving folder.
             nf (tk.Toplevel): Toplevel window to select the folder path and file path.
         """
-        if folder_path == "" or file_path == "":
+        if folder_path == "" or file_path == "" or name == "":
             return
+        
         nf.destroy()
 
         FileManagement(folder_path + "/").initiate_folder(file_path, name)
