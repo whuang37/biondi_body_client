@@ -10,7 +10,7 @@
 
 # 2. Biondi Body Morphology Client
 
-The biondi Body Morphology Client is an image screenshotter and annotation software packed into one package. This program is primarily used to categorize the different morphologies of biondi bodies from the epithelium of the choroid plexus.
+The Biondi Body Morphology Client is an image screenshotter and annotation software packed into one package. This program is primarily used to categorize the different morphologies of biondi bodies from the epithelium of the choroid plexus.
 
 **Features**
 - SQLite database for biondi body information storage
