@@ -606,124 +606,125 @@ class GridToolbar(tk.Frame):
                 x += 1
             GridMark(self.marker_canvas, self.folder_path, body_info)
 
-def open_image(welcome_label1, welcome_label2, welcome_label3, button_frame):
-    """Opens initial Application and destroys initial window assests
+class OpeningWindow:
+    def __init__(self, master):
+        self.master = master
+        self.master.geometry("580x100")
+        self.master.title("Imaris Screenshot Tool")
+        self.master.resizable(False, False)
 
-    Creates Application and destroys initial assets so they do not interfere with
-    the Application class.
+        w1 = "Welcome to the Imaris Screenshot Tool!"
+        w2 = "If you are returning to a previous session, please click on the \"Open Previous Folder\" button."
+        w3 = "If you are starting a new session, please create an empty folder and select it using the \"Initiate Folder\" button."
+
+        self.welcome_label1 = tk.Label(self.master, text = w1)
+        self.welcome_label1.grid(row = 0, column = 2, sticky = 'nswe')
+        
+        self.welcome_label2 = tk.Label(self.master, text = w2)
+        self.welcome_label2.grid(row = 2, column = 2, sticky = 'nswe')
+        
+        self.welcome_label3 = tk.Label(self.master, text = w3)
+        self.welcome_label3.grid(row = 3, column = 2, sticky = 'nswe')
+        
+        self.button_frame = tk.Frame(self.master)
+        self.button_frame.grid(row = 4, column = 2, sticky = 'ns')
+
+        self.find_image_button = tk.Button(self.button_frame, text="Open Previous Folder", command = lambda: self.open_image())
+        self.find_image_button.pack(side = "left", padx = 2 , pady = 2)
+        
+        self.initiate_folder_button = tk.Button(self.button_frame, text = "Initiate Folder", command = self.initiate_folder)
+        self.initiate_folder_button.pack(side = "left", padx = 2 , pady = 2)
     
-    Args:
-        welcome_label1 (tk.Label): Label of text used to welcome user into the program.
-        welcome_label2 (tk.Label): Label of text used to welcome user into the program.
-        welcome_label3 (tk.Label): Label of text used to welcome user into the program.
-        welcome_label4 (tk.Label): Label of text used to welcome user into the program.
-        button_frame (tk.Frame): Frame containing buttons in the opening window.
-    """
-    path = filedialog.askdirectory()
-    if path == "":
-        return
-    welcome_label1.destroy()
-    welcome_label2.destroy()
-    welcome_label3.destroy()
-    button_frame.destroy()
-    i = Application(root, path=path)
+    def open_image(self):
+        """Opens initial Application and destroys initial window assess
 
-def confirm_function(name, folder_path, file_path, nf):
-    """Initializes a new folder and creates a success label
+        Creates Application and destroys initial assets so they do not interfere with
+        the Application class.
+        
+        Args:
+            welcome_label1 (tk.Label): Label of text used to welcome user into the program.
+            welcome_label2 (tk.Label): Label of text used to welcome user into the program.
+            welcome_label3 (tk.Label): Label of text used to welcome user into the program.
+            welcome_label4 (tk.Label): Label of text used to welcome user into the program.
+            button_frame (tk.Frame): Frame containing buttons in the opening window.
+        """
+        path = filedialog.askdirectory()
+        if path == "":
+            return
+        self.welcome_label1.destroy()
+        self.welcome_label2.destroy()
+        self.welcome_label3.destroy()
+        self.button_frame.destroy()
+        i = Application(root, path=path)
 
-    Calls FileManagement to initate a folder with a grid image file 
-    and annotator initials. Creates a success window on completion.
-    
-    Args:
-        folder_path (str): Path to folder where images will be saved selected from the askdirectory.
-        file_path (str): Path to the gridfile image to be copied into the saving folder.
-        nf (tk.Toplevel): Toplevel window to select the folder path and file path.
-    """
-    if folder_path == "" or file_path == "":
-        return
-    nf.destroy()
+    def confirm_function(self, name, folder_path, file_path, nf):
+        """Initializes a new folder and creates a success label
 
-    FileManagement(folder_path + "/").initiate_folder(file_path, name)
-    
-    done_screen = tk.Toplevel()
+        Calls FileManagement to initate a folder with a grid image file 
+        and annotator initials. Creates a success window on completion.
+        
+        Args:
+            folder_path (str): Path to folder where images will be saved selected from the askdirectory.
+            file_path (str): Path to the gridfile image to be copied into the saving folder.
+            nf (tk.Toplevel): Toplevel window to select the folder path and file path.
+        """
+        if folder_path == "" or file_path == "":
+            return
+        nf.destroy()
 
-    success_label1 = tk.Label(done_screen, text = "Folder sucessfully initialized!")
-    success_label2 = tk.Label(done_screen, text = "Press the \"Open Previous Folder\" button to access it.")
-    success_label1.grid(row = 0, column = 0, sticky = 'nswe')
-    success_label2.grid(row = 2, column = 0, sticky = 'nswe')
+        FileManagement(folder_path + "/").initiate_folder(file_path, name)
+        
+        done_screen = tk.Toplevel()
 
-    close_button = tk.Button(done_screen, text = "OK", command = lambda: done_screen.destroy())
-    close_button.grid(row = 3, column = 0, sticky = 's')
+        success_label1 = tk.Label(done_screen, text = "Folder sucessfully initialized!")
+        success_label2 = tk.Label(done_screen, text = "Press the \"Open Previous Folder\" button to access it.")
+        success_label1.grid(row = 0, column = 0, sticky = 'nswe')
+        success_label2.grid(row = 2, column = 0, sticky = 'nswe')
 
-def initiate_folder():
-    """Creates a Window for inputting args to initialize folder
+        close_button = tk.Button(done_screen, text = "OK", command = lambda: done_screen.destroy())
+        close_button.grid(row = 3, column = 0, sticky = 's')
 
-    Creates a window and corresponding buttons and entry fields for users
-    to enter in data to initialize a folder for biondi body analysis.
-    """
-    nf = tk.Toplevel()
-    nf.geometry("365x165")
-    nf.transient(root)
+    def initiate_folder(self):
+        """Creates a Window for inputting args to initialize folder
 
-    folder_path = tk.StringVar()
-    folder_ebox = tk.Entry(nf, textvariable = folder_path, width = 50)
-    folder_ebox.grid(row = 1, column = 0)
-    
-    folder_button = tk.Button(nf, text = "Browse...", command = lambda: folder_path.set(filedialog.askdirectory()))
-    folder_button.grid(row = 1, column = 1)
+        Creates a window and corresponding buttons and entry fields for users
+        to enter in data to initialize a folder for biondi body analysis.
+        """
+        nf = tk.Toplevel()
+        nf.geometry("365x165")
+        nf.transient(root)
 
-    file_name = tk.StringVar()
-    file_ebox = tk.Entry(nf, textvariable = file_name, width = 50)
-    file_ebox.grid(row = 4, column = 0)
+        folder_path = tk.StringVar()
+        folder_ebox = tk.Entry(nf, textvariable = folder_path, width = 50)
+        folder_ebox.grid(row = 1, column = 0)
+        
+        folder_button = tk.Button(nf, text = "Browse...", command = lambda: folder_path.set(filedialog.askdirectory()))
+        folder_button.grid(row = 1, column = 1)
 
-    file_button = tk.Button(nf, text = "Browse...", command = lambda: file_name.set(filedialog.askopenfilename()))
-    file_button.grid(row = 4, column = 1)
+        file_name = tk.StringVar()
+        file_ebox = tk.Entry(nf, textvariable = file_name, width = 50)
+        file_ebox.grid(row = 4, column = 0)
 
-    name = tk.StringVar()
-    name_ebox = tk.Entry(nf, textvariable = name, width = 50)
-    name_ebox.grid(row = 6, column = 0)
+        file_button = tk.Button(nf, text = "Browse...", command = lambda: file_name.set(filedialog.askopenfilename()))
+        file_button.grid(row = 4, column = 1)
 
-    confirm_button = tk.Button(nf, text = "Confirm", command = lambda: confirm_function(name.get(), folder_path.get(), file_name.get(), nf))
-    confirm_button.grid(row = 8, column = 1)
+        name = tk.StringVar()
+        name_ebox = tk.Entry(nf, textvariable = name, width = 50)
+        name_ebox.grid(row = 6, column = 0)
 
-    folder_label = tk.Label(nf, text = "Enter an empty folder directory:")
-    folder_label.grid(row = 0, column = 0, sticky = 'w')
+        confirm_button = tk.Button(nf, text = "Confirm", command = lambda: self.confirm_function(name.get(), folder_path.get(), file_name.get(), nf))
+        confirm_button.grid(row = 8, column = 1)
 
-    file_label = tk.Label(nf, text = "Enter the grid file directory:")
-    file_label.grid(row = 3, column = 0, sticky = 'w')
+        folder_label = tk.Label(nf, text = "Enter an empty folder directory:")
+        folder_label.grid(row = 0, column = 0, sticky = 'w')
 
-    name_label = tk.Label(nf, text = "Please enter you initials (eg. BJ):")
-    name_label.grid(row = 5, column = 0, sticky = 'w')
+        file_label = tk.Label(nf, text = "Enter the grid file directory:")
+        file_label.grid(row = 3, column = 0, sticky = 'w')
 
-    
-    # folder_path = filedialog.askdirectory()
-    # folder_path = folder_path + "/"
-    #file_name = filedialog.askopenfilename()
-    
+        name_label = tk.Label(nf, text = "Please enter you initials (eg. BJ):")
+        name_label.grid(row = 5, column = 0, sticky = 'w')
     
 if __name__ == "__main__":
     root = tk.Tk()
-    root.geometry("580x100")
-    root.title("Imaris Screenshot Tool")
-
-    w1 = "Welcome to the Imaris Screenshot Tool!"
-    w2 = "If you are returning to a previous session, please click on the \"Open Previous Folder\" button."
-    w3 = "If you are starting a new session, please create an empty folder and select it using the \"Initiate Folder\" button."
-
-    welcome_label1 = tk.Label(root, text = w1)
-    welcome_label1.grid(row = 0, column = 2, sticky = 'nswe')
-    
-    welcome_label2 = tk.Label(root, text = w2)
-    welcome_label2.grid(row = 2, column = 2, sticky = 'nswe')
-    
-    welcome_label3 = tk.Label(root, text = w3)
-    welcome_label3.grid(row = 3, column = 2, sticky = 'nswe')
-    
-    button_frame = tk.Frame(root)
-    button_frame.grid(row = 4, column = 2, sticky = 'ns')
-
-    find_image_button = tk.Button(button_frame, text="Open Previous Folder", command = lambda: open_image(welcome_label1, welcome_label2, welcome_label3, button_frame))
-    find_image_button.pack(side = "left", padx = 2 , pady = 2)
-    initiate_folder_button = tk.Button(button_frame, text = "Initiate Folder", command = initiate_folder)
-    initiate_folder_button.pack(side = "left", padx = 2 , pady = 2)
+    app = OpeningWindow(root)
     root.mainloop()
