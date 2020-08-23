@@ -23,8 +23,8 @@ The biondi Body Morphology Client is an image screenshotter and annotation softw
 ## 2.1. Installation
 
 - Clone the github repository in your local system `git clone https://github.com/whuang37/mlab-imaris-analysis.git`
-- Move into the mlab-imaris-analysis repository with `cd mlab-imaris-analysis`
-- Install all the libraries mentioned in [requirements.txt](https://github.com/whuang37/mlab-imaris-analysis/blob/master/requirements.txt) using `pip install -r requirements.txt`
+- Move into the mlab-imaris-analysis repository with `cd biondi_body_client`
+- Install all the libraries mentioned in [requirements.txt](https://github.com/whuang37/biondi_body_client/blob/master/requirements.txt) using `pip install -r requirements.txt`
 - Run the main python file `python biondi_body_client.py`
 
 
@@ -55,13 +55,13 @@ The biondi Body Morphology Client is an image screenshotter and annotation softw
 
 # 3. Support
 
-If you find any bugs please open an issue [here](https://github.com/whuang37/mlab-imaris-analysis/issues/new) by including information about the bug and how to reproduce it.
+If you find any bugs please open an issue [here](https://github.com/whuang37/biondi_body_client/issues/new) by including information about the bug and how to reproduce it.
 
-If you'd like to request more functions feel free by opening an issue [here](https://github.com/whuang37/mlab-imaris-analysis/issues/new). Please include samples and corresponding results for our review.
+If you'd like to request more functions feel free by opening an issue [here](https://github.com/whuang37/biondi_body_client/issues/new). Please include samples and corresponding results for our review.
 
 # 4. Contributing
 
-We are currently not looking for contributions but if any problems/suggestion arise, open an issue [here](https://github.com/whuang37/mlab-imaris-analysis/issues/new) so we can address it accordingly. 
+We are currently not looking for contributions but if any problems/suggestion arise, open an issue [here](https://github.com/whuang37/biondi_body_client/issues/new) so we can address it accordingly. 
 
 # 5. Authors and Acknowledgements
 
