@@ -254,14 +254,25 @@ class ScreenshotEditor(tk.Toplevel):
                         font = self.font, anchor = "ne", text = self.text_annotation) 
         
         if self.new == True: # if the image is being saved from LilSnippy
-            fm = FileManagement(self.folder_path)
-            fm.save_image(self.body_info, self.im, self.annotation)
+            FileManagement(self.folder_path).save_image(self.body_info, self.im, self.annotation)
             from markings import GridMark
             GridMark(self.marker_canvas, self.folder_path, self.body_info)
         else: # if the annotations are being edited from Image Viewer
             self.annotation.save(self.folder_path + self.body_info["annotation_file_name"])
         
         self.destroy()
+        
+        all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
+                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
+        number = FileManagement(self.folder_path).count_bodies(all_bodies, False, False, False, False)
+        if number == 300: # opens a popup at 300 biondi bodies done
+            done_screen = tk.Toplevel()
+            done_screen.grab_set()
+            success_label = tk.Label(done_screen, text = "You have finished annotating 300 bodies.")
+            success_label.pack(side = 'top')
+
+            close_button = tk.Button(done_screen, text = "OK", command = lambda: done_screen.destroy())
+            close_button.pack(side = "bottom")
 
 class LilSnippy(tk.Frame):
     """A selection and screenshot tool.

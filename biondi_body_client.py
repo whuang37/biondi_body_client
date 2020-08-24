@@ -21,6 +21,8 @@ class Application(tk.Frame):
         mousey (tk.IntVar): Used to store the y mouse position on the image.
         coord_label (tk.Label): Displays the current x and y position of the mouse on the image using the 
             mousex and mouse y vars.
+        body_count (tk.IntVar): Number of biondi bodies saved.
+        body_count_label (tk.Label): Displays the number of biondi bodies saved.
         canvas (tk.Canvas): Used to hold and display the image.
         marker_canvas (tk.Canvas): A copy of canvas; used to store and display the clickable grid markings.
         grid_canvas (tk.Canvas): A copy of canvas; used to store and display the 7x7 grid overlay.
@@ -37,6 +39,7 @@ class Application(tk.Frame):
         columns (int): 7 columns; used as a var to create the grid overlay.
         toolbar (tk.Frame): object that is attributed to storing and displaying the top toolbar.
         grid_window (tk.Frame): object that is attributed to storing and displaying the bottom grid square tracker.
+        all_bodies (list): List of all possible biondi bodies.
 
 
     Typical usage example:
@@ -49,14 +52,22 @@ class Application(tk.Frame):
         tk.Frame.__init__(self, master=mainframe)
         self.master.title('Imaris Screenshot Tool')
 
+        self.folder_path = path + "/"
+        
         #coord bar
-        self.mousex = tk.IntVar()
-        self.mousey = tk.IntVar()
-        self.mousex.set(0)
-        self.mousey.set(0)
-        self.coord_label = tk.Label(self.master, text = "X: " + str(self.mousex.get()) + "  " + "Y: " + str(self.mousey.get())) 
-        self.coord_label.grid(row = 3, column = 0, sticky = 'sw')
+        self.mousex = tk.IntVar(value = 0)
+        self.mousey = tk.IntVar(value = 0)
+        self.coord_label = tk.Label(self.master, text = "X: {0}  Y: {1}".format(self.mousex.get(), self.mousey.get()))
+        self.coord_label.grid(row = 3, column = 0, sticky = "sw")
 
+        # body count
+        self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
+                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
+        self.body_count = tk.IntVar(value = FileManagement(self.folder_path).count_bodies(self.all_bodies, False, False, False, False))
+        self.body_count_label = tk.Label(self.master, text = "{0} Bodies Annotated".format(self.body_count.get()))
+        self.body_count_label.grid(row = 3, column = 0 , sticky = "se")
+        self.update_count()
+        
         # Create canvas and put image on it
         self.canvas = tk.Canvas(self.master, highlightthickness=0)
         self.marker_canvas = self.canvas
@@ -88,7 +99,6 @@ class Application(tk.Frame):
         self.canvas.bind('<Motion>', self.update_coords)
 
 
-        self.folder_path = path + "/"
         self.image = Image.open(self.folder_path + "gridfile.jpg")  # open image
         self.width, self.height = self.image.size
 
@@ -155,10 +165,8 @@ class Application(tk.Frame):
         Creates a marker for every body on the application's startup. Iterates
         through the bodies in the database to do so.
         """
-        all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
         fm = FileManagement(self.folder_path)
-        data = fm.query_images(all_bodies, False, False, False, False)
+        data = fm.query_images(self.all_bodies, False, False, False, False)
         for i in data:
             body_info = {}
             x = 0
@@ -172,6 +180,12 @@ class Application(tk.Frame):
         path = filedialog.askdirectory()
         i = Application(root, path=path)
 
+    def update_count(self):
+        self.body_count.set(FileManagement(self.folder_path).count_bodies(self.all_bodies, False, False, False, False))
+        self.body_count_label.configure(text = "{0} Bodies Annotated".format(self.body_count.get()))
+        self.master.after(1000, self.update_count)
+        
+        
     def update_coords(self, event):
         """ Event method that updates mouse position on the image
 
@@ -183,7 +197,7 @@ class Application(tk.Frame):
         self.mousex.set(x)
         self.mousey.set(y)
 
-        self.coord_label.configure(text = "X: " + str(self.mousex.get()) + "  " + "Y: " + str(self.mousey.get()))
+        self.coord_label.configure(text = "X: {0}  Y: {1}".format(self.mousex.get(), self.mousey.get()))
         self.coord_label.update()
 
     def open_popup(self, event):

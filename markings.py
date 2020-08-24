@@ -110,7 +110,7 @@ class Marker(tk.Frame):
         data = {"time": time_added,
                 "annotator_name": self.annotator.get(),
                 "body_name": self.body_type.get(),
-                "body_number": fm.count_body_type(self.body_type.get()) + 1,
+                "body_number": fm.count_bodies([self.body_type.get()], False, False, False, False) + 1,
                 "x": self.canvas_x,
                 "y": self.canvas_y,
                 "grid_id": self.grid_id,
