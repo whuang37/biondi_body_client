@@ -307,7 +307,8 @@ class ImageViewer(tk.Toplevel):
                     "rod": "r",
                     "ring": "ri",
                     "kettlebell": "kb",
-                    "multi inc": "mi"}
+                    "multi inc": "mi",
+                    "green rod": "grr"}
         return body_index[string]
         
     def create_edit_entries(self, body_info):

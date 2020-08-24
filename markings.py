@@ -176,7 +176,7 @@ class GridMark():
         y = body_info["y"]
         self.time = body_info["time"]
         tag = "m" + str(self.time)
-        self.marker_canvas.create_text(x, y, font = ("Calibri", 24, "bold"), fill = 'WHITE', activefill = "red",
+        self.marker_canvas.create_text(x, y, font = ("Calibri", 18, "bold"), fill = 'WHITE', activefill = "red",
                                        text = self._get_letter(body_name), tag = tag)
         
         self.marker_canvas.tag_bind(tag, '<ButtonPress-1>', self._on_click)
@@ -194,6 +194,7 @@ class GridMark():
                     "rod": "r",
                     "ring": "ri",
                     "kettlebell": "kb",
-                    "multi inc": "mi"}
+                    "multi inc": "mi",
+                    "green rod": "grr"}
         return body_index[string]
 
