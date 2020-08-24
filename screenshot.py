@@ -34,8 +34,6 @@ class ScreenshotEditor(tk.Toplevel):
         color (str): The color of the markup lines.
         text_annotation (str): The string placed on the image.
         margin (int): The distance from the end to the text position
-        counter (int): The number of lines made
-        undone (list): A list of lines that were undone for redoing.
         
     Typical usage example:
         ScreenshotEditor(body_info, folder_path, marker_canvas, im, new)   
@@ -91,17 +89,15 @@ class ScreenshotEditor(tk.Toplevel):
         """
         self.brush_button = tk.Button(self.toolbar_frame, text = "brush", command = self.use_brush)
         self.color_button = tk.Button(self.toolbar_frame, text = 'color', command = self.choose_color)
-        self.undo_button = tk.Button(self.toolbar_frame, text = 'undo', command = self.undo)
-        self.redo_button = tk.Button(self.toolbar_frame, text = 'redo', command = self.redo)
+        self.undo_button = tk.Button(self.toolbar_frame, text = 'clear canvas', command = self.clear)
         self.text_button = tk.Button(self.toolbar_frame, text = "top-left", command = self.text)
         self.save_button = tk.Button(self.toolbar_frame, text = 'save', command = self.save)
         
         self.brush_button.grid(row = 0, column = 0)
         self.color_button.grid(row = 0, column = 1)
         self.undo_button.grid(row = 0, column = 2)
-        self.redo_button.grid(row = 0, column = 3)
-        self.text_button.grid(row = 0 , column = 4)
-        self.save_button.grid(row = 0 , column = 5)
+        self.text_button.grid(row = 0 , column = 3)
+        self.save_button.grid(row = 0 , column = 4)
         
     def use_brush(self):
         """Function used the activate the brush from the button"""
@@ -120,11 +116,8 @@ class ScreenshotEditor(tk.Toplevel):
         self.active_button = self.brush_button
         self.screenshot_canvas.bind('<B1-Motion>', self.paint)
         self.screenshot_canvas.bind('<ButtonRelease-1>', self.reset)
-        self.screenshot_canvas.bind('<Control-z>', self.undo_bind) # used for undoing potential lines drawn
-        self.counter = 1
-        self.undone = []
 
-        self.text_annotation = self.body_info["grid_id"] + " " + str(self.body_info["x"]) + ", " + str(self.body_info["y"])
+        self.text_annotation = "{0} {1}, {2}".format(self.body_info["grid_id"], self.body_info["x"], self.body_info["y"])
         
         # find the appropriate margin for the text
         if self.width > self.height: 
@@ -163,7 +156,7 @@ class ScreenshotEditor(tk.Toplevel):
             self.screenshot_canvas.create_line(self.old_x, self.old_y, event.x, event.y, 
                                     width = self.line_width, fill = self.color, 
                                     capstyle = "round", smooth = True, splinesteps = 36, 
-                                    tag=['line' + str(self.counter)]) # tagged with the line number for undoing
+                                    tag='line') 
             # draws on the pillow annotation image for saving later
             self.draw.line((self.old_x, self.old_y, event.x, event.y), fill = self.color, 
                             width = self.line_width, joint = "curve")
@@ -177,7 +170,6 @@ class ScreenshotEditor(tk.Toplevel):
         create a new line instead of connecting back up to the old.
         """
         self.old_x, self.old_y = None, None
-        self.counter += 1
         
     def text(self): # moves text around
         """Move text around the four corners
@@ -204,42 +196,16 @@ class ScreenshotEditor(tk.Toplevel):
         self.screenshot_canvas.create_text(x, y, text = self.text_annotation, 
                                 font =("Calibri", 14), anchor = position, 
                                 fill = 'white', tag ="text")
-    def undo(self): 
-        """Removes previous line drawn.
+    def clear(self): 
+        """Removes all line drawn.
         
-        Used in conjunction with the undo button/bind to remove the previous line drawn.
-        Adds this line's tag into a list for redoing later.
+        Used to clear the canvas to redo annotations if the user has messed up.
         """
-        self.counter -= 1 # lowers the counter as line is being deleted
-        currentundone = []
-        # finds most previous line drawn to add to an undone list
-        for item in self.screenshot_canvas.find_withtag('line' + str(self.counter)):
-            currentundone.append(self.screenshot_canvas.coords(item)) 
-        self.screenshot_canvas.delete('line'+str(self.counter)) # deletes related line
-        self.undone.append(currentundone) # appends list of undone for potential redoing
+        self.annotation = Image.new("RGBA", (self.width, self.height))
+        self.draw = ImageDraw.Draw(self.annotation)
         
-    def undo_bind(self, event):
-        """Callback function to enable undo bind."""
-        self.undo() 
-        
-    def redo(self): #redoes in new color not old color
-        """Redraws a previously undone line.
-        
-        Takes the previously undone line and redraws the line again with the same 
-        parameters as the old line.
-        
-        Bugs:
-            Redraws the line in the new color selected not the old color.
-        """
-        try:
-            currentundone = self.undone.pop() 
-            for coords in currentundone: #pulls from list of undoes to recreate the first one
-                self.screenshot_canvas.create_line(coords, width = self.line_width, fill = self.color, 
-                                    capstyle = "round", smooth = "TRUE", splinesteps = 36, tag=['line' + str(self.counter)])
-            self.counter += 1
-        except IndexError:
-            pass # passes if no more objects are in array
-        
+        self.screenshot_canvas.delete('line') # deletes line all lines
+
     def save(self):
         """Commits the image and annotation to new files.
         

@@ -438,6 +438,10 @@ class ImageViewer(tk.Toplevel):
         self._remake_button_list()
         self.filter()
         self.information_frame.destroy()
+        
+        # clear the body canvas
+        self.biondi_image_canvas.delete("all")
+        
         # deletes the associated marker on the gridfile
         tag = "m" + str(time)
         self.marker_canvas.delete(tag)
