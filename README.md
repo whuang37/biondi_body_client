@@ -67,5 +67,3 @@ We are currently not looking for contributions but if any problems/suggestion ar
 
 Development on the Biondi Body Morphology Client by whuang37 and TheSamG.
 
-Thanks to Brett for all his support.
-
