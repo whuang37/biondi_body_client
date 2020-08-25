@@ -404,7 +404,8 @@ class FileManagement():
                     "rod", 
                     "ring", 
                     "kettlebell", 
-                    "multi inc"]
+                    "multi inc",
+                    "green rod"]
         for items in body_names:
             self.renumber_img(items, 1)
             
