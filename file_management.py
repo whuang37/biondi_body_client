@@ -66,23 +66,44 @@ class FileManagement():
         self.c.execute(finish_grid_query, (state, grid_id))
         self.close()
         
-    def count_body_type(self, type):
-        """Fetches the number of x biondi body.
+    def count_bodies(self, body_param, GR_param, MAF_param, MP_param, unsure_param):
+        """Returns a count of how many bodies are in the database.
         
-        Retrieves the number of rows with the selected biondi body type. 
+        Using a series of strings and bools that can be dictated through an image searcher,
+        count bodies returns the amount of bodies that exist under those specific parameters.
         
         Args:
-            type (str): a type of biondi body. Must be same as ones entered through dict.
-        
-        Returns:
-            c_result[0] (int): Return value with the number of selected body in the database.
+            body_param (list): a list of parameters including a list of all 
+                requested biondi types which is later appended with integers
+                on GR, MAF, MP, or unsure.
+            GR_param (bool): True if sorting by only GR
+            MAF_param (bool): True if sorting by only MAF
+            MP_param (bool): True if sorting by only MP
+            unsure_param (bool): True if sorting by only unsure
+            
+        Returns: 
+            number (int): The number of bodies counted
         """
         
-        count_query = '''SELECT COUNT(*) 
-                        FROM bodies WHERE BODY_NAME = ?'''
-        self.c.execute(count_query, (type,))
+        body_param_ph = "?,"*(len(body_param)-1)+"?"
+        
+        GR_param_ph = self.secondary_name_grouping(GR_param, body_param)
+        MAF_param_ph = self.secondary_name_grouping(MAF_param, body_param)
+        MP_param_ph = self.secondary_name_grouping(MP_param, body_param)
+        unsure_param_ph = self.secondary_name_grouping(unsure_param, body_param)
+        
+        count_query = '''SELECT COUNT(*)
+                        FROM bodies 
+                        WHERE BODY_NAME IN ({0}) 
+                        AND GR IN ({1}) 
+                        AND MAF IN ({2}) 
+                        AND MP IN ({3})
+                        AND UNSURE IN ({4})'''.format(body_param_ph, GR_param_ph, MAF_param_ph, MP_param_ph, unsure_param_ph)
+        
+        self.c.execute(count_query, body_param)
         c_result = self.c.fetchone()
-        return c_result[0]
+        number = c_result[0]
+        return number
     
     def initiate_folder(self, img_path, name):
         """Preps a folder for biondi body analysis.
@@ -159,7 +180,7 @@ class FileManagement():
             annotation_img (pil img): image of just the annotation.
         """
             
-        body_info["body_number"] = self.count_body_type(body_info["body_name"]) + 1
+        body_info["body_number"] = self.count_bodies([body_info["body_name"]], False, False, False, False) + 1
         body_img.save(self.folder_path + body_info["body_file_name"])
         annotation_img.save(self.folder_path + body_info["annotation_file_name"])
         
