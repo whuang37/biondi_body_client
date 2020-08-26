@@ -349,7 +349,11 @@ class GridWindow(tk.Frame):
             index = ord(c) - 96 + 26
         else:
             index = ord(c) - 64
-        scrolly = floor(index / self.rows) * self.h
+        
+        if index % 7 == 0: # rows - 1 to ensure the right edge does not drop down a row
+            scrolly = (index / 7 - 1) * self.h
+        else:
+            scrolly = floor(index / (self.rows)) * self.h 
         return scrolly    
 
     def move_canvas(self):
