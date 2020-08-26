@@ -525,6 +525,7 @@ class ImageViewer(tk.Toplevel):
                 body_selection.append(name)
         if body_selection == []:
             body_selection = self.all_bodies
+        print(body_selection)
         return body_selection
     
     def filter(self):
@@ -552,9 +553,10 @@ class ImageViewer(tk.Toplevel):
         self.create_buttons(self.all_bodies, False, False, False, False)
         for choice in ("drop", "crescent", "spear", "green spear", "saturn", 
                         "rod", "green rod", "ring", "kettlebell", "multi inc"):
-            self.choices[choice] = tk.IntVar(value=0)
+            self.choices[choice].set(0)
         
         self.var_GR.set(False)
         self.var_MAF.set(False)
         self.var_MP.set(False)
         self.var_unsure.set(False)
+        print(self.choices)
