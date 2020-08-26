@@ -84,13 +84,13 @@ class FileManagement():
         Returns: 
             number (int): The number of bodies counted
         """
+        counted_bodies = body_param.copy()
+        body_param_ph = "?,"*(len(counted_bodies)-1)+"?"
         
-        body_param_ph = "?,"*(len(body_param)-1)+"?"
-        
-        GR_param_ph = self.secondary_name_grouping(GR_param, body_param)
-        MAF_param_ph = self.secondary_name_grouping(MAF_param, body_param)
-        MP_param_ph = self.secondary_name_grouping(MP_param, body_param)
-        unsure_param_ph = self.secondary_name_grouping(unsure_param, body_param)
+        GR_param_ph = self.secondary_name_grouping(GR_param, counted_bodies)
+        MAF_param_ph = self.secondary_name_grouping(MAF_param, counted_bodies)
+        MP_param_ph = self.secondary_name_grouping(MP_param, counted_bodies)
+        unsure_param_ph = self.secondary_name_grouping(unsure_param, counted_bodies)
         
         count_query = '''SELECT COUNT(*)
                         FROM bodies 
@@ -100,7 +100,7 @@ class FileManagement():
                         AND MP IN ({3})
                         AND UNSURE IN ({4})'''.format(body_param_ph, GR_param_ph, MAF_param_ph, MP_param_ph, unsure_param_ph)
         
-        self.c.execute(count_query, body_param)
+        self.c.execute(count_query, counted_bodies)
         c_result = self.c.fetchone()
         number = c_result[0]
         return number
@@ -332,12 +332,13 @@ class FileManagement():
                 tuple 
         """
         
-        body_param_ph = "?,"*(len(body_param)-1)+"?"
+        query_bodies = body_param.copy()
+        body_param_ph = "?,"*(len(query_bodies)-1)+"?"
         
-        GR_param_ph = self.secondary_name_grouping(GR_param, body_param)
-        MAF_param_ph = self.secondary_name_grouping(MAF_param, body_param)
-        MP_param_ph = self.secondary_name_grouping(MP_param, body_param)
-        unsure_param_ph = self.secondary_name_grouping(unsure_param, body_param)
+        GR_param_ph = self.secondary_name_grouping(GR_param, query_bodies)
+        MAF_param_ph = self.secondary_name_grouping(MAF_param, query_bodies)
+        MP_param_ph = self.secondary_name_grouping(MP_param, query_bodies)
+        unsure_param_ph = self.secondary_name_grouping(unsure_param, query_bodies)
         
         group_query = '''SELECT TIME, BODY_NAME, BODY_NUMBER, X_POSITION, Y_POSITION
                         FROM bodies 
@@ -348,7 +349,7 @@ class FileManagement():
                         AND UNSURE IN ({4})
                         ORDER BY TIME DESC'''.format(body_param_ph, GR_param_ph, MAF_param_ph, MP_param_ph, unsure_param_ph)
         
-        self.c.execute(group_query, body_param)
+        self.c.execute(group_query, query_bodies)
         group = self.c.fetchall()
         
         self.close()

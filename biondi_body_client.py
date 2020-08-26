@@ -183,8 +183,7 @@ class Application(tk.Frame):
     def update_count(self):
         self.body_count.set(FileManagement(self.folder_path).count_bodies(self.all_bodies, False, False, False, False))
         self.body_count_label.configure(text = "{0} Bodies Annotated".format(self.body_count.get()))
-        self.master.after(1000, self.update_count)
-        
+        self.master.after(2000, self.update_count)
         
     def update_coords(self, event):
         """ Event method that updates mouse position on the image
