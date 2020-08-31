@@ -35,17 +35,15 @@ class Marker(tk.Frame):
     Typical usage example:
         Marker(master, x, y, marker_canvas, height, width, columns, rows, folder_path)
     """
-    def __init__(self, master, x, y, marker_canvas, height, width, columns, rows, folder_path):
+    def __init__(self, master, canvas_x, canvas_y, marker_canvas, height, width, columns, rows, folder_path):
         self.master = master
-        self.x = x
-        self.y = y
         self.marker_canvas = marker_canvas
         self.height = height
         self.width = width
         self.columns = columns
         self.rows = rows
-        self.canvas_x = self.marker_canvas.canvasx(x)
-        self.canvas_y = self.marker_canvas.canvasy(y)
+        self.canvas_x = canvas_x
+        self.canvas_y = canvas_y
         self.folder_path = folder_path
         
         self.annotator = tk.StringVar(value = FileManagement(self.folder_path).get_annotator_name())
@@ -190,3 +188,18 @@ class GridMark():
                     "unknown": "?"}
         return body_index[string]
 
+class GridIgnored():
+    def __init__(self, marker_canvas, canvas_x, canvas_y):
+        self.marker_canvas = marker_canvas
+        self.canvas_x = canvas_x
+        self.canvas_y = canvas_y
+        
+        self.tag = "i{0}{1}".format(canvas_x, canvas_y)
+        self.marker_canvas.create_text(canvas_x, canvas_y, font = ("Calibri", 24, "bold"), fill = 'magenta', activefill = "red",
+                                       text = "X", tag = self.tag)
+        
+        self.marker_canvas.tag_bind(self.tag, '<ButtonPress-1>', self._on_click)
+        self.marker_canvas.update 
+        
+    def _on_click(self, event):
+        self.marker_canvas.delete(self.tag)

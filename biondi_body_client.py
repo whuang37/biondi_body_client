@@ -5,7 +5,7 @@ from math import floor
 
 from image_viewer import ImageViewer
 from file_management import FileManagement
-from markings import GridMark, Marker
+from markings import GridMark, Marker, GridIgnored
 
 class Application(tk.Frame):
     """The main hub window for viewing and editing the gridfile.
@@ -73,9 +73,9 @@ class Application(tk.Frame):
         self.marker_canvas = self.canvas
         self.grid_canvas = self.canvas
         
-        self.canvas.grid(row=1, column=0, sticky='nswe')
-        self.grid_canvas.grid(row=1, column=0, sticky='nswe')
-        self.marker_canvas.grid(row=1, column=0, sticky='nswe')
+        self.canvas.grid(row = 1, column = 0, sticky = 'nswe')
+        self.grid_canvas.grid(row = 1, column = 0, sticky = 'nswe')
+        self.marker_canvas.grid(row=1, column = 0, sticky = 'nswe')
         
         self.canvas.update()  # wait till canvas is created
 
@@ -92,7 +92,6 @@ class Application(tk.Frame):
         self.master.columnconfigure(0, weight=1)
 
         # Bind events to the Canvas
-
         self.canvas.bind('<MouseWheel>', self.verti_wheel)
         self.canvas.bind('<Shift-MouseWheel>', self.hori_wheel)  
         self.canvas.bind('<Button-3>', self.open_popup)
@@ -114,9 +113,9 @@ class Application(tk.Frame):
         
         self.initiate_markers()
         
-        #tool bar
-        self.toolbar = GridToolbar(self.master, self.folder_path, self.marker_canvas, self.grid_canvas)
-        self.toolbar.grid(row = 0, column = 0, sticky = 'nswe' )
+        #option bar
+        self.option_bar = OptionBar(self.master, self.folder_path, self.marker_canvas, self.grid_canvas)
+        self.option_bar.grid(row = 0, column = 0, sticky = 'nswe')
         
         #grid window
         grid_window = GridWindow(self.master, self.canvas, self.folder_path, self.width, self.height)
@@ -202,12 +201,15 @@ class Application(tk.Frame):
     def open_popup(self, event):
         """Event method that opens up the Marker popup.
 
-        x and y are the coords of where the mouse clicked(needs to 
-        be converted in Marker to canvas coords). Calls Marker class in markings.py.
+        x and y are the coords of where the mouse clicked. Then converted to canvas coordinates
+        which is used to add a marker.
         """
         x = event.x
         y = event.y
-        Marker(self.master, x, y, self.marker_canvas, self.height, self.width, self.columns, self.rows, self.folder_path)
+        canvas_x = self.marker_canvas.canvasx(x)
+        canvas_y = self.marker_canvas.canvasy(y)
+        
+        Marker(self.master, canvas_x, canvas_y, self.marker_canvas, self.height, self.width, self.columns, self.rows, self.folder_path)
 
     def verti_wheel(self, event):
         """Event method that scrolls the image vertically using the mousewheel.
@@ -400,7 +402,7 @@ class GridWindow(tk.Frame):
         self.finished.destroy()
         self.make_check_button()
 
-class GridToolbar(tk.Frame):
+class OptionBar(tk.Frame):
     """The toolbar located at the top of Application
     
     Has two main functions: File and View. The File dropdown can open a new folder, export biondi body images, 
@@ -431,7 +433,7 @@ class GridToolbar(tk.Frame):
         secondary_choices (dict): Stores the options in secondary as checkbuttons.
 
     Typical usage example:
-        toolbar = GridToolbar(root, folder_path, marker_canvas, grid_canvas)
+        OptionBar = OptionBar(root, folder_path, marker_canvas, grid_canvas)
     """
     def __init__(self, master, folder_path, marker_canvas, grid_canvas):
         tk.Frame.__init__(self)
@@ -445,7 +447,7 @@ class GridToolbar(tk.Frame):
         self.grid_var = tk.BooleanVar(value = True)
         self.letter_var = tk.BooleanVar(value = True)
 
-        
+        # file menu
         file_b = tk.Menubutton(self, text = "File", relief = "raised")
         file_menu = tk.Menu(file_b, tearoff = False)
         file_b.configure(menu = file_menu)
@@ -455,6 +457,15 @@ class GridToolbar(tk.Frame):
         file_menu.add_command(label = "Export Images", command = self.export_images)
         file_menu.add_command(label = "Exit", command = root.quit)
         
+        # edit menu
+        edit_b = tk.Menubutton(self, text = "Edit", relief = "raised")
+        edit_menu = tk.Menu(edit_b, tearoff = False)
+        edit_b.configure(menu = edit_menu)
+        edit_b.pack(side = "left")
+        
+        edit_menu.add_command(label = "Add Ignored Marker", command = self.add_ignored)
+        
+        # view menu
         view_b = tk.Menubutton(self, text = "View", relief = "raised")
         view_menu = tk.Menu(view_b, tearoff = False)
         view_b.configure(menu = view_menu)
@@ -485,6 +496,7 @@ class GridToolbar(tk.Frame):
             secondary_menu.add_checkbutton(label=choice, variable=self.secondary_choices[choice], 
                                 onvalue = False, offvalue = True, command = self.show_select_markers)
         view_menu.add_cascade(label = "Show Secondary", menu = secondary_menu)
+        
         
     def open_new_folder(self):
         """Opens a new instance of Application.
@@ -546,6 +558,29 @@ class GridToolbar(tk.Frame):
         ok_button = tk.Button(export, text = "Okay", command = confirm)
         ok_button.grid(row = 3, column = 1, padx = 10, pady = 10, sticky = "e")
         
+    def add_ignored(self):
+        def create_ignored_marker(event):
+            """Event method that adds an ignored marker.
+
+            x and y are the coords of where the mouse clicked. Then converted to canvas coordinates
+            which is used to add a marker.
+            """
+            x = event.x
+            y = event.y
+            canvas_x = self.marker_canvas.canvasx(x)
+            canvas_y = self.marker_canvas.canvasy(y)
+            
+            GridIgnored(self.marker_canvas, canvas_x, canvas_y)
+            
+        def reset(event):
+            self.marker_canvas.configure(cursor = "")
+            self.marker_canvas.unbind("<Button-1>")
+            self.marker_canvas.unbind("<ButtonRelease-1>")
+        
+        self.marker_canvas.configure(cursor = "cross")
+        self.marker_canvas.bind('<Button-1>', create_ignored_marker)
+        self.marker_canvas.bind('<ButtonRelease-1>', reset)
+    
     def open_image_viewer(self):
         """Opens the biondi body image viewer.
 

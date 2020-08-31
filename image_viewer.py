@@ -538,7 +538,8 @@ class ImageViewer(tk.Toplevel):
         """
         self._remake_button_list()
         self.create_buttons(self.all_bodies, False, False, False, False)
-        for choice in self.all_bodies:
+        for choice in ("drop", "crescent", "spear", "green spear", "saturn", "oreo", 
+                        "rod", "green rod", "ring", "kettlebell", "multi inc", "unknown"):
             self.choices[choice].set(0)
         
         self.var_GR.set(False)

@@ -48,7 +48,6 @@ class FileManagement():
         """
         get_grid_query = '''SELECT * FROM grid'''
         self.c.execute(get_grid_query)
-        
         result = self.c.fetchall()
         return result
     
