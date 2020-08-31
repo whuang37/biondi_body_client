@@ -275,13 +275,14 @@ class GridWindow(tk.Frame):
         self.main_canvas = main_canvas
         self.folder_path = folder_path
         self.final_order = FileManagement(self.folder_path).get_grid()
-
         self.width = width
         self.height = height
         self.rows = 7
         self.columns = 7
         
-        self.i = 0
+        bools = [i[1] for i in self.final_order] # creates a list of just the booleans of whether grid is finished
+        self.i = next((i for i, j in enumerate(bools) if j == False), 0) # finds the first instance of false and jumps to that
+        
         self.v = tk.StringVar()
         self.v.set(str(self.final_order[self.i][0]))
         self.text = tk.Label(self, text = "Current Grid Square:")

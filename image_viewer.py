@@ -34,6 +34,7 @@ class ImageViewer(tk.Toplevel):
     """
     def __init__(self, folder_path, marker_canvas):
         tk.Toplevel.__init__(self)
+        self.title("Image Viewer")
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.folder_path = folder_path
         self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 

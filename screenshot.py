@@ -40,6 +40,7 @@ class ScreenshotEditor(tk.Toplevel):
     """
     def __init__(self, body_info, folder_path, marker_canvas, im, new):
         tk.Toplevel.__init__(self)
+        self.title("Screenshot Editor")
         self.body_info = body_info
         self.folder_path = folder_path
         self.marker_canvas = marker_canvas
