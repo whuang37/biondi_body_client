@@ -230,7 +230,7 @@ class ScreenshotEditor(tk.Toplevel):
         self.destroy()
         
         all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
+                        "rod", "green rod", "ring", "kettlebell", "multi inc", "unknown"]
         number = FileManagement(self.folder_path).count_bodies(all_bodies, False, False, False, False)
         if number == 300: # opens a popup at 300 biondi bodies done
             done_screen = tk.Toplevel()

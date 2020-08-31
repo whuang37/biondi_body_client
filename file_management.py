@@ -137,6 +137,10 @@ class FileManagement():
                                                                     FINISHED INTEGER)'''
         self.c.execute(create_grid_query)
         
+        create_ignored_query = '''CREATE TABLE IF NOT EXISTS ignored (X INTEGER NOT NULL,
+                                                                    Y INTEGER NOT NULL'''
+        self.c.execute(create_ignored_query)
+        
         create_name_query = '''CREATE TABLE IF NOT EXISTS name (NAME TEXT NOT NULL)'''
         self.c.execute(create_name_query)
         
@@ -354,6 +358,28 @@ class FileManagement():
         
         self.close()
         return group
+    
+    def add_ignored(self, coords):
+        add_ignored_query = '''INSERT 
+                            INTO ignored 
+                            (X, Y) values (?, ?)'''
+        self.c.execute(add_ignored_query, coords)
+        self.close()
+        
+    def delete_ignored(self, coords):
+        delete_ignored_query = '''DELETE 
+                        FROM ignored 
+                        WHERE X = ? and Y = ?''' 
+                        
+        self.c.execute(delete_ignored_query, coords)
+        self.close()
+        
+    def query_all_ignored(self):
+        all_ignored_query = '''SELECT * 
+                            FROM ignored'''
+        self.c.execute(all_ignored_query)
+        ignored = self.c.fetchall()
+        return ignored
     
     def edit_info(self, edited_info):
         edit_query = '''UPDATE bodies

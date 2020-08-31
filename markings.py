@@ -63,7 +63,7 @@ class Marker(tk.Frame):
         marker.grab_set()
         
         all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
+                        "rod", "green rod", "ring", "kettlebell", "multi inc", "unknown"]
         
         dropdown = tk.OptionMenu(marker, self.body_type, *all_bodies)
         grC = tk.Checkbutton(marker, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
@@ -186,6 +186,7 @@ class GridMark():
                     "ring": "ri",
                     "kettlebell": "kb",
                     "multi inc": "mi",
-                    "green rod": "grr"}
+                    "green rod": "grr",
+                    "unknown": "?"}
         return body_index[string]
 

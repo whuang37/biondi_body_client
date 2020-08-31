@@ -38,7 +38,7 @@ class ImageViewer(tk.Toplevel):
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.folder_path = folder_path
         self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
+                        "rod", "green rod", "ring", "kettlebell", "multi inc", "unknown"]
         self.marker_canvas = marker_canvas
             
         self.columnconfigure(2, weight=1)
@@ -513,7 +513,6 @@ class ImageViewer(tk.Toplevel):
                 body_selection.append(name)
         if body_selection == []:
             body_selection = self.all_bodies
-        print(body_selection)
         return body_selection
     
     def filter(self):
@@ -539,12 +538,10 @@ class ImageViewer(tk.Toplevel):
         """
         self._remake_button_list()
         self.create_buttons(self.all_bodies, False, False, False, False)
-        for choice in ("drop", "crescent", "spear", "green spear", "saturn", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc"):
+        for choice in self.all_bodies:
             self.choices[choice].set(0)
         
         self.var_GR.set(False)
         self.var_MAF.set(False)
         self.var_MP.set(False)
         self.var_unsure.set(False)
-        print(self.choices)

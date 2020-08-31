@@ -62,7 +62,7 @@ class Application(tk.Frame):
 
         # body count
         self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
+                        "rod", "green rod", "ring", "kettlebell", "multi inc", "unknown"]
         self.body_count = tk.IntVar(value = FileManagement(self.folder_path).count_bodies(self.all_bodies, False, False, False, False))
         self.body_count_label = tk.Label(self.master, text = "{0} Bodies Annotated".format(self.body_count.get()))
         self.body_count_label.grid(row = 3, column = 0 , sticky = "se")
@@ -469,7 +469,7 @@ class GridToolbar(tk.Frame):
         
         body_menu = tk.Menu(view_menu, tearoff = False)
         self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
+                        "rod", "green rod", "ring", "kettlebell", "multi inc", "unknown"]
         self.choices = {}
         for choice in self.all_bodies:
             self.choices[choice] = tk.BooleanVar(value = True)
@@ -606,7 +606,7 @@ class GridToolbar(tk.Frame):
         from FileManagement.
         """
         all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
+                        "rod", "green rod", "ring", "kettlebell", "multi inc", "unknown"]
         all_data = FileManagement(self.folder_path).query_images(all_bodies, False, False, False, False)
         for i in all_data:
             self.grid_canvas.delete("m" + str(i[0]))
