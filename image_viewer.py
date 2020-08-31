@@ -36,7 +36,7 @@ class ImageViewer(tk.Toplevel):
         tk.Toplevel.__init__(self)
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.folder_path = folder_path
-        self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
+        self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
                         "rod", "green rod", "ring", "kettlebell", "multi inc"]
         self.marker_canvas = marker_canvas
             
@@ -335,20 +335,7 @@ class ImageViewer(tk.Toplevel):
         edit_notes = tk.StringVar()
         edit_notes.set(body_info["notes"])
         
-        option_list = [
-            "drop", 
-            "crescent", 
-            "spear", 
-            "green spear", 
-            "saturn", 
-            "rod", 
-            "green rod",  
-            "ring", 
-            "kettlebell", 
-            "multi inc"
-        ]
-        
-        dropdown = tk.OptionMenu(self.information_frame, edit_body_name, *option_list)
+        dropdown = tk.OptionMenu(self.information_frame, edit_body_name, *self.all_bodies)
         edit_gr = tk.Checkbutton(self.information_frame, anchor ="w", variable = edit_var_GR, onvalue = True, offvalue = False)
         edit_maf = tk.Checkbutton(self.information_frame, anchor ="w", variable = edit_var_MAF, onvalue = True, offvalue = False)
         edit_mp = tk.Checkbutton(self.information_frame, anchor ="w", variable = edit_var_MP, onvalue = True, offvalue = False)

@@ -61,7 +61,7 @@ class Application(tk.Frame):
         self.coord_label.grid(row = 3, column = 0, sticky = "sw")
 
         # body count
-        self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
+        self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
                         "rod", "green rod", "ring", "kettlebell", "multi inc"]
         self.body_count = tk.IntVar(value = FileManagement(self.folder_path).count_bodies(self.all_bodies, False, False, False, False))
         self.body_count_label = tk.Label(self.master, text = "{0} Bodies Annotated".format(self.body_count.get()))
@@ -467,7 +467,7 @@ class GridToolbar(tk.Frame):
                                   offvalue = False, command = self.show_letter)
         
         body_menu = tk.Menu(view_menu, tearoff = False)
-        self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
+        self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
                         "rod", "green rod", "ring", "kettlebell", "multi inc"]
         self.choices = {}
         for choice in self.all_bodies:
@@ -604,7 +604,7 @@ class GridToolbar(tk.Frame):
         Takes seconday_selection and body_selection and shows the markers based on those requirements
         from FileManagement.
         """
-        all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", 
+        all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
                         "rod", "green rod", "ring", "kettlebell", "multi inc"]
         all_data = FileManagement(self.folder_path).query_images(all_bodies, False, False, False, False)
         for i in all_data:

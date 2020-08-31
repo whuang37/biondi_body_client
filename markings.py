@@ -62,20 +62,10 @@ class Marker(tk.Frame):
         marker.title("popup")
         marker.grab_set()
         
-        option_list = [
-            "drop", 
-            "crescent", 
-            "spear", 
-            "green spear", 
-            "saturn", 
-            "rod", 
-            "green rod",  
-            "ring", 
-            "kettlebell", 
-            "multi inc"
-        ]
+        all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
+                        "rod", "green rod", "ring", "kettlebell", "multi inc"]
         
-        dropdown = tk.OptionMenu(marker, self.body_type, *option_list)
+        dropdown = tk.OptionMenu(marker, self.body_type, *all_bodies)
         grC = tk.Checkbutton(marker, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
         mafC = tk.Checkbutton(marker, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
         mpC = tk.Checkbutton(marker, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)
@@ -191,6 +181,7 @@ class GridMark():
                     "spear": "s",
                     "green spear": "grs",
                     "saturn": "sa",
+                    "oreo": "o",
                     "rod": "r",
                     "ring": "ri",
                     "kettlebell": "kb",
