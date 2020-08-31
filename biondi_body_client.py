@@ -628,7 +628,6 @@ class OpeningWindow:
         self.master = master
         self.master.geometry("580x100")
         self.master.title("Imaris Screenshot Tool")
-        self.master.resizable(False, False)
 
         w1 = "Welcome to the Imaris Screenshot Tool!"
         w2 = "If you are returning to a previous session, please click on the \"Open Previous Folder\" button."
