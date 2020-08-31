@@ -137,10 +137,10 @@ class Application(tk.Frame):
         #for loops go through 7 times each creating equally spaced lines
         for i in range(0, num_v_lines): 
             self.grid_canvas.create_line(box_width * (i+1), 0, box_width * (i+1), self.height,
-                                        fill = "white", width = 4, tag = "line")
+                                        fill = "cyan", width = 2, tag = "line")
         for i in range(0, num_h_lines):
             self.grid_canvas.create_line(0, box_height * (i+1), self.width, box_height * (i+1),
-                                        fill = "white", width = 4, tag = "line")
+                                        fill = "cyan", width = 2, tag = "line")
             
         num_squares = self.rows * self.columns
         
@@ -154,7 +154,7 @@ class Application(tk.Frame):
         for i in range(0, self.rows): #for loop that runs 49 times to create appropriatly scaled grid letters
             for j in range(0, self.columns):
                 self.grid_canvas.create_text((j + 1) * box_height - padding, (i + 1) * box_width - padding,
-                                            font = ("Calibri", 24), fill = 'WHITE', text = key[n], tag = "letter")
+                                            font = ("Calibri", 24, "bold"), fill = 'cyan', text = key[n], tag = "letter")
                 n += 1
                 if n > num_squares:
                     break
