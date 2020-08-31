@@ -155,6 +155,9 @@ class GridMark():
         marker_canvas (tk.Canvas): Canvas where markers are stored.
         folder_path (str): Path to the folder where images are saved.
         time (int): Unix time of the selected body.
+        
+    Typical Usage Example:
+        GridMark(marker_canvas, folder_path, body_info)
     """
     def __init__(self, marker_canvas, folder_path, body_info):
         self.marker_canvas = marker_canvas
@@ -163,7 +166,7 @@ class GridMark():
         x = body_info["x"]
         y = body_info["y"]
         self.time = body_info["time"]
-        tag = "m" + str(self.time)
+        tag = "m{0}".format(self.time)
         self.marker_canvas.create_text(x, y, font = ("Calibri", 18, "bold"), fill = 'WHITE', activefill = "red",
                                        text = self._get_letter(body_name), tag = tag)
         
@@ -189,8 +192,23 @@ class GridMark():
         return body_index[string]
 
 class GridIgnored():
-    def __init__(self, marker_canvas, canvas_x, canvas_y):
+    """Creates a clickable ignored marker.
+    
+    Generates a marker_canvas marker that shows if something is being 
+    ignored for the time being.
+    
+    Attributes:
+        marker_canvas (tk.Canvas): Canvas where markers are stored.
+        folder_path (str): Path to the folder where images are saved.
+        canvas_x (int) Canvas x coordinate where the user clicked
+        canvas_y (int): Canvas y coordinate where the user clicked
+    
+    Typical Usage Example:
+    GridIgnored(marker_canvas, folder_path, canvas_x, canvas_y)
+    """
+    def __init__(self, marker_canvas, folder_path, canvas_x, canvas_y):
         self.marker_canvas = marker_canvas
+        self.folder_path = folder_path
         self.canvas_x = canvas_x
         self.canvas_y = canvas_y
         
@@ -203,3 +221,5 @@ class GridIgnored():
         
     def _on_click(self, event):
         self.marker_canvas.delete(self.tag)
+        coords = (self.canvas_x, self.canvas_y)
+        FileManagement(self.folder_path).delete_ignored(coords)

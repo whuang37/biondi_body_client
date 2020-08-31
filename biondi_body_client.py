@@ -162,10 +162,10 @@ class Application(tk.Frame):
         """Initializes marker info in FileManagment.
     
         Creates a marker for every body on the application's startup. Iterates
-        through the bodies in the database to do so.
+        through the bodies in the database to do so. Also creates a marker for
+        every ignored marker
         """
-        fm = FileManagement(self.folder_path)
-        data = fm.query_images(self.all_bodies, False, False, False, False)
+        data = FileManagement(self.folder_path).query_images(self.all_bodies, False, False, False, False)
         for i in data:
             body_info = {}
             x = 0
@@ -174,6 +174,11 @@ class Application(tk.Frame):
                 x += 1
             GridMark(self.marker_canvas, self.folder_path, body_info)
         
+        # generates ignored markers
+        ignored = FileManagement(self.folder_path).query_all_ignored()
+        for coord in ignored:
+            GridIgnored(self.marker_canvas, self.folder_path, coord[0], coord[1])
+            
     def open_new_folder(self):
         """Opens a new folder with its respective image and Markings."""
         path = filedialog.askdirectory()
@@ -446,7 +451,8 @@ class OptionBar(tk.Frame):
         self.case_name = tk.StringVar(value = "")
         self.grid_var = tk.BooleanVar(value = True)
         self.letter_var = tk.BooleanVar(value = True)
-
+        self.ignored_var = tk.BooleanVar(value = True)
+        
         # file menu
         file_b = tk.Menubutton(self, text = "File", relief = "raised")
         file_menu = tk.Menu(file_b, tearoff = False)
@@ -477,6 +483,8 @@ class OptionBar(tk.Frame):
                                   offvalue = False, command = self.show_grid)
         view_menu.add_checkbutton(label = "Show Letters", variable = self.letter_var, onvalue = True,
                                   offvalue = False, command = self.show_letter)
+        view_menu.add_checkbutton(label = "Show Ignored", variable = self.ignored_var, onvalue = True,
+                                  offvalue = False, command = self.show_ignored)
         
         body_menu = tk.Menu(view_menu, tearoff = False)
         self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
@@ -569,8 +577,10 @@ class OptionBar(tk.Frame):
             y = event.y
             canvas_x = self.marker_canvas.canvasx(x)
             canvas_y = self.marker_canvas.canvasy(y)
+            coords = (canvas_x, canvas_y)
             
-            GridIgnored(self.marker_canvas, canvas_x, canvas_y)
+            GridIgnored(self.marker_canvas,self.folder_path, canvas_x, canvas_y)
+            FileManagement(self.folder_path).add_ignored(coords)
             
         def reset(event):
             self.marker_canvas.configure(cursor = "")
@@ -658,6 +668,17 @@ class OptionBar(tk.Frame):
                 body_info[choice] = i[x]
                 x += 1
             GridMark(self.marker_canvas, self.folder_path, body_info)
+            
+    def show_ignored(self):
+        ignored = FileManagement(self.folder_path).query_all_ignored()
+        if self.ignored_var.get() == False:
+            for coords in ignored:
+                tag = "i{0}{1}".format(coords[0], coords[1])
+                self.marker_canvas.delete(tag)
+        else:
+            for coords in ignored:
+                GridIgnored(self.marker_canvas,self.folder_path, coords[0], coords[1])
+            
 
 class OpeningWindow:
     def __init__(self, master):

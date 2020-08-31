@@ -26,6 +26,12 @@ class FileManagement():
         try:
             self.conn = sqlite3.connect(self.folder_path + 'body_database.db')
             self.c = self.conn.cursor()
+            
+            # here for backwards compatability
+            create_ignored_query = '''CREATE TABLE IF NOT EXISTS ignored (X INTEGER NOT NULL,
+                                                                    Y INTEGER NOT NULL)'''
+            self.c.execute(create_ignored_query)
+
         except sqlite3.Error as error:
             print("Error while connecting to sqlite", error)
             self.conn.close()
@@ -137,7 +143,7 @@ class FileManagement():
         self.c.execute(create_grid_query)
         
         create_ignored_query = '''CREATE TABLE IF NOT EXISTS ignored (X INTEGER NOT NULL,
-                                                                    Y INTEGER NOT NULL'''
+                                                                    Y INTEGER NOT NULL)'''
         self.c.execute(create_ignored_query)
         
         create_name_query = '''CREATE TABLE IF NOT EXISTS name (NAME TEXT NOT NULL)'''
@@ -359,6 +365,7 @@ class FileManagement():
         return group
     
     def add_ignored(self, coords):
+        """Adds the information for an ignored marker in the database."""
         add_ignored_query = '''INSERT 
                             INTO ignored 
                             (X, Y) values (?, ?)'''
@@ -366,6 +373,7 @@ class FileManagement():
         self.close()
         
     def delete_ignored(self, coords):
+        """Deletes an ignored marker if the user wishes."""
         delete_ignored_query = '''DELETE 
                         FROM ignored 
                         WHERE X = ? and Y = ?''' 
@@ -374,6 +382,7 @@ class FileManagement():
         self.close()
         
     def query_all_ignored(self):
+        """Pulls all ignored markers to generate"""
         all_ignored_query = '''SELECT * 
                             FROM ignored'''
         self.c.execute(all_ignored_query)
@@ -381,6 +390,7 @@ class FileManagement():
         return ignored
     
     def edit_info(self, edited_info):
+        """Edits the info of a biondi body if needed."""
         edit_query = '''UPDATE bodies
                         SET BODY_NAME = ?,
                         GR = ?,
