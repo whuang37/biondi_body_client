@@ -105,7 +105,7 @@ class Application(tk.Frame):
 
         self.show_image()
 
-        self.master.geometry(str(600) + "x" + str(600))
+        #self.master.geometry(str(600) + "x" + str(600))
         
         self.rows = 7
         self.columns = 7
@@ -376,7 +376,7 @@ class GridWindow(tk.Frame):
         offsety = +1 if scrolly >= 0 else 0
         self.main_canvas.xview_moveto(float(scrollx + offsetx)/self.width)
         self.main_canvas.yview_moveto(float(scrolly + offsety)/self.height)
-        self.master.geometry("600x600")
+        # self.master.geometry("600x600")
         
     def forward(self):
         """Moves forward to the next grid square in final_order.
@@ -524,7 +524,7 @@ class OptionBar(tk.Frame):
         export = tk.Toplevel()
         export.transient(root)
         export.title("Export")
-        export.geometry("300x130")
+        # export.geometry("300x130")
         export.columnconfigure(2, weight = 1)
         export.resizable(False, False)
         
@@ -683,7 +683,7 @@ class OptionBar(tk.Frame):
 class OpeningWindow:
     def __init__(self, master):
         self.master = master
-        self.master.geometry("580x100")
+        # self.master.geometry("580x100")
         self.master.title("Imaris Screenshot Tool")
 
         w1 = "Welcome to the Imaris Screenshot Tool!"
@@ -765,7 +765,7 @@ class OpeningWindow:
         to enter in data to initialize a folder for biondi body analysis.
         """
         nf = tk.Toplevel()
-        nf.geometry("365x165")
+        # nf.geometry("365x165")
         nf.transient(root)
 
         folder_path = tk.StringVar()
