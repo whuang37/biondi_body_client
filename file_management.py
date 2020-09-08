@@ -55,6 +55,7 @@ class FileManagement():
         get_grid_query = '''SELECT * FROM grid'''
         self.c.execute(get_grid_query)
         result = self.c.fetchall()
+        self.close()
         return result
     
     def finish_grid(self, grid_id, state):
@@ -452,25 +453,6 @@ class FileManagement():
         self.renumber_img(body_name, body_number)
         self.close()
 
-    def refresh_database(self): #come back to later
-        body_names = ["drop", 
-                    "crescent", 
-                    "spear", 
-                    "green spear", 
-                    "saturn", 
-                    "rod", 
-                    "ring", 
-                    "kettlebell", 
-                    "multi inc",
-                    "green rod"]
-        for items in body_names:
-            self.renumber_img(items, 1)
-            
-        refresh_query = '''UPDATE bodies ORDER BY BODY_NAME, BODY_NUMBER'''
-        self.c.execute(refresh_query)
-        self.close()
-            
-            
     def merge_img(self, img, annotation, new_name):
         """Concentate annotation and body image to one png
         

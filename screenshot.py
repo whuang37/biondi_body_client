@@ -3,7 +3,7 @@ import pyautogui
 from PIL import ImageTk, Image, ImageDraw, ImageFont
 from tkinter.colorchooser import askcolor
 from file_management import FileManagement
-
+import config
 class ScreenshotEditor(tk.Toplevel):
     """A basic image editor for image markups.
     
@@ -229,9 +229,7 @@ class ScreenshotEditor(tk.Toplevel):
         
         self.destroy()
         
-        all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc", "unknown"]
-        number = FileManagement(self.folder_path).count_bodies(all_bodies, False, False, False, False)
+        number = FileManagement(self.folder_path).count_bodies(config.all_bodies, False, False, False, False)
         if number == 300: # opens a popup at 300 biondi bodies done
             done_screen = tk.Toplevel()
             done_screen.grab_set()

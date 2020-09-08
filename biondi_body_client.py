@@ -6,6 +6,7 @@ from math import floor
 from image_viewer import ImageViewer
 from file_management import FileManagement
 from markings import GridMark, Marker, GridIgnored
+import config
 
 class Application(tk.Frame):
     """The main hub window for viewing and editing the gridfile.
@@ -61,9 +62,7 @@ class Application(tk.Frame):
         self.coord_label.grid(row = 3, column = 0, sticky = "sw")
 
         # body count
-        self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc", "unknown"]
-        self.body_count = tk.IntVar(value = FileManagement(self.folder_path).count_bodies(self.all_bodies, False, False, False, False))
+        self.body_count = tk.IntVar(value = FileManagement(self.folder_path).count_bodies(config.all_bodies, False, False, False, False))
         self.body_count_label = tk.Label(self.master, text = "{0} Bodies Annotated".format(self.body_count.get()))
         self.body_count_label.grid(row = 3, column = 0 , sticky = "se")
         self.update_count()
@@ -165,7 +164,7 @@ class Application(tk.Frame):
         through the bodies in the database to do so. Also creates a marker for
         every ignored marker
         """
-        data = FileManagement(self.folder_path).query_images(self.all_bodies, False, False, False, False)
+        data = FileManagement(self.folder_path).query_images(config.all_bodies, False, False, False, False)
         for i in data:
             body_info = {}
             x = 0
@@ -185,7 +184,7 @@ class Application(tk.Frame):
         i = Application(root, path=path)
 
     def update_count(self):
-        self.body_count.set(FileManagement(self.folder_path).count_bodies(self.all_bodies, False, False, False, False))
+        self.body_count.set(FileManagement(self.folder_path).count_bodies(config.all_bodies, False, False, False, False))
         self.body_count_label.configure(text = "{0} Bodies Annotated".format(self.body_count.get()))
         self.master.after(2000, self.update_count)
         
@@ -430,7 +429,6 @@ class OptionBar(tk.Frame):
         view_menu (tk.Menu): The object to which the View dropwdown options are assigned to.
         body_menu (tk.Menu): The object to which the primary body options are assigned to 
             (sublist of view_menu).
-        all_bodies (list): The options for body_menu.
         choices (dict): Stores the options in all_bodies as checkbuttons.
         secondary_menu (tk.Menu): The object to which the secondary body name options are assigned to
             (sublist of view_menu).
@@ -487,10 +485,8 @@ class OptionBar(tk.Frame):
                                   offvalue = False, command = self.show_ignored)
         
         body_menu = tk.Menu(view_menu, tearoff = False)
-        self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc", "unknown"]
         self.choices = {}
-        for choice in self.all_bodies:
+        for choice in config.all_bodies:
             self.choices[choice] = tk.BooleanVar(value = True)
             body_menu.add_checkbutton(label=choice, variable=self.choices[choice], 
                                 onvalue = True, offvalue = False, command = self.show_select_markers)
@@ -650,9 +646,7 @@ class OptionBar(tk.Frame):
         Takes seconday_selection and body_selection and shows the markers based on those requirements
         from FileManagement.
         """
-        all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc", "unknown"]
-        all_data = FileManagement(self.folder_path).query_images(all_bodies, False, False, False, False)
+        all_data = FileManagement(self.folder_path).query_images(config.all_bodies, False, False, False, False)
         for i in all_data:
             self.grid_canvas.delete("m" + str(i[0]))
         

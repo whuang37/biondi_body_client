@@ -4,6 +4,7 @@ from screenshot import LilSnippy
 from file_management import FileManagement
 from time import time
 from math import floor
+import config
 class Marker(tk.Frame):
     """The popup prompt to create a marker.
     
@@ -60,9 +61,8 @@ class Marker(tk.Frame):
         marker.title("popup")
         marker.grab_set()
         
-        all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc", "unknown"]
-        
+        all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", "rod", 
+                    "green rod", "ring", "kettlebell", "multi inc-speck", "multi inc-spear", "unknown"]
         dropdown = tk.OptionMenu(marker, self.body_type, *all_bodies)
         grC = tk.Checkbutton(marker, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
         mafC = tk.Checkbutton(marker, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
@@ -168,7 +168,7 @@ class GridMark():
         self.time = body_info["time"]
         tag = "m{0}".format(self.time)
         self.marker_canvas.create_text(x, y, font = ("Calibri", 18, "bold"), fill = 'WHITE', activefill = "red",
-                                       text = self._get_letter(body_name), tag = tag)
+                                       text = config.body_index[body_name], tag = tag)
         
         self.marker_canvas.tag_bind(tag, '<ButtonPress-1>', self._on_click)
         self.marker_canvas.update 
@@ -176,21 +176,6 @@ class GridMark():
     def _on_click(self, event):
         ImageViewer(self.folder_path, self.marker_canvas).open_file(self.time)
         
-    def _get_letter(self, string): #used with draw
-        body_index = {"drop": "d",
-                    "crescent": "c",
-                    "spear": "s",
-                    "green spear": "grs",
-                    "saturn": "sa",
-                    "oreo": "o",
-                    "rod": "r",
-                    "ring": "ri",
-                    "kettlebell": "kb",
-                    "multi inc": "mi",
-                    "green rod": "grr",
-                    "unknown": "?"}
-        return body_index[string]
-
 class GridIgnored():
     """Creates a clickable ignored marker.
     

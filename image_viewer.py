@@ -3,6 +3,7 @@ from PIL import Image, ImageTk
 from file_management import FileManagement
 from datetime import datetime
 from screenshot import ScreenshotEditor
+import config
 class ImageViewer(tk.Toplevel):
     """A window to view taken screenshots.
     
@@ -37,8 +38,6 @@ class ImageViewer(tk.Toplevel):
         self.title("Image Viewer")
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.folder_path = folder_path
-        self.all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc", "unknown"]
         self.marker_canvas = marker_canvas
             
         self.columnconfigure(2, weight=1)
@@ -75,7 +74,7 @@ class ImageViewer(tk.Toplevel):
         self.previous_body_time = 0
         
         self.make_filter_buttons()
-        self.create_buttons(self.all_bodies, False, False, False, False)
+        self.create_buttons(config.all_bodies, False, False, False, False)
         
     def make_filter_buttons(self):
         """Creates the different filter buttons.
@@ -93,7 +92,7 @@ class ImageViewer(tk.Toplevel):
 
         # loops through all possible biondi bodies to file the dorpdown
         self.choices = {}
-        for choice in self.all_bodies:
+        for choice in config.all_bodies:
             self.choices[choice] = tk.IntVar(value=0)
             menu.add_checkbutton(label=choice, variable=self.choices[choice], 
                                 onvalue=1, offvalue=0)
@@ -299,19 +298,6 @@ class ImageViewer(tk.Toplevel):
         edit_img.grid(row = 4, column = 1, sticky = "e", padx = 3, pady = 3)
         delete.grid(row = 4, column = 2, sticky = "e", padx = 3, pady = 3)
         
-    def _get_letter(self, string):
-        body_index = {"drop": "d",
-                    "crescent": "c",
-                    "spear": "s",
-                    "green spear": "grs",
-                    "saturn": "sa",
-                    "rod": "r",
-                    "ring": "ri",
-                    "kettlebell": "kb",
-                    "multi inc": "mi",
-                    "green rod": "grr"}
-        return body_index[string]
-        
     def create_edit_entries(self, body_info):
         """Creates entry fields when editing info.
         
@@ -389,7 +375,7 @@ class ImageViewer(tk.Toplevel):
             fm.close()
             self.filter()
             tag = "m" + str(time)
-            self.marker_canvas.itemconfig(tag, text = self._get_letter(edited_body_name))
+            self.marker_canvas.itemconfig(tag, text = config.body_index[edited_body_name])
             
         self.clear_information_canvas()
         self.show_information(new_info)
@@ -512,7 +498,7 @@ class ImageViewer(tk.Toplevel):
             if var.get() == 1:
                 body_selection.append(name)
         if body_selection == []:
-            body_selection = self.all_bodies
+            body_selection = config.all_bodies
         return body_selection
     
     def filter(self):
@@ -537,9 +523,8 @@ class ImageViewer(tk.Toplevel):
         all the possible bodies organized by time.
         """
         self._remake_button_list()
-        self.create_buttons(self.all_bodies, False, False, False, False)
-        for choice in ("drop", "crescent", "spear", "green spear", "saturn", "oreo", 
-                        "rod", "green rod", "ring", "kettlebell", "multi inc", "unknown"):
+        self.create_buttons(config.all_bodies, False, False, False, False)
+        for choice in config.all_bodies:
             self.choices[choice].set(0)
         
         self.var_GR.set(False)
