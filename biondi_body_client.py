@@ -522,7 +522,6 @@ class OptionBar(tk.Frame):
         export.title("Export")
         # export.geometry("300x130")
         export.columnconfigure(2, weight = 1)
-        export.resizable(False, False)
         
         name = tk.Label(export, text = "Case Name:")
         name.grid(row = 1, column = 0, padx =10, pady = 10, sticky = "nsew")
