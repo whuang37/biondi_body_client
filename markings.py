@@ -61,9 +61,7 @@ class Marker(tk.Frame):
         marker.title("popup")
         marker.grab_set()
         
-        all_bodies = ["drop", "crescent", "spear", "green spear", "saturn", "oreo", "rod", 
-                    "green rod", "ring", "kettlebell", "multi inc-speck", "multi inc-spear", "unknown"]
-        dropdown = tk.OptionMenu(marker, self.body_type, *all_bodies)
+        dropdown = tk.OptionMenu(marker, self.body_type, *config.all_bodies)
         grC = tk.Checkbutton(marker, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
         mafC = tk.Checkbutton(marker, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
         mpC = tk.Checkbutton(marker, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)

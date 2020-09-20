@@ -394,7 +394,7 @@ class FileManagement():
         ignored = self.c.fetchall()
         return ignored
     
-    def edit_info(self, edited_info):
+    def edit_info(self, edited_info): # rewrite
         """Edits the info of a biondi body if needed."""
         edit_query = '''UPDATE bodies
                         SET BODY_NAME = ?,
@@ -402,7 +402,9 @@ class FileManagement():
                         MAF = ?,
                         MP = ?, 
                         UNSURE = ?, 
-                        NOTES = ? 
+                        NOTES = ?,
+                        ANGLE = ?,
+                        LOG = ?
                         WHERE TIME = ?'''
                         
         
