@@ -108,7 +108,9 @@ class Marker(tk.Frame):
                 "unsure": self.var_unsure.get(),
                 "notes": self.notes.get(),
                 "body_file_name": body_file_name + ".png",
-                "annotation_file_name": annotation_file_name + ".png"
+                "annotation_file_name": annotation_file_name + ".png",
+                "angle": None,
+                "log": None
                 }
         return data
         

@@ -136,7 +136,9 @@ class FileManagement():
                                                             UNSURE INTEGER,
                                                             NOTES TEXT,
                                                             BODY_FILE_NAME TEXT,
-                                                            ANNOTATION_FILE_NAME TEXT)'''
+                                                            ANNOTATION_FILE_NAME TEXT,
+                                                            ANGLE REAL,
+                                                            LOG REAL)'''
         self.c.execute(create_table_query)
         
         create_grid_query = '''CREATE TABLE IF NOT EXISTS grid (GRID_ID TEXT NOT NULL,
@@ -208,8 +210,10 @@ class FileManagement():
                                             UNSURE, 
                                             NOTES, 
                                             BODY_FILE_NAME, 
-                                            ANNOTATION_FILE_NAME) 
-                                            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'''
+                                            ANNOTATION_FILE_NAME,
+                                            ANGLE,
+                                            LOG) 
+                                            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'''
         
         self.c.execute(insert_query, data_values)
         self.close()
@@ -281,7 +285,7 @@ class FileManagement():
         i = 0
         for choice in ("time", "annotator_name", "body_name", "body_number", 
                         "x", "y", "grid_id", "GR", "MAF", "MP", "unsure", 
-                        "notes", "body_file_name", "annotation_file_name"):
+                        "notes", "body_file_name", "annotation_file_name", "angle", "log"):
             data[choice] = group[i]
             i += 1
             

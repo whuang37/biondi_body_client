@@ -68,6 +68,31 @@ class ScreenshotEditor(tk.Toplevel):
         
         self.setup()
 
+    def setup(self):
+        """Initializes a series of attributes and binds.
+        
+        Different variables used for annotations are initialized in here. Button clicks
+        are bound for drawing lines to markup the image.
+        """
+        self.old_x = None
+        self.old_y = None
+        self.line_width = 5
+        self.color = 'white'
+        self.active_button = self.brush_button # remembers the previously activated button
+        self.screenshot_canvas.bind('<B1-Motion>', self.paint)
+        self.screenshot_canvas.bind('<ButtonRelease-1>', self.reset)
+
+        self.text_annotation = "{0} {1}, {2}".format(self.body_info["grid_id"], self.body_info["x"], self.body_info["y"])
+        
+        # find the appropriate margin for the text
+        if self.width > self.height: 
+            self.margin = .05 * self.height
+        else:
+            self.margin = .05 * self.width
+        
+        # creates first text location
+        self.screenshot_canvas.create_text(self.margin, self.margin, text = self.text_annotation, 
+                                font =("Calibri", 14), anchor = "nw", fill = 'white', tag ="text") 
         
     def create_screenshot_canvas(self):
         """Creates the screenshot canvas.
@@ -89,47 +114,30 @@ class ScreenshotEditor(tk.Toplevel):
         selection on the top toolbar.
         """
         self.brush_button = tk.Button(self.toolbar_frame, text = "brush", command = self.use_brush)
-        self.color_button = tk.Button(self.toolbar_frame, text = 'color', command = self.choose_color)
-        self.undo_button = tk.Button(self.toolbar_frame, text = 'clear canvas', command = self.clear)
-        self.text_button = tk.Button(self.toolbar_frame, text = "top-left", command = self.text)
-        self.save_button = tk.Button(self.toolbar_frame, text = 'save', command = self.save)
+        self.brush_button.pack(side = "left")
         
-        self.brush_button.grid(row = 0, column = 0)
-        self.color_button.grid(row = 0, column = 1)
-        self.undo_button.grid(row = 0, column = 2)
-        self.text_button.grid(row = 0 , column = 3)
-        self.save_button.grid(row = 0 , column = 4)
+        self.color_button = tk.Button(self.toolbar_frame, text = 'color', command = self.choose_color)
+        self.color_button.pack(side = "left")
+        
+        self.undo_button = tk.Button(self.toolbar_frame, text = 'clear canvas', command = self.clear)
+        self.undo_button.pack(side = "left")
+        
+        self.text_button = tk.Button(self.toolbar_frame, text = "top-left", command = self.text)
+        self.text_button.pack(side = "left")
+
+        self.save_button = tk.Button(self.toolbar_frame, text = 'save', command = self.save)
+        self.save_button.pack(side = "left")
         
     def use_brush(self):
         """Function used the activate the brush from the button"""
         self.activate_button(self.brush_button)
         
-    def setup(self):
-        """Initializes a series of attributes and binds.
+        self.screenshot_canvas.unbind("<B1-Motion>")
+        self.screenshot_canvas.unbind("<ButtonRelease-1>")
         
-        Different variables used for annotations are initialized in here. Button clicks
-        are bound for drawing lines to markup the image.
-        """
-        self.old_x = None
-        self.old_y = None
-        self.line_width = 5
-        self.color = 'white'
-        self.active_button = self.brush_button
         self.screenshot_canvas.bind('<B1-Motion>', self.paint)
         self.screenshot_canvas.bind('<ButtonRelease-1>', self.reset)
-
-        self.text_annotation = "{0} {1}, {2}".format(self.body_info["grid_id"], self.body_info["x"], self.body_info["y"])
         
-        # find the appropriate margin for the text
-        if self.width > self.height: 
-            self.margin = .05 * self.height
-        else:
-            self.margin = .05 * self.width
-        
-        # creates first text location
-        self.screenshot_canvas.create_text(self.margin, self.margin, text = self.text_annotation, 
-                                font =("Calibri", 14), anchor = "nw", fill = 'white', tag ="text") 
-    
     def activate_button(self, some_button):
         """Keeps brush button sunken as it is used.
         
@@ -238,6 +246,158 @@ class ScreenshotEditor(tk.Toplevel):
 
             close_button = tk.Button(done_screen, text = "OK", command = lambda: done_screen.destroy())
             close_button.pack(side = "bottom")
+            
+class Angler(tk.Toplevel):
+    def __init__(self, body_info, folder_path, marker_canvas, im, new):
+        tk.Toplevel.__init__(self)
+        self.title("Screenshot Editor")
+        self.body_info = body_info
+        self.folder_path = folder_path
+        self.marker_canvas = marker_canvas
+        self.im = im
+        self.img = ImageTk.PhotoImage(im)
+        self.width = self.img.width()
+        self.height = self.img.height()
+        self.new = new
+        
+        self.focus_set()
+        self.grab_set()
+        
+        self.screenshot_frame = tk.Frame(self)
+        self.screenshot_frame.grid(row = 1, column = 0)
+        
+        self.create_screenshot_canvas()
+
+        self.toolbar_frame = tk.Frame(self)
+        self.toolbar_frame.grid(row=0, column = 0)
+        
+    def init_angles(self):
+        self.screenshot_canvas.bind("<Button-1>", self.set_start)
+
+        
+        self.prev_angle = 0
+        self.passed = False
+    def create_screenshot_canvas(self):
+        """Creates the screenshot canvas.
+        
+        Creates a canvas where the image is stored. All lines drawn that the user 
+        can see are also stored on this canvas.
+        """
+        self.screenshot_canvas = tk.Canvas(self.screenshot_frame, width = self.width, height = self.height,
+                                    borderwidth = 0, highlightthickness = 0)
+        self.screenshot_canvas.pack(expand = True)
+        self.screenshot_canvas.create_image(0, 0, image = self.img, anchor = "nw")
+        self.screenshot_canvas.img = self.img
+        self.screenshot_canvas.focus_set()
+        
+    def set_start(self, event):
+        # first point selected
+        self.f_coords= (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+        
+        self.canvas.bind("<Motion>", self.f_ghost_line)
+        self.canvas.unbind("<Button-1>")
+        self.canvas.bind("<Button-1>", self.create_first_line)
+        
+    def f_ghost_line(self, event):
+        # gray line indicating where angle is
+        ghost_coords = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+        
+        self.canvas.delete("ghost")
+        self.canvas.create_line(ghost_coords, self.f_coords,
+                                fill = "gray", width = 5, tag = "ghost")
+        
+    def create_first_line(self, event):
+        # creates the first black line used in angle
+        self.mid_coords = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+        self.canvas.create_line(self.f_coords, self.mid_coords, 
+                                fill = "black", width = 5, tag = "first_line")
+        
+        # series of binds to create the next line
+        self.canvas.unbind("<Button-1>")
+        self.canvas.bind("<ButtonRelease-1>", self.create_second_line)
+        self.canvas.unbind("<Motion>")
+        self.canvas.bind("<Motion>", self.l_ghost_line)
+        self.canvas.bind("<B1-Motion>", self.calc_angle)
+    
+    def l_ghost_line(self, event):
+        # ghost line starting from middle point after that has been selected
+        ghost_coords = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+        
+        self.canvas.delete("ghost")
+        self.canvas.create_line(ghost_coords, self.mid_coords,
+                                fill = "gray", width = 5, tag = "ghost")
+        
+    def create_second_line(self, event):
+        self.l_coords = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+        self.canvas.create_line(self.mid_coords, self.l_coords, 
+                                fill = "black", width = 5, tag = "first_line")
+        self.canvas.create_text(event.x + 10, event.y + 10, fill = "white", font = "Calibri 12",
+                                text = str(self.curr_angle), tag = "angle", anchor = "nw")
+        
+        # unbinds everything to reset the canvas
+        self.canvas.unbind("<ButtonRelease-1>")
+        self.canvas.unbind("<B1-Motion>")
+        self.canvas.unbind("<Motion>")
+        
+    def angle(self, cur_coords):
+        # gets atan where origin is placed at mid point
+        def atan_angle(a, x_sign, y_sign):
+            degree = math.degrees(math.atan2(x_sign*(a[1] - self.mid_coords[1]), y_sign*(a[0] - self.mid_coords[0])))
+            return degree
+        
+        first_angle = atan_angle(self.f_coords, -1, 1)
+        
+        # rotates the axises according to where the first angle is
+        if (first_angle > 0) & (first_angle <= 90):
+            axis_angle = atan_angle(cur_coords, -1, 1)
+        elif (first_angle > 90) & (first_angle <= 180):
+            axis_angle = atan_angle(cur_coords, 1, -1)
+        elif (first_angle < 0) & (first_angle >= -90):
+            axis_angle = atan_angle(cur_coords, -1, 1)
+        else:
+            axis_angle = atan_angle(cur_coords, 1, -1)
+            
+        if first_angle > 90:
+            first_angle = -(180 - first_angle)
+        elif first_angle < -90:
+            first_angle = -(-180 - first_angle)
+            
+        # checks if the mouse has passed 180 degrees
+        if ((175 < self.prev_angle <= 180) & (-180 <= axis_angle < -175)) or ((175 < axis_angle <= 180) & (-180 <= self.prev_angle < -175)):
+            if self.passed == False:
+                self.passed = True
+            else:
+                self.passed = False
+                
+        # adds 360 if the angle passes 180
+        if (self.passed == True) & (axis_angle - first_angle <= 0):
+            a = 360
+        elif (self.passed == True) & (axis_angle - first_angle > 0):
+            a = -360
+        else: 
+            a = 0 
+            
+        curr_angle = axis_angle + a - first_angle
+        
+        if abs(curr_angle) >= 359.00:
+            self.passed = False
+            a = 0
+            
+        self.prev_angle = axis_angle
+        return abs(curr_angle)
+    
+    def calc_angle(self, event):
+        cur_coords = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+        self.curr_angle = self.angle(cur_coords)
+
+        self.canvas.delete("ghost")
+        self.canvas.create_line(cur_coords, self.mid_coords,
+                                fill = "gray", width = 5, tag = "ghost")
+        self.canvas.create_text(cur_coords[0] + 10, cur_coords[1] + 10, fill = "white", font = "Calibri 12",
+                                text = str(self.curr_angle), tag = "ghost", anchor = "nw")
+        
+    def get_angle(self):
+        return self.curr_angle
 
 class LilSnippy(tk.Frame):
     """A selection and screenshot tool.
