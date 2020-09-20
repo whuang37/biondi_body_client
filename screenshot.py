@@ -115,19 +115,19 @@ class ScreenshotEditor(tk.Toplevel):
         selection on the top toolbar.
         """
         self.brush_button = tk.Button(self.toolbar_frame, text = "brush", command = self.use_brush)
-        self.brush_button.pack(side = "left")
+        self.brush_button.grid(row = 0, column = 0)
         
         self.color_button = tk.Button(self.toolbar_frame, text = 'color', command = self.choose_color)
-        self.color_button.pack(side = "left")
+        self.color_button.grid(row = 0, column = 1)
         
         self.undo_button = tk.Button(self.toolbar_frame, text = 'clear canvas', command = self.clear)
-        self.undo_button.pack(side = "left")
+        self.undo_button.grid(row = 0, column = 2)
         
         self.text_button = tk.Button(self.toolbar_frame, text = "top-left", command = self.text)
-        self.text_button.pack(side = "left")
+        self.text_button.grid(row = 0, column = 3)
 
         self.save_button = tk.Button(self.toolbar_frame, text = 'save', command = self.save)
-        self.save_button.pack(side = "left")
+        self.save_button.grid(row = 0, column = 4)
         
     def use_brush(self):
         """Function used the activate the brush from the button"""
@@ -261,6 +261,8 @@ class Angler(tk.Toplevel):
         self.height = self.img.height()
         self.new = new
         
+        self.curr_angle = None
+        
         self.focus_set()
         self.grab_set()
         
@@ -278,7 +280,7 @@ class Angler(tk.Toplevel):
         
     def create_toolbar(self):
         self.ok_button = tk.Button(self.toolbar_frame, text = "ok", command = self.ok)
-        self.ok_button.pack(side = "left")
+        self.ok_button.grid(row = 0, column = 0)
         
     def ok(self):
         self.body_info["angle"] = self.curr_angle
@@ -289,6 +291,7 @@ class Angler(tk.Toplevel):
             FileManagement(self.folder_path).edit_info(self.body_info)
             
         self.destroy()
+        
     def init_angles(self):
         self.screenshot_canvas.bind("<Button-1>", self.set_start)
         
@@ -328,7 +331,7 @@ class Angler(tk.Toplevel):
         # creates the first black line used in angle
         self.mid_coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
         self.screenshot_canvas.create_line(self.f_coords, self.mid_coords, smooth = True, splinesteps = 36, capstyle = "round",
-                                fill = "white", width = 5, tag = "first_line")
+                                fill = "white", width = 5, tag = "line")
         
         # series of binds to create the next line
         self.screenshot_canvas.unbind("<Button-1>")
@@ -348,14 +351,29 @@ class Angler(tk.Toplevel):
     def create_second_line(self, event):
         self.l_coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
         self.screenshot_canvas.create_line(self.mid_coords, self.l_coords, smooth = True, splinesteps = 36, 
-                                        capstyle = "round", fill = "white", width = 5, tag = "second_line")
+                                        capstyle = "round", fill = "white", width = 5, tag = "line")
         self.screenshot_canvas.create_text(event.x + 10, event.y + 10, fill = "white", font = "Calibri 12",
                                 text = str(self.curr_angle), tag = "angle", anchor = "nw")
         
         # unbinds everything to reset the canvas
+        self.screenshot_canvas.unbind("<Button-1>")
         self.screenshot_canvas.unbind("<ButtonRelease-1>")
         self.screenshot_canvas.unbind("<B1-Motion>")
         self.screenshot_canvas.unbind("<Motion>")
+        
+        self.screenshot_canvas.bind("<Button-1>", self.clear_canvas)
+
+        
+    def clear_canvas(self, event):
+        self.screenshot_canvas.delete("line")
+        self.screenshot_canvas.delete("angle")
+        self.screenshot_canvas.delete("ghost")
+        
+        self.curr_angle = None
+        
+        self.screenshot_canvas.unbind("<Button-1>")
+        self.screenshot_canvas.bind("<Button-1>", self.set_start)
+    
         
     def angle(self, cur_coords):
         # gets atan where origin is placed at mid point
