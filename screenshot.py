@@ -77,7 +77,7 @@ class ScreenshotEditor(tk.Toplevel):
         """
         self.old_x = None
         self.old_y = None
-        self.line_width = 5
+        self.line_width = 3
         self.color = 'white'
         self.active_button = self.brush_button # remembers the previously activated button
         self.screenshot_canvas.bind('<B1-Motion>', self.paint)
@@ -365,7 +365,7 @@ class Ringer(tk.Toplevel):
         coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasx(event.y))
         if self.old_x and self.old_y:
             
-            self.screenshot_canvas.create_line(self.old_x, self.old_y, coords, width = self.line_width, fill = "white",
+            self.screenshot_canvas.create_line(self.old_x, self.old_y, coords, width = self.line_width, fill = "purple",
                                                capstyle = "round", smooth = True, splinesteps = 36, tag = "distance_line")
             self.d = (self.old_x, self.old_y, coords[0], coords[1])
             
