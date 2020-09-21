@@ -326,7 +326,11 @@ class Ringer(tk.Toplevel):
         if self.new:
             ScreenshotEditor(self.body_info, self.folder_path, self.marker_canvas, self.im, True)
         else:
-            FileManagement(self.folder_path).edit_info(self.body_info)
+            info = (self.body_info["body_name"], self.body_info["GR"], 
+                    self.body_info["MAF"], self.body_info["MP"], 
+                    self.body_info["unsure"], self.body_info["notes"], 
+                    self.body_info["angle"], self.body_info["log"], self.body_info["time"])
+            FileManagement(self.folder_path).edit_info(info)
             
         self.destroy()
         
@@ -471,7 +475,6 @@ class Ringer(tk.Toplevel):
         
     def calc_log(self):
         distance = self.distance_form(self.d)
-        print(distance)
         length = 0
         for x in self.l:
             length += self.distance_form(x)
@@ -534,7 +537,11 @@ class Angler(tk.Toplevel):
         if self.new:
             ScreenshotEditor(self.body_info, self.folder_path, self.marker_canvas, self.im, True)
         else:
-            FileManagement(self.folder_path).edit_info(self.body_info)
+            info = (self.body_info["body_name"], self.body_info["GR"], 
+                    self.body_info["MAF"], self.body_info["MP"], 
+                    self.body_info["unsure"], self.body_info["notes"], 
+                    self.body_info["angle"], self.body_info["log"], self.body_info["time"])
+            FileManagement(self.folder_path).edit_info(info)
             
         self.destroy()
         

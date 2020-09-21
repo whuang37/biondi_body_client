@@ -2,7 +2,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 from file_management import FileManagement
 from datetime import datetime
-from screenshot import ScreenshotEditor
+from screenshot import ScreenshotEditor, Angler, Ringer
 import config
 class ImageViewer(tk.Toplevel):
     """A window to view taken screenshots.
@@ -205,7 +205,7 @@ class ImageViewer(tk.Toplevel):
         """
         # generates a series of white columns every other column to distinguish the columns
         x = 0
-        column_widths =  ("20", "11", "12", "9", "12", "5", "5", "5", "8")
+        column_widths =  ("20", "11", "12", "9", "12", "5", "5", "5", "8", "2", "9")
         for i in column_widths:
             if x % 2 == 0: 
                 bg_color = "gray99"
@@ -216,7 +216,7 @@ class ImageViewer(tk.Toplevel):
             x += 1
         # makes background of text alternate between white and gray
         x = 0
-        for i in ("Time:", "Annotator:", "Body Type:", "Number:", "Location:", "GR:", "MAF:", "MP:", "UNSURE:"):
+        for i in ("Time:", "Annotator:", "Body Type:", "Number:", "Location:", "GR:", "MAF:", "MP:", "UNSURE:", "ANGLE:", "LOG(L/D):"):
             if x % 2 == 0:
                 bg_color = "gray99"
             else:
@@ -238,8 +238,7 @@ class ImageViewer(tk.Toplevel):
         Args:
             Time (int): Time added of selected body in unix time.
         """
-        fm = FileManagement(self.folder_path)
-        body_info = fm.get_image_time(time)
+        body_info = FileManagement(self.folder_path).get_image_time(time)
         self.clear_information_canvas()
         self.show_information(body_info)
         self.open_annotation_image(body_info)
@@ -289,14 +288,24 @@ class ImageViewer(tk.Toplevel):
         """
         edit_info = tk.Button(self.edit_buttons_frame, text = "Edit Info", 
                             command = lambda : self.create_edit_entries(body_info))
+        edit_info.grid(row = 4, column = 0, sticky = "e", padx = 3, pady = 3)
+        
         edit_img = tk.Button(self.edit_buttons_frame, text = "Edit Image", 
                             command = lambda: self.edit_image(body_info))
+        edit_img.grid(row = 4, column = 1, sticky = "e", padx = 3, pady = 3)
+        
         delete = tk.Button(self.edit_buttons_frame, text = "Delete", 
                             command = lambda: self.delete_image(body_info))
-            
-        edit_info.grid(row = 4, column = 0, sticky = "e", padx = 3, pady = 3)
-        edit_img.grid(row = 4, column = 1, sticky = "e", padx = 3, pady = 3)
         delete.grid(row = 4, column = 2, sticky = "e", padx = 3, pady = 3)
+        
+        if body_info["body_name"] == "ring_kettlebell":
+            edit_log = tk.Button(self.edit_buttons_frame, text = "Edit Log",
+                                 command = lambda: self.edit_log(body_info))
+            edit_log.grid(row = 4, column = 3, sticky = "e", padx = 3, pady = 3)
+        elif body_info["body_name"] == "crescent_spear":
+            edit_angle = tk.Button(self.edit_buttons_frame, text = "Edit Angle",
+                                 command = lambda: self.edit_angle(body_info))
+            edit_angle.grid(row =4 , column = 3, sticky = "e", padx =3 , pady = 3)
         
     def create_edit_entries(self, body_info):
         """Creates entry fields when editing info.
@@ -359,9 +368,16 @@ class ImageViewer(tk.Toplevel):
             body_info (tuple): The old body info before editing.
         """
         # commit edited parameters into database
-        edited = (edited_body_name, edited_GR, edited_MAF, edited_MP, edited_unsure, edited_notes, time)
-        fm = FileManagement(self.folder_path)
-        fm.edit_info(edited)
+        edited = [edited_body_name, edited_GR, 
+                  edited_MAF, edited_MP, 
+                  edited_unsure, edited_notes]
+        if edited_body_name == "crescent_spear":
+            edited.extend((body_info["angle"], None, time))
+        elif edited_body_name == "ring_kettlebell":
+            edited.extend((None, body_info["log"], time))
+        else:
+            edited.extend((None, None, time))
+        FileManagement(self.folder_path).edit_info(edited)
         
         fm = FileManagement(self.folder_path)
         new_info = fm.get_image_time(body_info["time"])
@@ -369,6 +385,14 @@ class ImageViewer(tk.Toplevel):
         # if the body name is changed, renumbers both the old and new type
         # changes the gridfile marker to reflect the new letter
         if body_info["body_name"] != edited_body_name:
+            if edited_body_name == "crescent_spear":
+                body_image = Image.open(self.folder_path + body_info["body_file_name"])
+        
+                Angler(body_info, self.folder_path, self.marker_canvas, body_image, False)
+            elif edited_body_name == "ring_kettlebell":
+                body_image = Image.open(self.folder_path + body_info["body_file_name"])
+        
+                Ringer(body_info, self.folder_path, self.marker_canvas, body_image, False)
             fm = FileManagement(self.folder_path)
             fm.renumber_img(body_info["body_name"], 1)
             fm.renumber_img(edited_body_name, 1)
@@ -377,6 +401,7 @@ class ImageViewer(tk.Toplevel):
             tag = "m" + str(time)
             self.marker_canvas.itemconfig(tag, text = config.body_index[edited_body_name])
             
+
         self.clear_information_canvas()
         self.show_information(new_info)
         
@@ -393,8 +418,18 @@ class ImageViewer(tk.Toplevel):
         body_image = Image.open(self.folder_path + body_info["body_file_name"])
         
         # new = False as the image is already saved in the DB so no need to resave
-        editor = ScreenshotEditor(body_info, self.folder_path, self.marker_canvas, body_image, False)
+        ScreenshotEditor(body_info, self.folder_path, self.marker_canvas, body_image, False)
 
+    def edit_angle(self, body_info):
+        body_image = Image.open(self.folder_path + body_info["body_file_name"])
+        
+        Angler(body_info, self.folder_path, self.marker_canvas, body_image, False)
+        
+    def edit_log(self, body_info):
+        body_image = Image.open(self.folder_path + body_info["body_file_name"])
+        
+        Ringer(body_info, self.folder_path, self.marker_canvas, body_image, False)
+        
     def delete_image(self, body_info):
         """Deletes current image.
         
@@ -439,7 +474,9 @@ class ImageViewer(tk.Toplevel):
                 str(body_info["GR"]),
                 str(body_info["MAF"]),
                 str(body_info["MP"]),
-                str(body_info["unsure"]))
+                str(body_info["unsure"]),
+                str(body_info["angle"]),
+                str(body_info["log"]))
         
         x = 0
         for i in info:
