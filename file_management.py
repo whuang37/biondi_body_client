@@ -1,5 +1,5 @@
 import sqlite3
-import os 
+import csv
 from shutil import copy
 from PIL import Image
 from grid_tracker import GridRandomizer
@@ -484,6 +484,7 @@ class FileManagement():
         a singular png. ALso creates a new file name in the format of
         BODY NAME_ANNOTATOR INITIALS_BODY NUMBER_GR_MAF_MP. GR, MAF, and 
         MP are optional if the body does not possess those characteristics.
+        Converts .db file into a csv file for review
         
         Args:
             new_folder_path (str): File directory where the exported case will
@@ -515,8 +516,40 @@ class FileManagement():
                 img_name += "_MP"
             img_name += ".png"
             
-            print(img_name)
             self.merge_img(body_info[6], body_info[7], img_name)
-
+            
+        all_info_query = '''SELECT TIME,
+                            ANNOTATOR_NAME,
+                            BODY_NAME,
+                            BODY_NUMBER,
+                            X_POSITION,
+                            Y_POSITION,
+                            GRID_ID,
+                            GR,
+                            MAF,
+                            MP,
+                            UNSURE,
+                            NOTES,
+                            ANGLE,
+                            LOG
+                            FROM bodies'''
+                            
+        self.c.execute(all_info_query)
+        
+        data = self.c.fetchall()
+        with open(f"{new_folder_path}{case_name}-bodies.csv", "w", newline = "") as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow([i[0] for i in self.c.description])
+            csv_writer.writerows(data)
+        
+        grid_query = '''SELECT * from grid'''
+        
+        self.c.execute(grid_query)
+        grid = self.c.fetchall()
+        with open(f"{new_folder_path}{case_name}-grid.csv", "w", newline = "") as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow([i[0] for i in self.c.description])
+            csv_writer.writerows(grid)
+        
 if __name__ == "__main__":
     pass
