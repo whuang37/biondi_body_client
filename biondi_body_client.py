@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 from math import floor
-
+import sys
 from image_viewer import ImageViewer
 from file_management import FileManagement
 from markings import GridMark, Marker, GridIgnored
@@ -62,7 +62,18 @@ class Application(tk.Frame):
         self.coord_label.grid(row = 3, column = 0, sticky = "sw")
 
         # body count
-        self.body_count = tk.IntVar(value = FileManagement(self.folder_path).count_bodies(config.all_bodies, False, False, False, False))
+        try:
+            self.body_count = tk.IntVar(value = FileManagement(self.folder_path).count_bodies(config.all_bodies, False, False, False, False))
+        except: # incase the case is not initiated
+            error_screen = tk.Toplevel()
+            error_screen.focus_get()
+            error_label1 = tk.Label(error_screen, text = "Unable to open file. May not be initialized.")
+            error_label2 = tk.Label(error_screen, text = "Press okay to exit the system.")
+            error_label1.grid(row = 0, column = 0, sticky = 'nswe')
+            error_label2.grid(row = 2, column = 0, sticky = 'nswe')
+
+            close_button = tk.Button(error_screen, text = "OK", command = lambda: sys.exit())
+            close_button.grid(row = 3, column = 0, sticky = 's')
         self.body_count_label = tk.Label(self.master, text = "{0} Bodies Annotated".format(self.body_count.get()))
         self.body_count_label.grid(row = 3, column = 0 , sticky = "se")
         self.update_count()
