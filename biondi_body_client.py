@@ -755,11 +755,17 @@ class OpeningWindow:
         done_screen = tk.Toplevel()
 
         success_label1 = tk.Label(done_screen, text = "Folder sucessfully initialized!")
-        success_label2 = tk.Label(done_screen, text = "Press the \"Open Previous Folder\" button to access it.")
         success_label1.grid(row = 0, column = 0, sticky = 'nswe')
-        success_label2.grid(row = 2, column = 0, sticky = 'nswe')
 
-        close_button = tk.Button(done_screen, text = "OK", command = lambda: done_screen.destroy())
+        def init_confirm():
+            done_screen.destroy()
+            self.welcome_label1.destroy()
+            self.welcome_label2.destroy()
+            self.welcome_label3.destroy()
+            self.button_frame.destroy()
+            i = Application(root, path = folder_path)
+            
+        close_button = tk.Button(done_screen, text = "OK", command = lambda: init_confirm())
         close_button.grid(row = 3, column = 0, sticky = 's')
 
     def initiate_folder(self):

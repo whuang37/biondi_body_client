@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from image_viewer import ImageViewer
 from screenshot import LilSnippy
 from file_management import FileManagement
@@ -61,7 +62,7 @@ class Marker(tk.Frame):
         marker.title("popup")
         marker.grab_set()
         
-        dropdown = tk.OptionMenu(marker, self.body_type, *config.all_bodies)
+        dropdown = ttk.Combobox(marker, values = config.all_bodies, textvariable = self.body_type)
         grC = tk.Checkbutton(marker, text = "GR", anchor ="w", variable = self.var_GR, onvalue = True, offvalue = False)
         mafC = tk.Checkbutton(marker, text = "MAF", anchor ="w", variable = self.var_MAF, onvalue = True, offvalue = False)
         mpC = tk.Checkbutton(marker, text = "MP", anchor ="w", variable = self.var_MP, onvalue = True, offvalue = False)

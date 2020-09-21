@@ -551,5 +551,7 @@ class FileManagement():
             csv_writer.writerow([i[0] for i in self.c.description])
             csv_writer.writerows(grid)
         
+        self.close()
+        
 if __name__ == "__main__":
     pass
