@@ -63,7 +63,7 @@ class ScreenshotEditor(tk.Toplevel):
         self.create_screenshot_canvas()
 
         self.toolbar_frame = tk.Frame(self)
-        self.toolbar_frame.grid(row=0, column = 0)
+        self.toolbar_frame.grid(row=0, column = 0, sticky = "nsew")
         
         self.create_toolbar()
         
@@ -248,10 +248,123 @@ class ScreenshotEditor(tk.Toplevel):
             close_button = tk.Button(done_screen, text = "OK", command = lambda: done_screen.destroy())
             close_button.pack(side = "bottom")
             
+            
+class Ringer(tk.Toplevel):
+    def __init__(self, body_info, folder_path, marker_canvas, im, new):
+        tk.Toplevel.__init__(self)
+        self.title("Ringbell Tool")
+        self.body_info = body_info
+        self.folder_path = folder_path
+        self.marker_canvas = marker_canvas
+        self.im = im
+        self.img = ImageTk.PhotoImage(im)
+        self.width = self.img.width()
+        self.height = self.img.height()
+        self.new = new
+        
+        self.d = []
+        self.l = []
+        self.focus_set()
+        self.grab_set()
+        
+        self.screenshot_frame = tk.Frame(self)
+        self.screenshot_frame.grid(row = 1, column = 0)
+        
+        self.create_screenshot_canvas()
+
+        self.toolbar_frame = tk.Frame(self)
+        self.toolbar_frame.grid(row=0, column = 0, sticky = "nsew")
+        
+        self.create_toolbar()
+        self.setup()
+        
+    def setup(self):
+        """Initializes a series of attributes and binds.
+        
+        Different variables used for annotations are initialized in here. Button clicks
+        are bound for drawing lines to markup the image.
+        """
+        self.l_old_x = None
+        self.l_old_y = None
+        self.d_old_x = None
+        self.d_old_y = None
+        self.line_width = 2
+        self.color = 'white'
+        self.active_button = self.d_button # remembers the previously activated button
+        self.screenshot_canvas.bind('<Button-1>', self.paint)
+        
+    def activate_button(self, some_button):
+        """Keeps brush button sunken as it is used.
+        
+        Configures the button to maintain being sunken/raised as its used.
+        
+        """
+        self.active_button.config(relief = "raised")
+        some_button.config(relief = "sunken")
+        self.active_button = some_button
+        
+    def create_toolbar(self):
+        self.d_button = tk.Button(self.toolbar_frame, text = "distance", command = self.distance)
+        self.d_button.grid(row = 0, column = 0)
+        
+        self.l_button = tk.Button(self.toolbar_frame, text = "length", command = self.length)
+        self.l_button.grid(row = 0, column = 1)
+        
+        self.ok_button = tk.Button(self.toolbar_frame, text = "ok", command = self.ok)
+        self.ok_button.grid(row = 0, column = 2)
+        
+    def ok(self):
+        if (self.l == None) | (self.d == None):
+            return
+        
+        self.body_info["angle"] = self.curr_angle
+        
+        if self.new:
+            ScreenshotEditor(self.body_info, self.folder_path, self.marker_canvas, self.im, True)
+        else:
+            FileManagement(self.folder_path).edit_info(self.body_info)
+            
+        self.destroy()
+        
+    def create_screenshot_canvas(self):
+        """Creates the screenshot canvas.
+        
+        Creates a canvas where the image is stored. All lines drawn that the user 
+        can see are also stored on this canvas.
+        """
+        self.screenshot_canvas = tk.Canvas(self.screenshot_frame, width = self.width, height = self.height,
+                                    borderwidth = 0, highlightthickness = 0, cursor = "cross")
+        self.screenshot_canvas.pack(expand = True)
+        self.screenshot_canvas.create_image(0, 0, image = self.img, anchor = "nw")
+        self.screenshot_canvas.img = self.img
+        self.screenshot_canvas.focus_set()
+    
+    def use_distance(self):
+        self.activate_button(self.d_button)
+        
+        self.screenshot_canvas.bind("<Button-1>", self.distance)
+        self.screenshot_canvas.bind("<Button-3", self.distance_reset)
+        
+    def use_length(self):
+        self.activate_button(self.l_button)
+        
+        self.screenshot_canvas.bind("<Button-1>", self.length)
+        self.screenshot_canvas.bind("<Button-3>", self.length_reset)
+        
+    def length(self, event):
+        x = self.screenshot_canvas.canvasx(event.x)
+        y = self.screenshot_canvas.canvasx(event.y)
+        if self.l_old_x and self.l_old_y:
+            self.screenshot_canvas.create_line(self.old_x, self.old_y, x, y, width = self.line_width, fill = "cyan",
+                                               capstyle = "round", smooth = True, splinesteps = 36, tag = "length_line")
+            self.l.append((self.l_old_x, self.l_old_y, x, y))
+        self.l_old_x = x
+        self.l_old_y = y
+        
 class Angler(tk.Toplevel):
     def __init__(self, body_info, folder_path, marker_canvas, im, new):
         tk.Toplevel.__init__(self)
-        self.title("Screenshot Editor")
+        self.title("Angle Tool")
         self.body_info = body_info
         self.folder_path = folder_path
         self.marker_canvas = marker_canvas
@@ -272,7 +385,7 @@ class Angler(tk.Toplevel):
         self.create_screenshot_canvas()
 
         self.toolbar_frame = tk.Frame(self)
-        self.toolbar_frame.grid(row=0, column = 0)
+        self.toolbar_frame.grid(row=0, column = 0, sticky = "nsew")
         
         self.init_angles()
         
@@ -283,6 +396,8 @@ class Angler(tk.Toplevel):
         self.ok_button.grid(row = 0, column = 0)
         
     def ok(self):
+        if self.curr_angle == None:
+            return
         self.body_info["angle"] = self.curr_angle
         
         if self.new:
@@ -292,12 +407,6 @@ class Angler(tk.Toplevel):
             
         self.destroy()
         
-    def init_angles(self):
-        self.screenshot_canvas.bind("<Button-1>", self.set_start)
-        
-        self.prev_angle = 0
-        self.passed = False
-        
     def create_screenshot_canvas(self):
         """Creates the screenshot canvas.
         
@@ -305,11 +414,17 @@ class Angler(tk.Toplevel):
         can see are also stored on this canvas.
         """
         self.screenshot_canvas = tk.Canvas(self.screenshot_frame, width = self.width, height = self.height,
-                                    borderwidth = 0, highlightthickness = 0)
+                                    borderwidth = 0, highlightthickness = 0, cursor = "cross")
         self.screenshot_canvas.pack(expand = True)
         self.screenshot_canvas.create_image(0, 0, image = self.img, anchor = "nw")
         self.screenshot_canvas.img = self.img
         self.screenshot_canvas.focus_set()
+        
+    def init_angles(self):
+        self.screenshot_canvas.bind("<Button-1>", self.set_start)
+        
+        self.prev_angle = 0
+        self.passed = False
         
     def set_start(self, event):
         # first point selected
