@@ -352,10 +352,10 @@ class Ringer(tk.Toplevel):
         self.screenshot_canvas.bind("<Button-3>", self.length_reset)
         
     def length(self, event):
-        x = self.screenshot_canvas.canvasx(event.x)
+        x = self.screenshot_canvas.canvasx(event.x) 
         y = self.screenshot_canvas.canvasx(event.y)
         if self.l_old_x and self.l_old_y:
-            self.screenshot_canvas.create_line(self.old_x, self.old_y, x, y, width = self.line_width, fill = "cyan",
+            self.screenshot_canvas.create_line(self.l_old_x, self.l_old_y, x, y, width = self.line_width, fill = "cyan",
                                                capstyle = "round", smooth = True, splinesteps = 36, tag = "length_line")
             self.l.append((self.l_old_x, self.l_old_y, x, y))
         self.l_old_x = x
@@ -421,63 +421,44 @@ class Angler(tk.Toplevel):
         self.screenshot_canvas.focus_set()
         
     def init_angles(self):
-        self.screenshot_canvas.bind("<Button-1>", self.set_start)
-        
+        self.screenshot_canvas.bind("<Button-1>", self.angle_tool)
+        self.screenshot_canvas.bind("<Motion>", self.ghost_line)
         self.prev_angle = 0
         self.passed = False
         
-    def set_start(self, event):
+        self.points = []
+        self.old_x = None
+        self.old_y = None
+        
+    def angle_tool(self, event):
         # first point selected
-        self.f_coords= (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
+        coords= (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
+        old_coords = (self.old_x, self.old_y)
         
-        self.screenshot_canvas.bind("<Motion>", self.f_ghost_line)
-        self.screenshot_canvas.unbind("<Button-1>")
-        self.screenshot_canvas.bind("<Button-1>", self.create_first_line)
-        
-    def f_ghost_line(self, event):
-        # gray line indicating where angle is
-        ghost_coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
-        
-        self.screenshot_canvas.delete("ghost")
-        self.screenshot_canvas.create_line(ghost_coords, self.f_coords, smooth = True, splinesteps = 36, capstyle = "round",
-                                fill = "gray", width = 5, tag = "ghost")
-        
-    def create_first_line(self, event):
-        # creates the first black line used in angle
-        self.mid_coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
-        self.screenshot_canvas.create_line(self.f_coords, self.mid_coords, smooth = True, splinesteps = 36, capstyle = "round",
+        if self.old_x and self.old_y:
+            self.screenshot_canvas.create_line(old_coords, coords, smooth = True, splinesteps = 36, capstyle = "round",
                                 fill = "white", width = 5, tag = "line")
+        self.old_x, self.old_y = coords
+        self.points.append(coords)
         
-        # series of binds to create the next line
-        self.screenshot_canvas.unbind("<Button-1>")
-        self.screenshot_canvas.bind("<Button-1>", self.create_second_line)
-        self.screenshot_canvas.unbind("<Motion>")
-        self.screenshot_canvas.bind("<Motion>", self.l_ghost_line)
-        self.screenshot_canvas.bind("<Motion>", self.calc_angle)
-    
-    def l_ghost_line(self, event):
-        # ghost line starting from middle point after that has been selected
+        if len(self.points) == 2: # if only one line is drawn
+            self.screenshot_canvas.bind("<Motion>", self.calc_angle)
+        elif len(self.points) == 3:
+            self.screenshot_canvas.unbind("<Button-1>")
+            self.screenshot_canvas.unbind("<ButtonRelease-1>")
+            self.screenshot_canvas.unbind("<B1-Motion>")
+            self.screenshot_canvas.unbind("<Motion>")
+            
+            self.screenshot_canvas.bind("<Button-1>", self.clear_canvas)
+        
+    def ghost_line(self, event):
+        # gray line indicating where angle is
+        old_coords = (self.old_x, self.old_y)
         ghost_coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
-        
-        self.screenshot_canvas.delete("ghost")
-        self.screenshot_canvas.create_line(ghost_coords, self.mid_coords, smooth = True, splinesteps = 36, capstyle = "round",
+        if self.old_x and self.old_y: 
+            self.screenshot_canvas.delete("ghost")
+            self.screenshot_canvas.create_line(old_coords, ghost_coords, smooth = True, splinesteps = 36, capstyle = "round",
                                 fill = "gray", width = 5, tag = "ghost")
-        
-    def create_second_line(self, event):
-        self.l_coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
-        self.screenshot_canvas.create_line(self.mid_coords, self.l_coords, smooth = True, splinesteps = 36, 
-                                        capstyle = "round", fill = "white", width = 5, tag = "line")
-        self.screenshot_canvas.create_text(event.x + 10, event.y + 10, fill = "white", font = "Calibri 12",
-                                text = str(self.curr_angle), tag = "angle", anchor = "nw")
-        
-        # unbinds everything to reset the canvas
-        self.screenshot_canvas.unbind("<Button-1>")
-        self.screenshot_canvas.unbind("<ButtonRelease-1>")
-        self.screenshot_canvas.unbind("<B1-Motion>")
-        self.screenshot_canvas.unbind("<Motion>")
-        
-        self.screenshot_canvas.bind("<Button-1>", self.clear_canvas)
-
         
     def clear_canvas(self, event):
         self.screenshot_canvas.delete("line")
@@ -487,16 +468,15 @@ class Angler(tk.Toplevel):
         self.curr_angle = None
         
         self.screenshot_canvas.unbind("<Button-1>")
-        self.screenshot_canvas.bind("<Button-1>", self.set_start)
-    
+        self.screenshot_canvas.bind("<Button-1>", self.angle_tool)
         
     def angle(self, cur_coords):
         # gets atan where origin is placed at mid point
         def atan_angle(a, x_sign, y_sign):
-            degree = math.degrees(math.atan2(x_sign*(a[1] - self.mid_coords[1]), y_sign*(a[0] - self.mid_coords[0])))
+            degree = math.degrees(math.atan2(x_sign*(a[1] - self.points[1][1]), y_sign*(a[0] - self.points[1][0])))
             return degree
         
-        first_angle = atan_angle(self.f_coords, -1, 1)
+        first_angle = atan_angle(self.points[0], -1, 1)
         
         # rotates the axises according to where the first angle is
         if (first_angle > 0) & (first_angle <= 90):
@@ -538,13 +518,14 @@ class Angler(tk.Toplevel):
         return abs(curr_angle)
     
     def calc_angle(self, event):
-        cur_coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
-        self.curr_angle = self.angle(cur_coords)
+        old_coords = (self.old_x, self.old_y)
+        coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
+        self.curr_angle = self.angle(coords)
 
         self.screenshot_canvas.delete("ghost")
-        self.screenshot_canvas.create_line(cur_coords, self.mid_coords,
+        self.screenshot_canvas.create_line(old_coords, coords,
                                 fill = "gray", width = 5, tag = "ghost")
-        self.screenshot_canvas.create_text(cur_coords[0] + 10, cur_coords[1] + 10, fill = "white", font = "Calibri 12",
+        self.screenshot_canvas.create_text(coords[0] + 10, coords[1] + 10, fill = "white", font = "Calibri 12",
                                 text = str(self.curr_angle), tag = "ghost", anchor = "nw")
         
     def get_angle(self):
