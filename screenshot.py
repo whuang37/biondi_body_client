@@ -262,8 +262,7 @@ class Ringer(tk.Toplevel):
         self.height = self.img.height()
         self.new = new
         
-        self.d = []
-        self.l = []
+        
         self.focus_set()
         self.grab_set()
         
@@ -284,14 +283,17 @@ class Ringer(tk.Toplevel):
         Different variables used for annotations are initialized in here. Button clicks
         are bound for drawing lines to markup the image.
         """
-        self.l_old_x = None
-        self.l_old_y = None
-        self.d_old_x = None
-        self.d_old_y = None
+        self.old_x = None
+        self.old_y = None
+        
+        self.d = None
+        self.l = []
         self.line_width = 2
         self.color = 'white'
         self.active_button = self.d_button # remembers the previously activated button
-        self.screenshot_canvas.bind('<Button-1>', self.paint)
+        self.screenshot_canvas.bind('<Button-1>', self.distance)
+        self.screenshot_canvas.bind("<Button-3>", self.distance_reset)
+        self.screenshot_canvas.bind("<Motion>", self.d_ghost_line)
         
     def activate_button(self, some_button):
         """Keeps brush button sunken as it is used.
@@ -304,20 +306,22 @@ class Ringer(tk.Toplevel):
         self.active_button = some_button
         
     def create_toolbar(self):
-        self.d_button = tk.Button(self.toolbar_frame, text = "distance", command = self.distance)
+        self.d_button = tk.Button(self.toolbar_frame, text = "distance", command = self.use_distance)
         self.d_button.grid(row = 0, column = 0)
         
-        self.l_button = tk.Button(self.toolbar_frame, text = "length", command = self.length)
+        self.l_button = tk.Button(self.toolbar_frame, text = "length", command = self.use_length)
         self.l_button.grid(row = 0, column = 1)
         
+        self.clear_button = tk.Button(self.toolbar_frame, text = "clear all", command = self.clear_all)
+        self.clear_button.grid(row = 0, column = 2)
         self.ok_button = tk.Button(self.toolbar_frame, text = "ok", command = self.ok)
-        self.ok_button.grid(row = 0, column = 2)
+        self.ok_button.grid(row = 0, column = 3)
         
     def ok(self):
-        if (self.l == None) | (self.d == None):
+        if (self.l == []) | (self.d == None):
             return
         
-        self.body_info["angle"] = self.curr_angle
+        self.body_info["log"] = self.calc_log()
         
         if self.new:
             ScreenshotEditor(self.body_info, self.folder_path, self.marker_canvas, self.im, True)
@@ -343,24 +347,151 @@ class Ringer(tk.Toplevel):
         self.activate_button(self.d_button)
         
         self.screenshot_canvas.bind("<Button-1>", self.distance)
-        self.screenshot_canvas.bind("<Button-3", self.distance_reset)
+        self.screenshot_canvas.bind("<Button-3>", self.distance_reset)
+        self.screenshot_canvas.bind("<Motion>", self.d_ghost_line)
+        
+        self.screenshot_canvas.delete("distance_line")
+        self.screenshot_canvas.delete("ghost")
+        self.screenshot_canvas.delete("d_text")
+        
+        self.old_x = None
+        self.old_y = None
+        
+    def distance(self, event):
+        coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasx(event.y))
+        if self.old_x and self.old_y:
+            
+            self.screenshot_canvas.create_line(self.old_x, self.old_y, coords, width = self.line_width, fill = "white",
+                                               capstyle = "round", smooth = True, splinesteps = 36, tag = "distance_line")
+            self.d = (self.old_x, self.old_y, coords[0], coords[1])
+            
+            self.screenshot_canvas.unbind("<Motion>")
+            self.screenshot_canvas.unbind("<Button-3>")
+            self.screenshot_canvas.unbind("<Button-1>")
+            
+            self.screenshot_canvas.bind("<Button-1>", self.distance_reset)
+        self.old_x, self.old_y = coords
+        
+    def distance_reset(self, event):
+        self.screenshot_canvas.delete("distance_line")
+        self.screenshot_canvas.delete("ghost")
+        self.screenshot_canvas.delete("d_text")
+        
+        self.screenshot_canvas.unbind("<Button-1>")
+        
+        self.screenshot_canvas.bind("<Button-1>", self.distance)
+        self.screenshot_canvas.bind("<Button-3>", self.distance_reset)
+        self.screenshot_canvas.bind("<Motion>", self.d_ghost_line)
+        
+        self.d = None
+        self.old_x = None
+        self.old_y = None
         
     def use_length(self):
         self.activate_button(self.l_button)
         
+        self.screenshot_canvas.unbind("<Motion>")
+        self.screenshot_canvas.unbind("<Button-3>")
+        self.screenshot_canvas.unbind("<Button-1>")
+        
+        self.screenshot_canvas.delete("length_line")
+        self.screenshot_canvas.delete("ghost")
+        self.screenshot_canvas.delete("l_text")
+        
         self.screenshot_canvas.bind("<Button-1>", self.length)
-        self.screenshot_canvas.bind("<Button-3>", self.length_reset)
+        self.screenshot_canvas.bind("<Button-3>", self.length_confirm)
+        self.screenshot_canvas.bind("<Motion>", self.l_ghost_line)
+        
+        self.old_x = None
+        self.old_y = None
         
     def length(self, event):
-        x = self.screenshot_canvas.canvasx(event.x) 
-        y = self.screenshot_canvas.canvasx(event.y)
-        if self.l_old_x and self.l_old_y:
-            self.screenshot_canvas.create_line(self.l_old_x, self.l_old_y, x, y, width = self.line_width, fill = "cyan",
+        coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasx(event.y))
+        if self.old_x and self.old_y:
+            self.screenshot_canvas.create_line(self.old_x, self.old_y, coords, width = self.line_width, fill = "cyan",
                                                capstyle = "round", smooth = True, splinesteps = 36, tag = "length_line")
-            self.l.append((self.l_old_x, self.l_old_y, x, y))
-        self.l_old_x = x
-        self.l_old_y = y
+            self.l.append((self.old_x, self.old_y, coords[0], coords[1]))
+        self.old_x, self.old_y = coords
         
+    def length_confirm(self, event):
+        self.screenshot_canvas.delete("ghost")
+        self.screenshot_canvas.unbind("<Motion>")
+        self.screenshot_canvas.unbind("<Button-3>")
+        self.screenshot_canvas.unbind("<Button-1>")
+        
+        self.screenshot_canvas.bind("<Button-1>", self.length_reset)
+        
+    def length_reset(self, event):
+        self.screenshot_canvas.delete("length_line")
+        self.screenshot_canvas.delete("ghost")
+        self.screenshot_canvas.delete("l_text")
+        
+        self.screenshot_canvas.unbind("<Button-1>")
+        
+        self.screenshot_canvas.bind("<Button-1>", self.length)
+        self.screenshot_canvas.bind("<Button-3>", self.length_confirm)
+        self.screenshot_canvas.bind("<Motion>", self.l_ghost_line)
+        
+        self.l = []
+        self.old_x = None
+        self.old_y = None
+        
+    def d_ghost_line(self, event):
+        old_coords = (self.old_x, self.old_y)
+        ghost_coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
+        if self.old_x and self.old_y: 
+            self.screenshot_canvas.delete("ghost")
+            self.screenshot_canvas.create_line(old_coords, ghost_coords, smooth = True, splinesteps = 36, capstyle = "round",
+                                fill = "gray", width = self.line_width, tag = "ghost")
+            distance = self.distance_form((old_coords[0], old_coords[1], ghost_coords[0], ghost_coords[1]))
+            self.screenshot_canvas.delete("d_text")
+            self.screenshot_canvas.create_text(ghost_coords[0] + 10, ghost_coords[1] + 10, fill = "white", font = "Calibri 12",
+                                text = str(distance), tag = "d_text", anchor = "nw")
+            
+    def l_ghost_line(self, event):
+        old_coords = (self.old_x, self.old_y)
+        ghost_coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
+        if self.old_x and self.old_y: 
+            self.screenshot_canvas.delete("ghost")
+            self.screenshot_canvas.create_line(old_coords, ghost_coords, smooth = True, splinesteps = 36, capstyle = "round",
+                                fill = "gray", width = self.line_width, tag = "ghost")
+            length = 0
+            l_list = self.l.copy()
+            l_list.append((old_coords[0], old_coords[1], ghost_coords[0], ghost_coords[1]))
+            for x in l_list:
+                length += self.distance_form(x)
+            self.screenshot_canvas.delete("l_text")
+            self.screenshot_canvas.create_text(ghost_coords[0] + 10, ghost_coords[1] + 10, fill = "cyan", font = "Calibri 12",
+                                text = str(length), tag = "l_text", anchor = "nw")
+            
+    def distance_form(self, coords):
+        distance = math.sqrt((coords[0] - coords[2])**2 + (coords[1] - coords[3])**2)
+        
+        return distance
+        
+    def calc_log(self):
+        distance = self.distance_form(self.d)
+        print(distance)
+        length = 0
+        for x in self.l:
+            length += self.distance_form(x)
+        return round(math.log(length / distance), 4)
+    
+    def clear_all(self):
+        self.d = None
+        self.l = []
+        self.old_x = None
+        self.old_y = None
+        
+        self.screenshot_canvas.delete("distance_line")
+        self.screenshot_canvas.delete("ghost")
+        self.screenshot_canvas.delete("d_text")
+        self.screenshot_canvas.delete("length_line")
+        self.screenshot_canvas.delete("l_text")
+        
+        self.screenshot_canvas.unbind("<Button-1>")
+        self.screenshot_canvas.unbind("<Button-3>")
+        self.screenshot_canvas.unbind("<Motion>")
 class Angler(tk.Toplevel):
     def __init__(self, body_info, folder_path, marker_canvas, im, new):
         tk.Toplevel.__init__(self)
@@ -445,8 +576,6 @@ class Angler(tk.Toplevel):
             self.screenshot_canvas.bind("<Motion>", self.calc_angle)
         elif len(self.points) == 3:
             self.screenshot_canvas.unbind("<Button-1>")
-            self.screenshot_canvas.unbind("<ButtonRelease-1>")
-            self.screenshot_canvas.unbind("<B1-Motion>")
             self.screenshot_canvas.unbind("<Motion>")
             
             self.screenshot_canvas.bind("<Button-1>", self.clear_canvas)
@@ -515,14 +644,14 @@ class Angler(tk.Toplevel):
             a = 0
             
         self.prev_angle = axis_angle
-        return abs(curr_angle)
+        return round(abs(curr_angle), 4)
     
     def calc_angle(self, event):
         old_coords = (self.old_x, self.old_y)
         coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
         self.curr_angle = self.angle(coords)
 
-        self.screenshot_canvas.delete("ghost")
+        self.screenshot_canvas.delete("ghost") 
         self.screenshot_canvas.create_line(old_coords, coords,
                                 fill = "gray", width = 5, tag = "ghost")
         self.screenshot_canvas.create_text(coords[0] + 10, coords[1] + 10, fill = "white", font = "Calibri 12",
@@ -592,7 +721,7 @@ class LilSnippy(tk.Frame):
         if self.body_info["body_name"] == "crescent_spear":
             Angler(self.body_info, self.folder_path, self.marker_canvas, im, True)
         elif self.body_info["body_name"] == "ring_kettlebell":
-            pass
+            Ringer(self.body_info, self.folder_path, self.marker_canvas, im , True)
         else:
             ScreenshotEditor(self.body_info, self.folder_path, self.marker_canvas, im, True)
 
