@@ -561,8 +561,10 @@ class Angler(tk.Toplevel):
     def init_angles(self):
         self.screenshot_canvas.bind("<Button-1>", self.angle_tool)
         self.screenshot_canvas.bind("<Motion>", self.ghost_line)
+        self.prev_axis_angle = 0
         self.prev_angle = 0
         self.passed = False
+        self.rotation = False
         
         self.points = []
         self.old_x = None
@@ -601,10 +603,9 @@ class Angler(tk.Toplevel):
         self.screenshot_canvas.delete("angle")
         self.screenshot_canvas.delete("ghost")
         
-        self.curr_angle = None
-        
         self.screenshot_canvas.unbind("<Button-1>")
-        self.screenshot_canvas.bind("<Button-1>", self.angle_tool)
+        
+        self.init_angles()
         
     def angle(self, cur_coords):
         # gets atan where origin is placed at mid point
@@ -630,7 +631,7 @@ class Angler(tk.Toplevel):
             first_angle = -(-180 - first_angle)
             
         # checks if the mouse has passed 180 degrees
-        if ((175 < self.prev_angle <= 180) & (-180 <= axis_angle < -175)) or ((175 < axis_angle <= 180) & (-180 <= self.prev_angle < -175)):
+        if ((175 < self.prev_axis_angle <= 180) & (-180 <= axis_angle < -175)) or ((175 < axis_angle <= 180) & (-180 <= self.prev_axis_angle < -175)):
             if self.passed == False:
                 self.passed = True
             else:
@@ -643,15 +644,35 @@ class Angler(tk.Toplevel):
             a = -360
         else: 
             a = 0 
-            
         curr_angle = axis_angle + a - first_angle
         
-        if abs(curr_angle) >= 359.00:
-            self.passed = False
-            a = 0
+        def sign_change(curr_angle):
+            if (((self.prev_angle > 0) & (curr_angle < 0)) | ((curr_angle > 0) & (self.prev_angle < 0))):
+                return True
+            else:
+                return False
             
-        self.prev_angle = axis_angle
-        return round(abs(curr_angle), 4)
+        if (self.rotation == False) & (self.prev_angle != 0) & sign_change(curr_angle): # if the cursor has made one full pass for angles about 360
+            self.rotation = True
+            self.prev_angle = 0 # sets prev angle to zero to prevent the angle from going back down
+            
+        if self.rotation: # angles above 360
+            final_angle = 360 + (360 - abs(curr_angle))
+            if (final_angle <= 700) & (self.prev_angle != 0) & sign_change(curr_angle): # if the angle above 360 is going down under 360
+                final_angle = abs(curr_angle)
+                self.rotation = False
+            elif final_angle >= 718.00: # if two rotations are completed
+                self.rotation = False
+                self.passed = False
+                a = 0
+                final_angle = abs(curr_angle)
+        else:
+            final_angle = abs(curr_angle)
+            
+            
+        self.prev_axis_angle = axis_angle
+        self.prev_angle = curr_angle
+        return round(final_angle, 4)
     
     def calc_angle(self, event):
         old_coords = (self.old_x, self.old_y)
