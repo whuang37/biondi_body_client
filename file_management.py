@@ -138,7 +138,9 @@ class FileManagement():
                                                             BODY_FILE_NAME TEXT,
                                                             ANNOTATION_FILE_NAME TEXT,
                                                             ANGLE REAL,
-                                                            LOG REAL)'''
+                                                            LOG REAL,
+                                                            PRONG1 REAL,
+                                                            PRONG2 REAL)'''
         self.c.execute(create_table_query)
         
         create_grid_query = '''CREATE TABLE IF NOT EXISTS grid (GRID_ID TEXT NOT NULL,
@@ -192,10 +194,6 @@ class FileManagement():
             annotation_img (pil img): image of just the annotation.
         """
             
-        body_info["body_number"] = self.count_bodies([body_info["body_name"]], False, False, False, False) + 1
-        body_img.save(self.folder_path + body_info["body_file_name"])
-        annotation_img.save(self.folder_path + body_info["annotation_file_name"])
-        
         data_values = tuple([body_info[key] for key in body_info])
         insert_query = '''INSERT INTO bodies (TIME, 
                                             ANNOTATOR_NAME, 
@@ -212,10 +210,17 @@ class FileManagement():
                                             BODY_FILE_NAME, 
                                             ANNOTATION_FILE_NAME,
                                             ANGLE,
-                                            LOG) 
-                                            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'''
+                                            LOG,
+                                            DPRONG1,
+                                            LPRONG2) 
+                                            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'''
         
         self.c.execute(insert_query, data_values)
+        
+        body_info["body_number"] = self.count_bodies([body_info["body_name"]], False, False, False, False) + 1
+        body_img.save(self.folder_path + body_info["body_file_name"])
+        annotation_img.save(self.folder_path + body_info["annotation_file_name"])
+        
         self.close()
     
     def get_image_time(self, time):
@@ -285,7 +290,7 @@ class FileManagement():
         i = 0
         for choice in ("time", "annotator_name", "body_name", "body_number", 
                         "x", "y", "grid_id", "GR", "MAF", "MP", "unsure", 
-                        "notes", "body_file_name", "annotation_file_name", "angle", "log"):
+                        "notes", "body_file_name", "annotation_file_name", "angle", "log", "dprong1", "lprong2"):
             data[choice] = group[i]
             i += 1
             
@@ -404,7 +409,9 @@ class FileManagement():
                         UNSURE = ?, 
                         NOTES = ?,
                         ANGLE = ?,
-                        LOG = ?
+                        LOG = ?,
+                        DPRONG1 = ?,
+                        LPRONG2 = ?
                         WHERE TIME = ?'''
                         
         
@@ -531,7 +538,9 @@ class FileManagement():
                             UNSURE,
                             NOTES,
                             ANGLE,
-                            LOG
+                            LOG,
+                            DPRONG1,
+                            LPRONG2
                             FROM bodies'''
                             
         self.c.execute(all_info_query)

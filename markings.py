@@ -109,7 +109,9 @@ class Marker(tk.Frame):
                 "body_file_name": body_file_name + ".png",
                 "annotation_file_name": annotation_file_name + ".png",
                 "angle": None,
-                "log": None
+                "log": None,
+                "dprong1": None,
+                "lprong2": None
                 }
         return data
         

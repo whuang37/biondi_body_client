@@ -5,6 +5,7 @@ from tkinter.colorchooser import askcolor
 from file_management import FileManagement
 import config
 import math
+import time
 class ScreenshotEditor(tk.Toplevel):
     """A basic image editor for image markups.
     
@@ -262,7 +263,6 @@ class Ringer(tk.Toplevel):
         self.height = self.img.height()
         self.new = new
         
-        
         self.focus_set()
         self.grab_set()
         
@@ -291,9 +291,7 @@ class Ringer(tk.Toplevel):
         self.line_width = 2
         self.color = 'white'
         self.active_button = self.d_button # remembers the previously activated button
-        self.screenshot_canvas.bind('<Button-1>', self.distance)
-        self.screenshot_canvas.bind("<Button-3>", self.distance_reset)
-        self.screenshot_canvas.bind("<Motion>", self.d_ghost_line)
+        self.use_distance()
         
     def activate_button(self, some_button):
         """Keeps brush button sunken as it is used.
@@ -314,6 +312,7 @@ class Ringer(tk.Toplevel):
         
         self.clear_button = tk.Button(self.toolbar_frame, text = "clear all", command = self.clear_all)
         self.clear_button.grid(row = 0, column = 2)
+        
         self.ok_button = tk.Button(self.toolbar_frame, text = "ok", command = self.ok)
         self.ok_button.grid(row = 0, column = 3)
         
@@ -321,7 +320,7 @@ class Ringer(tk.Toplevel):
         if (self.l == []) | (self.d == None):
             return
         
-        self.body_info["log"] = self.calc_log()
+        self.body_info["log"], self.body_info["dprong1"], self.body_info["lprong2"] = self.calc_log()
         
         if self.new:
             ScreenshotEditor(self.body_info, self.folder_path, self.marker_canvas, self.im, True)
@@ -329,7 +328,9 @@ class Ringer(tk.Toplevel):
             info = (self.body_info["body_name"], self.body_info["GR"], 
                     self.body_info["MAF"], self.body_info["MP"], 
                     self.body_info["unsure"], self.body_info["notes"], 
-                    self.body_info["angle"], self.body_info["log"], self.body_info["time"])
+                    self.body_info["angle"], self.body_info["log"], 
+                    self.body_info["dprong1"], self.body_info["lprong2"],
+                    self.body_info["time"])
             FileManagement(self.folder_path).edit_info(info)
             
         self.destroy()
@@ -391,6 +392,18 @@ class Ringer(tk.Toplevel):
         self.old_x = None
         self.old_y = None
         
+    def d_ghost_line(self, event):
+        old_coords = (self.old_x, self.old_y)
+        ghost_coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
+        if self.old_x and self.old_y: 
+            self.screenshot_canvas.delete("ghost")
+            self.screenshot_canvas.create_line(old_coords, ghost_coords, smooth = True, splinesteps = 36, capstyle = "round",
+                                fill = "gray", width = self.line_width, tag = "ghost")
+            distance = self.distance_form((old_coords[0], old_coords[1], ghost_coords[0], ghost_coords[1]))
+            self.screenshot_canvas.delete("d_text")
+            self.screenshot_canvas.create_text(ghost_coords[0] + 10, ghost_coords[1] + 10, fill = "white", font = "Calibri 12",
+                                text = str(distance), tag = "d_text", anchor = "nw")
+            
     def use_length(self):
         self.activate_button(self.l_button)
         
@@ -439,18 +452,6 @@ class Ringer(tk.Toplevel):
         self.l = []
         self.old_x = None
         self.old_y = None
-        
-    def d_ghost_line(self, event):
-        old_coords = (self.old_x, self.old_y)
-        ghost_coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
-        if self.old_x and self.old_y: 
-            self.screenshot_canvas.delete("ghost")
-            self.screenshot_canvas.create_line(old_coords, ghost_coords, smooth = True, splinesteps = 36, capstyle = "round",
-                                fill = "gray", width = self.line_width, tag = "ghost")
-            distance = self.distance_form((old_coords[0], old_coords[1], ghost_coords[0], ghost_coords[1]))
-            self.screenshot_canvas.delete("d_text")
-            self.screenshot_canvas.create_text(ghost_coords[0] + 10, ghost_coords[1] + 10, fill = "white", font = "Calibri 12",
-                                text = str(distance), tag = "d_text", anchor = "nw")
             
     def l_ghost_line(self, event):
         old_coords = (self.old_x, self.old_y)
@@ -460,9 +461,7 @@ class Ringer(tk.Toplevel):
             self.screenshot_canvas.create_line(old_coords, ghost_coords, smooth = True, splinesteps = 36, capstyle = "round",
                                 fill = "gray", width = self.line_width, tag = "ghost")
             length = 0
-            l_list = self.l.copy()
-            l_list.append((old_coords[0], old_coords[1], ghost_coords[0], ghost_coords[1]))
-            for x in l_list:
+            for x in self.l:
                 length += self.distance_form(x)
             self.screenshot_canvas.delete("l_text")
             self.screenshot_canvas.create_text(ghost_coords[0] + 10, ghost_coords[1] + 10, fill = "cyan", font = "Calibri 12",
@@ -478,7 +477,7 @@ class Ringer(tk.Toplevel):
         length = 0
         for x in self.l:
             length += self.distance_form(x)
-        return round(math.log(length / distance), 4)
+        return round(math.log(length / distance), 4), distance, length
     
     def clear_all(self):
         self.d = None
@@ -492,9 +491,10 @@ class Ringer(tk.Toplevel):
         self.screenshot_canvas.delete("length_line")
         self.screenshot_canvas.delete("l_text")
         
-        self.screenshot_canvas.unbind("<Button-1>")
-        self.screenshot_canvas.unbind("<Button-3>")
-        self.screenshot_canvas.unbind("<Motion>")
+        if self.active_button == self.d_button:
+            self.use_distance()
+        else:
+            self.use_length()
 class Angler(tk.Toplevel):
     def __init__(self, body_info, folder_path, marker_canvas, im, new):
         tk.Toplevel.__init__(self)
@@ -521,18 +521,32 @@ class Angler(tk.Toplevel):
         self.toolbar_frame = tk.Frame(self)
         self.toolbar_frame.grid(row=0, column = 0, sticky = "nsew")
         
-        self.init_angles()
-        
         self.create_toolbar()
+        self.setup()
         
     def create_toolbar(self):
+        self.a_button = tk.Button(self.toolbar_frame, text = "angle", command = self.use_angle)
+        self.a_button.grid(row = 0, column = 0)
+        
+        self.p1_button = tk.Button(self.toolbar_frame, text = "prong 1", command = self.use_p1)
+        self.p1_button.grid(row = 0, column = 1)
+        
+        self.p2_button = tk.Button(self.toolbar_frame, text = "prong 2", command = self.use_p2)
+        self.p2_button.grid(row = 0, column = 2)
+        
+        self.clear_button = tk.Button(self.toolbar_frame, text = "clear all", command = self.clear_all)
+        self.clear_button.grid(row = 0, column = 3)
+        
         self.ok_button = tk.Button(self.toolbar_frame, text = "ok", command = self.ok)
-        self.ok_button.grid(row = 0, column = 0)
+        self.ok_button.grid(row = 0, column = 4)
         
     def ok(self):
-        if self.curr_angle == None:
+        if (self.curr_angle == None) | (self.p1 == []) | (self.p2 == []):
             return
-        self.body_info["angle"] = self.curr_angle
+        else:
+            self.body_info["angle"] = self.curr_angle
+            self.body_info["dprong1"] = self.calc_dist(self.p1)
+            self.body_info["lprong2"] = self.calc_dist(self.p2)
         
         if self.new:
             ScreenshotEditor(self.body_info, self.folder_path, self.marker_canvas, self.im, True)
@@ -540,7 +554,9 @@ class Angler(tk.Toplevel):
             info = (self.body_info["body_name"], self.body_info["GR"], 
                     self.body_info["MAF"], self.body_info["MP"], 
                     self.body_info["unsure"], self.body_info["notes"], 
-                    self.body_info["angle"], self.body_info["log"], self.body_info["time"])
+                    self.body_info["angle"], self.body_info["log"], 
+                    self.body_info["dprong1"], self.body_info["lprong2"], self.body_info["time"])
+            print(info)
             FileManagement(self.folder_path).edit_info(info)
             
         self.destroy()
@@ -558,9 +574,7 @@ class Angler(tk.Toplevel):
         self.screenshot_canvas.img = self.img
         self.screenshot_canvas.focus_set()
         
-    def init_angles(self):
-        self.screenshot_canvas.bind("<Button-1>", self.angle_tool)
-        self.screenshot_canvas.bind("<Motion>", self.ghost_line)
+    def setup(self):
         self.prev_axis_angle = 0
         self.prev_angle = 0
         self.passed = False
@@ -570,6 +584,45 @@ class Angler(tk.Toplevel):
         self.old_x = None
         self.old_y = None
         
+        self.p1 = []
+        self.p2 = []
+        
+        self.prong1 = None
+        self.prong2 = None
+        
+        self.line_width = 2
+        self.length_color = "cyan"
+        self.active_button = self.a_button
+        self.use_angle()
+        
+    def activate_button(self, some_button):
+        """Keeps brush button sunken as it is used.
+        
+        Configures the button to maintain being sunken/raised as its used.
+        
+        """
+        self.active_button.config(relief = "raised")
+        some_button.config(relief = "sunken")
+        self.active_button = some_button
+        
+    def use_angle(self):
+        self.activate_button(self.a_button)
+        
+        self.screenshot_canvas.bind("<Button-1>", self.angle_tool)
+        self.screenshot_canvas.bind("<Motion>", self.a_ghost_line)
+        
+        self.screenshot_canvas.delete("angle_line")
+        self.screenshot_canvas.delete("ghost")
+        self.screenshot_canvas.delete("angle_text")
+        
+        self.old_x = None
+        self.old_y = None
+        self.prev_axis_angle = 0
+        self.prev_angle = 0
+        self.passed = False
+        self.rotation = False
+        self.points = []
+        
     def angle_tool(self, event):
         # first point selected
         coords= (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
@@ -577,19 +630,20 @@ class Angler(tk.Toplevel):
         
         if self.old_x and self.old_y:
             self.screenshot_canvas.create_line(old_coords, coords, smooth = True, splinesteps = 36, capstyle = "round",
-                                fill = "white", width = 5, tag = "line")
+                                fill = "white", width = 5, tag = "angle_line")
         self.old_x, self.old_y = coords
         self.points.append(coords)
         
         if len(self.points) == 2: # if only one line is drawn
+            time.sleep(.1)
             self.screenshot_canvas.bind("<Motion>", self.calc_angle)
         elif len(self.points) == 3:
             self.screenshot_canvas.unbind("<Button-1>")
             self.screenshot_canvas.unbind("<Motion>")
             
-            self.screenshot_canvas.bind("<Button-1>", self.clear_canvas)
+            self.screenshot_canvas.bind("<Button-1>", self.angle_reset)
         
-    def ghost_line(self, event):
+    def a_ghost_line(self, event):
         # gray line indicating where angle is
         old_coords = (self.old_x, self.old_y)
         ghost_coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
@@ -598,14 +652,14 @@ class Angler(tk.Toplevel):
             self.screenshot_canvas.create_line(old_coords, ghost_coords, smooth = True, splinesteps = 36, capstyle = "round",
                                 fill = "gray", width = 5, tag = "ghost")
         
-    def clear_canvas(self, event):
-        self.screenshot_canvas.delete("line")
+    def angle_reset(self, event):
+        self.screenshot_canvas.delete("angle_line")
         self.screenshot_canvas.delete("angle")
         self.screenshot_canvas.delete("ghost")
         
         self.screenshot_canvas.unbind("<Button-1>")
         
-        self.init_angles()
+        self.use_angle()
         
     def angle(self, cur_coords):
         # gets atan where origin is placed at mid point
@@ -680,13 +734,142 @@ class Angler(tk.Toplevel):
         self.curr_angle = self.angle(coords)
 
         self.screenshot_canvas.delete("ghost") 
+        self.screenshot_canvas.delete("angle_text")
         self.screenshot_canvas.create_line(old_coords, coords,
                                 fill = "gray", width = 5, tag = "ghost")
         self.screenshot_canvas.create_text(coords[0] + 10, coords[1] + 10, fill = "white", font = "Calibri 12",
-                                text = str(self.curr_angle), tag = "ghost", anchor = "nw")
+                                text = str(self.curr_angle), tag = "angle_text", anchor = "nw")
         
     def get_angle(self):
         return self.curr_angle
+    
+    def use_p1(self):
+        self.activate_button(self.p1_button)
+        self.screenshot_canvas.unbind("<Motion>")
+        self.screenshot_canvas.unbind("<Button-3>")
+        self.screenshot_canvas.unbind("<Button-1>")
+        
+        self.screenshot_canvas.delete("p1_line")
+        self.screenshot_canvas.delete("ghost")
+        self.screenshot_canvas.delete("p1_text")
+        
+        self.screenshot_canvas.bind("<Button-1>", lambda event, name = "p1": self.l_line(event, name))
+        self.screenshot_canvas.bind("<Button-3>", lambda event, name = "p1": self.l_confirm(event, name))
+        self.screenshot_canvas.bind("<Motion>", lambda event, name = "p1": self.l_ghost_line(event, name))
+        
+        self.old_x, self.old_y = None, None
+        
+    def use_p2(self):
+        self.activate_button(self.p2_button)
+        self.screenshot_canvas.unbind("<Motion>")
+        self.screenshot_canvas.unbind("<Button-3>")
+        self.screenshot_canvas.unbind("<Button-1>")
+        
+        self.screenshot_canvas.delete("p2_line")
+        self.screenshot_canvas.delete("ghost")
+        self.screenshot_canvas.delete("p2_text")
+        
+        self.screenshot_canvas.bind("<Button-1>", lambda event, name = "p2": self.l_line(event, name))
+        self.screenshot_canvas.bind("<Button-3>", lambda event, name = "p2": self.l_confirm(event, name))
+        self.screenshot_canvas.bind("<Motion>", lambda event, name = "p2": self.l_ghost_line(event, name))
+        
+        self.old_x, self.old_y = None, None
+        
+    def l_line(self, event, name):
+        coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasx(event.y))
+        if self.old_x and self.old_y:
+            self.screenshot_canvas.create_line(self.old_x, self.old_y, coords, width = self.line_width, fill = self.length_color,
+                                               capstyle = "round", smooth = True, splinesteps = 36, tag = name + "_line")
+            if name == "p1":
+                self.p1.append((self.old_x, self.old_y, coords[0], coords[1]))
+            else:
+                self.p2.append((self.old_x, self.old_y, coords[0], coords[1]))
+        self.old_x, self.old_y = coords
+        
+    def l_confirm(self, event, name):
+        self.screenshot_canvas.delete("ghost")
+        self.screenshot_canvas.unbind("<Motion>")
+        self.screenshot_canvas.unbind("<Button-3>")
+        self.screenshot_canvas.unbind("<Button-1>")
+        
+        self.screenshot_canvas.bind("<Button-1>", lambda event, name = name: self.l_reset(event, name))
+        
+    def l_reset(self, event, name):
+        self.screenshot_canvas.delete(name+"_line")
+        self.screenshot_canvas.delete(name+"_ghost")
+        self.screenshot_canvas.delete(name+"_text")
+        
+        self.screenshot_canvas.unbind("<Button-1>")
+        
+        self.screenshot_canvas.bind("<Button-1>", lambda event, name = name: self.l_line(event, name))
+        self.screenshot_canvas.bind("<Button-3>", lambda event, name = name: self.l_confirm(event, name))
+        self.screenshot_canvas.bind("<Motion>", lambda event, name = name: self.l_ghost_line(event, name))
+        
+        if name == "p1":
+            self.p1 = []
+        else:
+            self.p2 = []
+            
+        self.old_x = None
+        self.old_y = None
+            
+    def l_ghost_line(self, event, name):
+        old_coords = (self.old_x, self.old_y)
+        ghost_coords = (self.screenshot_canvas.canvasx(event.x), self.screenshot_canvas.canvasy(event.y))
+        if self.old_x and self.old_y: 
+            self.screenshot_canvas.delete("ghost")
+            self.screenshot_canvas.create_line(old_coords, ghost_coords, smooth = True, splinesteps = 36, capstyle = "round",
+                                fill = "gray", width = self.line_width, tag = "ghost")
+            if name == "p1":
+                length = self.calc_dist(self.p1)
+            else:
+                length = self.calc_dist(self.p2)
+            self.screenshot_canvas.delete(name + "_text")
+            self.screenshot_canvas.create_text(ghost_coords[0] + 10, ghost_coords[1] + 10, fill = self.length_color, font = "Calibri 12",
+                                text = str(length), tag = name+"_text", anchor = "nw")
+            
+    def distance_form(self, coords):
+        distance = math.sqrt((coords[0] - coords[2])**2 + (coords[1] - coords[3])**2)
+        
+        return distance
+    
+    def calc_dist(self, coords):
+        length = 0
+        for x in coords:
+            length += self.distance_form(x)
+        return round(length, 4)
+    
+    def clear_all(self):
+        self.prev_axis_angle = 0
+        self.prev_angle = 0
+        self.passed = False
+        self.rotation = False
+        
+        self.points = []
+        self.old_x = None
+        self.old_y = None
+        
+        self.p1 = []
+        self.p2 = []
+        
+        self.prong1 = None
+        self.prong2 = None
+        
+        self.screenshot_canvas.delete("angle_line")
+        self.screenshot_canvas.delete("angle_ghost")
+        self.screenshot_canvas.delete("angle_text")
+        self.screenshot_canvas.delete("p1_line")
+        self.screenshot_canvas.delete("ghost")
+        self.screenshot_canvas.delete("p1_text")
+        self.screenshot_canvas.delete("p2_line")
+        self.screenshot_canvas.delete("p2_text")
+        
+        if self.active_button == self.a_button:
+            self.use_angle()
+        elif self.active_button == self.p1_button:
+            self.use_p1()
+        else:
+            self.use_p2
 
 class LilSnippy(tk.Frame):
     """A selection and screenshot tool.

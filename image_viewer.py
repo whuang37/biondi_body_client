@@ -372,9 +372,9 @@ class ImageViewer(tk.Toplevel):
                   edited_MAF, edited_MP, 
                   edited_unsure, edited_notes]
         if edited_body_name == "crescent_spear":
-            edited.extend((body_info["angle"], None, time))
+            edited.extend((body_info["angle"], None, body_info["dprong1"], body_info["lprong2"], time))
         elif edited_body_name == "ring_kettlebell":
-            edited.extend((None, body_info["log"], time))
+            edited.extend((None, body_info["log"], None, None, time))
         else:
             edited.extend((None, None, time))
         FileManagement(self.folder_path).edit_info(edited)
