@@ -805,7 +805,7 @@ class OpeningWindow:
         file_label = tk.Label(nf, text = "Enter the grid file directory:")
         file_label.grid(row = 3, column = 0, sticky = 'w')
 
-        name_label = tk.Label(nf, text = "Please enter you initials (eg. BJ):")
+        name_label = tk.Label(nf, text = "Enter you initials (eg. BJ):")
         name_label.grid(row = 5, column = 0, sticky = 'w')
     
 if __name__ == "__main__":

@@ -556,7 +556,6 @@ class Angler(tk.Toplevel):
                     self.body_info["unsure"], self.body_info["notes"], 
                     self.body_info["angle"], self.body_info["log"], 
                     self.body_info["dprong1"], self.body_info["lprong2"], self.body_info["time"])
-            print(info)
             FileManagement(self.folder_path).edit_info(info)
             
         self.destroy()
