@@ -139,8 +139,8 @@ class FileManagement():
                                                             ANNOTATION_FILE_NAME TEXT,
                                                             ANGLE REAL,
                                                             LOG REAL,
-                                                            PRONG1 REAL,
-                                                            PRONG2 REAL)'''
+                                                            DPRONG1 REAL,
+                                                            LPRONG2 REAL)'''
         self.c.execute(create_table_query)
         
         create_grid_query = '''CREATE TABLE IF NOT EXISTS grid (GRID_ID TEXT NOT NULL,
