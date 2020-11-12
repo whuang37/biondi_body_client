@@ -376,7 +376,7 @@ class ImageViewer(tk.Toplevel):
         elif edited_body_name == "ring_kettlebell":
             edited.extend((None, body_info["log"], None, None, time))
         else:
-            edited.extend((None, None, time))
+            edited.extend((None, None, None, None, time))
         FileManagement(self.folder_path).edit_info(edited)
         
         fm = FileManagement(self.folder_path)
