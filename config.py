@@ -12,3 +12,5 @@ body_index = {"drop": "d",
         "unknown": "?"}
 
 all_bodies = list(body_index.keys()) 
+
+angler_types = ("green spear", "crescent_spear")

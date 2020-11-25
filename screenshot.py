@@ -227,8 +227,8 @@ class ScreenshotEditor(tk.Toplevel):
         self.font = ImageFont.truetype("calibrib.ttf", 20) 
         bounds = self.screenshot_canvas.bbox("text")
         self.draw.text((bounds[0], bounds[1]), fill = 'white', 
+                        font = self.font, text = self.text_annotation) 
                         #takes the bottom left coordinate of text and places the text on the pillow drawing
-                        font = self.font, anchor = "ne", text = self.text_annotation) 
         
         if self.new == True: # if the image is being saved from LilSnippy
             FileManagement(self.folder_path).save_image(self.body_info, self.im, self.annotation)
@@ -928,7 +928,7 @@ class LilSnippy(tk.Frame):
             y2 (int): Y coordinate when the mouse is released.
         """
         im = pyautogui.screenshot(region=(x1, y1, x2, y2))
-        if self.body_info["body_name"] == "crescent_spear":
+        if self.body_info["body_name"] in config.angler_types:
             Angler(self.body_info, self.folder_path, self.marker_canvas, im, True)
         elif self.body_info["body_name"] == "ring_kettlebell":
             Ringer(self.body_info, self.folder_path, self.marker_canvas, im , True)

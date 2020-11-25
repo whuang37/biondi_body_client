@@ -302,7 +302,7 @@ class ImageViewer(tk.Toplevel):
             edit_log = tk.Button(self.edit_buttons_frame, text = "Edit Log",
                                  command = lambda: self.edit_log(body_info))
             edit_log.grid(row = 4, column = 3, sticky = "e", padx = 3, pady = 3)
-        elif body_info["body_name"] == "crescent_spear":
+        elif body_info["body_name"] in config.angler_types:
             edit_angle = tk.Button(self.edit_buttons_frame, text = "Edit Angle",
                                  command = lambda: self.edit_angle(body_info))
             edit_angle.grid(row =4 , column = 3, sticky = "e", padx =3 , pady = 3)
@@ -343,7 +343,7 @@ class ImageViewer(tk.Toplevel):
                                                                     edit_var_GR.get(), edit_var_MAF.get(), 
                                                                     edit_var_MP.get(), edit_var_unsure.get(), edit_notes.get(), body_info))
         
-        dropdown.grid(row = 1, column = 1)
+        dropdown.grid(row = 1, column = 2)
         edit_gr.grid(row = 1, column = 5)
         edit_maf.grid(row = 1, column = 6)
         edit_mp.grid(row = 1, column = 7)
@@ -371,7 +371,7 @@ class ImageViewer(tk.Toplevel):
         edited = [edited_body_name, edited_GR, 
                   edited_MAF, edited_MP, 
                   edited_unsure, edited_notes]
-        if edited_body_name == "crescent_spear":
+        if edited_body_name in config.angler_types:
             edited.extend((body_info["angle"], None, body_info["dprong1"], body_info["lprong2"], time))
         elif edited_body_name == "ring_kettlebell":
             edited.extend((None, body_info["log"], None, None, time))
@@ -385,7 +385,7 @@ class ImageViewer(tk.Toplevel):
         # if the body name is changed, renumbers both the old and new type
         # changes the gridfile marker to reflect the new letter
         if body_info["body_name"] != edited_body_name:
-            if edited_body_name == "crescent_spear":
+            if edited_body_name in config.angler_types:
                 body_image = Image.open(self.folder_path + body_info["body_file_name"])
         
                 Angler(body_info, self.folder_path, self.marker_canvas, body_image, False)
