@@ -477,7 +477,7 @@ class Ringer(tk.Toplevel):
         length = 0
         for x in self.l:
             length += self.distance_form(x)
-        return round(math.log(length / distance), 4), distance, length
+        return round(math.log(length / distance, 10), 4), distance, length
     
     def clear_all(self):
         self.d = None
