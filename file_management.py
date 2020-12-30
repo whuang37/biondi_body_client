@@ -194,7 +194,8 @@ class FileManagement():
             annotation_img (pil img): image of just the annotation.
         """
             
-        data_values = tuple([body_info[key] for key in body_info])
+        data_values = tuple(body_info.values())
+        print(body_info.values())
         insert_query = '''INSERT INTO bodies (TIME, 
                                             ANNOTATOR_NAME, 
                                             BODY_NAME, 

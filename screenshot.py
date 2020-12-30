@@ -321,7 +321,6 @@ class Ringer(tk.Toplevel):
             return
         
         self.body_info["log"], self.body_info["dprong1"], self.body_info["lprong2"] = self.calc_log()
-        
         if self.new:
             ScreenshotEditor(self.body_info, self.folder_path, self.marker_canvas, self.im, True)
         else:
@@ -477,7 +476,8 @@ class Ringer(tk.Toplevel):
         length = 0
         for x in self.l:
             length += self.distance_form(x)
-        return round(math.log(length / distance, 10), 4), distance, length
+            
+        return round(math.log10(length / distance), 4), distance, length
     
     def clear_all(self):
         self.d = None

@@ -373,8 +373,8 @@ class ImageViewer(tk.Toplevel):
                   edited_unsure, edited_notes]
         if edited_body_name in config.angler_types:
             edited.extend((body_info["angle"], None, body_info["dprong1"], body_info["lprong2"], time))
-        elif edited_body_name == "ring_kettlebell":
-            edited.extend((None, body_info["log"], None, None, time))
+        elif edited_body_name in config.kbell_types:
+            edited.extend((None, body_info["log"], body_info["dprong1"], body_info["lprong2"], time))
         else:
             edited.extend((None, None, None, None, time))
         FileManagement(self.folder_path).edit_info(edited)
